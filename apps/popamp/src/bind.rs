@@ -162,13 +162,16 @@ pub fn menu(model: &Model, m: MenuRef) -> Vec<MenuItem> {
 
 /// The look the window has on screen.
 pub fn view(model: &Model, key: WindowKey) -> View {
-    let as_bar = key == WindowKey::Main && model.settings().main_bar;
+    let as_bar = key == WindowKey::Main && model.settings().main_bar && !model.no_bar;
     model.skin.layout.window(key).map_or(View::Normal, |d| d.view(as_bar, shaded(model, key)))
 }
 
 /// Where the window goes, for the look it has now.
 pub fn placement(model: &Model, key: WindowKey) -> Placement {
-    model.skin.layout.window(key).map_or(Placement::Docked, |d| d.placement_in(view(model, key)))
+    match model.skin.layout.window(key).map_or(Placement::Docked, |d| d.placement_in(view(model, key))) {
+        Placement::Bar(_) if model.no_bar => Placement::Free,
+        placement => placement,
+    }
 }
 
 /// Whether the window shows its shade mode.

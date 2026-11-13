@@ -107,7 +107,14 @@
 
 ## Known limitations
 
-- No native Wayland windows: Popamp needs Xwayland on Wayland desktops.
+- As a Wayland program (by itself where there is no Xwayland, or with
+  `wayland=1` in `popamp.ini`) Popamp has no always on top, no bar view
+  and no file drops, does not remember where on the screen its windows
+  were, and a menu opened at the screen's edge can go past it: Wayland
+  tells a program neither where its windows are nor lets it place them.
+  The equalizer and the playlist always move with the main window there.
+  Through Xwayland, which stays the default where it runs, all of that
+  works.
 - The Preferences window (`Ctrl+P`) covers the common options; the rest are
   in the menus and `popamp.ini`.
 - Tags can be changed in MP3, FLAC, Ogg Vorbis, Opus and MP4 files only, one

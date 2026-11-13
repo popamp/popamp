@@ -40,6 +40,13 @@ x11rb = { version = "0.13", features = ["shape"] }
 zbus = { version = "5", default-features = false, features = ["blocking-api", "async-io"] }
 # The tray icon (StatusNotifierItem), on the same zbus and executor.
 ksni = { version = "0.3", default-features = false, features = ["async-io", "blocking"] }
+# Wayland beside winit, on its connection: the windows winit cannot make
+# (see platform/wayland.rs). The versions winit and softbuffer use.
+wayland-client = "0.31"
+wayland-backend = { version = "0.3", features = ["client_system"] }
+wayland-protocols = { version = "0.32", features = ["client"] }
+wayland-cursor = "0.31"
+memmap2 = "0.9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Security", "Win32_System_Console", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_LibraryLoader", "Win32_System_Pipes", "Win32_System_Power", "Win32_System_Registry", "Win32_System_Threading", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }

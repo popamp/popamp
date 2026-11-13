@@ -202,6 +202,9 @@ settings! {
     zoom: i32 = 200,
     wsz_scaling: Scaling = Scaling::Sharp,
     keeponscreen: bool = true,
+    /// On a Wayland desktop, be a Wayland program even where X11 programs
+    /// run too (Xwayland). Where they do not, Popamp always is one.
+    wayland: bool = false,
     /// The main window is shown as a bar, in a skin that describes it both
     /// as a window and as a bar.
     main_bar: bool = false,
