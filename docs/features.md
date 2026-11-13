@@ -11,7 +11,8 @@
   tracks and each folder; artists and albums side by side, each with its
   number of albums or year and tracks, narrow the track table under them,
   and typing searches every tag and the file path. Play replaces the
-  playlist, Enqueue adds to it. The folders are read again in the
+  playlist, Enqueue adds to it, and tracks dragged onto the playlist go
+  in where they are let go. The folders are read again in the
   background at start (and on Rescan); only changed files are read anew,
   and the audio files themselves are never written.
 - **Own dialogs:** Jump to file (search as you type), File info, the Skin
@@ -127,7 +128,6 @@
   in the menus and `popamp.ini`.
 - Tags can be changed in MP3, FLAC, Ogg Vorbis, Opus and MP4 files only, one
   file at a time.
-- The media library has no playlists of its own yet, and its tracks cannot
-  be dragged to the playlist; no Modern (`.wal`) skins yet. See
+- The media library has no playlists of its own yet; no Modern (`.wal`) skins yet. See
   [ROADMAP.md](ROADMAP.md).
 

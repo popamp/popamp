@@ -682,7 +682,7 @@ impl SkinWin {
                 self.marquee_offset = so - (x - sx);
             }
             Kind::List => return self.drag_rows(model, y),
-            Kind::Library { thumb } => return model.library.drag(place(model, r, &thumb), y),
+            Kind::Library { thumb } => return model.library.drag(place(model, r, &thumb), x, y),
             Kind::ListScroll { thumb } => self.scroll_to(model, r, &thumb, y),
             _ => return false,
         }

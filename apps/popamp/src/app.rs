@@ -1130,9 +1130,27 @@ impl App {
             return;
         }
         let target = self.capture.take().unwrap_or(k);
+        if target == WindowKey::Library && self.model.library.take_carried() {
+            self.drop_on_playlist();
+        }
         let input = self.input(target, false, false);
         let out = self.skins[target.index()].mouse_up(&mut self.model, &input);
         self.handle_out(el, target, out);
+    }
+
+    /// Tracks carried out of the library go into the playlist at the row
+    /// they are let go over; anywhere else, nowhere.
+    fn drop_on_playlist(&mut self) {
+        let at = self.cursor_screen(WindowKey::Library);
+        let s = self.scale(WindowKey::Playlist);
+        let Some(pl) = self.win(WindowKey::Playlist).filter(|w| w.visible) else { return };
+        let (x, y) = (at.0 - pl.pos.0, at.1 - pl.pos.1);
+        if x < 0 || y < 0 || x >= s.px(pl.size.0) || y >= s.px(pl.size.1) {
+            return;
+        }
+        let row = self.skins[WindowKey::Playlist.index()].row_at(&self.model, s.skin(y));
+        self.model.library_play(AddMode::Insert(row.min(self.model.playlist.len())));
+        self.render(WindowKey::Playlist);
     }
 
     fn mouse_moved(&mut self, k: WindowKey) {

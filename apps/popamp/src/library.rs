@@ -263,6 +263,17 @@ pub enum LibEvent {
     Done(u64),
 }
 
+/// A plain press on a table row: it carries the picked tracks once the
+/// mouse moves far enough, else it is a click on `row`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Carry {
+    Pressed { x: i32, y: i32, row: usize },
+    Moving,
+}
+
+/// How far the mouse goes before a press carries.
+const CARRY_SLACK: i32 = 4;
+
 /// What the window layer has to do after an input.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct Reaction {
@@ -303,6 +314,8 @@ pub struct LibraryPane {
     /// The list whose thumb the mouse holds, and how far below the
     /// thumb's top it does.
     dragging: Option<(List, i32)>,
+    /// The picked tracks held by the mouse, to be let go over the playlist.
+    carry: Option<Carry>,
     pub scan: Option<Scan>,
     scans: u64,
 }
@@ -331,6 +344,7 @@ impl LibraryPane {
             focus: List::Tracks,
             pressed: None,
             dragging: None,
+            carry: None,
             scan: None,
             scans: 0,
         };
@@ -764,6 +778,7 @@ impl LibraryPane {
     /// The left button went down at `x`, `y`.
     #[allow(clippy::too_many_arguments)]
     pub fn press(&mut self, at: Place, x: i32, y: i32, shift: bool, ctrl: bool, double: bool) -> Reaction {
+        self.carry = None;
         let p = self.parts(at);
         if let Some(i) = p.buttons.iter().position(|k| k.contains(x, y)) {
             self.pressed = Some(i);
@@ -802,12 +817,30 @@ impl LibraryPane {
         Reaction { capture: true, run: None }
     }
 
-    /// The mouse moved to height `y` with the button down; true when it
-    /// holds a thumb, which follows it.
-    pub fn drag(&mut self, at: Place, y: i32) -> bool {
-        let Some((list, grab)) = self.dragging else { return false };
-        self.scroll_thumb_to(&self.parts(at), list, y - grab);
-        true
+    /// The mouse moved to `x`, `y` with the button down: a held thumb
+    /// follows it, held rows start being carried. True when that changed
+    /// what the window shows.
+    pub fn drag(&mut self, at: Place, x: i32, y: i32) -> bool {
+        if let Some((list, grab)) = self.dragging {
+            self.scroll_thumb_to(&self.parts(at), list, y - grab);
+            return true;
+        }
+        let Some(Carry::Pressed { x: px, y: py, .. }) = self.carry else { return false };
+        let moved = (x - px).abs().max((y - py).abs()) >= CARRY_SLACK;
+        if moved {
+            self.carry = Some(Carry::Moving);
+        }
+        moved
+    }
+
+    /// True once after the picked tracks were carried out by the mouse,
+    /// for the window layer to put them where they were let go.
+    pub fn take_carried(&mut self) -> bool {
+        let moving = self.carry == Some(Carry::Moving);
+        if moving {
+            self.carry = None;
+        }
+        moving
     }
 
     /// A press in the table: its header sorts, its rows select.
@@ -836,14 +869,26 @@ impl LibraryPane {
                 self.selected[n] = !self.selected[n];
                 (self.cursor, self.anchor) = (n, n);
             }
-            _ => self.select_only(n),
+            _ => {
+                // A row already picked keeps the others until the button
+                // goes up without carrying them.
+                if !self.selected[n] {
+                    self.select_only(n);
+                }
+                self.carry = Some(Carry::Pressed { x, y, row: n });
+                return Reaction { capture: true, run: None };
+            }
         }
         Reaction::default()
     }
 
-    /// The left button went up: a button pressed and let go over itself runs.
+    /// The left button went up: a button pressed and let go over itself
+    /// runs; a row clicked without carrying is the only one picked.
     pub fn release(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
         self.dragging = None;
+        if let Some(Carry::Pressed { row, .. }) = self.carry.take() {
+            self.select_only(row);
+        }
         let i = self.pressed.take()?;
         self.parts(at).buttons[i].contains(x, y).then_some(BUTTONS[i].1)
     }
@@ -1268,6 +1313,25 @@ mod tests {
     }
 
     #[test]
+    fn picked_rows_are_carried_once_the_mouse_moves_with_them() {
+        let mut p = pane();
+        let rows = p.parts(AT).table.rows;
+        let (x, y) = (rows.x + 5, rows.y + 2);
+        click(&mut p, rows, 0);
+        p.press(AT, x, y + PX + 3, true, false, false);
+        assert!(p.press(AT, x, y, false, false, false).capture, "a press on a row keeps the mouse");
+        assert!(!p.drag(AT, x + 2, y + 2), "a shaky click carries nothing");
+        assert!(p.drag(AT, x, y + 40));
+        assert!(p.take_carried() && !p.take_carried(), "taken once");
+        p.release(AT, x, y + 40);
+        assert_eq!(p.picked().len(), 2, "the selection goes along whole");
+        p.press(AT, x, y, false, false, false);
+        p.release(AT, x, y);
+        assert!(!p.take_carried());
+        assert_eq!(p.picked(), ["/music/1.mp3"], "a click without moving picks the one row");
+    }
+
+    #[test]
     fn the_header_sorts_and_a_second_click_turns_the_order() {
         let mut p = pane();
         let t = p.parts(AT).table;
@@ -1314,13 +1378,13 @@ mod tests {
         let thumb = p.thumb(&parts, List::Artists).unwrap();
         assert_eq!((thumb.y, thumb.h), (bar.y, 18), "at the top, as long as the skin's thumb");
         assert!(p.press(AT, bar.x + 2, thumb.y + 5, false, false, false).capture, "the thumb is held");
-        assert!(p.drag(AT, bar.y + bar.h + 50), "dragged past the end");
+        assert!(p.drag(AT, bar.x, bar.y + bar.h + 50), "dragged past the end");
         let (scroll, page) = p.window(&parts, List::Artists);
         assert_eq!(scroll, 101 - page, "the last artist in sight");
         assert_eq!((p.scroll[List::Tracks as usize], p.scroll[List::Views as usize]), (0, 0), "the other lists stay");
         assert_eq!(p.artist, None, "scrolling picks nothing");
         p.release(AT, 0, 0);
-        assert!(!p.drag(AT, bar.y), "let go");
+        assert!(!p.drag(AT, bar.x, bar.y), "let go");
 
         let table = parts.bar(List::Tracks).unwrap();
         p.press(AT, table.x + 2, table.y + table.h / 2, false, false, false);
