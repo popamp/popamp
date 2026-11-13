@@ -3,8 +3,8 @@
 //! layout the same way; a skin format only has to build one.
 //!
 //! Terms:
-//! - *window*: one top-level window of a skin (main, equalizer, playlist;
-//!   or a bar along a screen edge). It has a normal mode and may have a shade
+//! - *window*: one top-level window of a skin (main, equalizer, playlist,
+//!   media library; or a bar along a screen edge). It has a normal mode and may have a shade
 //!   mode, each with its own size and elements.
 //! - *element*: a rectangle in a window that draws something and may react
 //!   to the mouse: an image, button, toggle, slider, text...
@@ -39,10 +39,12 @@ pub enum WindowKey {
     Main,
     Eq,
     Playlist,
+    /// The media library.
+    Library,
 }
 
 impl WindowKey {
-    pub const ALL: [WindowKey; 3] = [WindowKey::Main, WindowKey::Eq, WindowKey::Playlist];
+    pub const ALL: [WindowKey; 4] = [WindowKey::Main, WindowKey::Eq, WindowKey::Playlist, WindowKey::Library];
 
     /// The key's place in [`WindowKey::ALL`].
     pub fn index(self) -> usize {
@@ -393,7 +395,15 @@ pub enum Kind {
     EqGraph,
     /// The playlist's track list.
     List,
-    /// The playlist's vertical scroll bar.
+    /// The media library: its views, search field, panes, track table
+    /// and buttons, which the player lays out and draws in the playlist's
+    /// colours. Each of its lists has a scroll bar as wide as `thumb`,
+    /// whose picture is the bar's thumb; without one the player draws a
+    /// narrow bar of its own.
+    Library {
+        thumb: Look,
+    },
+    /// The vertical scroll bar of the playlist's list.
     ListScroll {
         thumb: Look,
     },
@@ -523,6 +533,7 @@ pub enum Flag {
     Repeat,
     EqWindow,
     PlaylistWindow,
+    LibraryWindow,
     AlwaysOnTop,
     DoubleSize,
     EqOn,
@@ -552,6 +563,10 @@ pub enum Text {
     PlaylistTime,
     /// Play time for the playlist's corner.
     PlaylistClock,
+    /// The media library's name, for a title bar without one.
+    LibraryTitle,
+    /// How many tracks the media library shows, or how its scan goes.
+    LibraryStatus,
 }
 
 /// A menu the player builds.
@@ -565,6 +580,8 @@ pub enum MenuRef {
     PlaylistMisc,
     PlaylistSort,
     PlaylistRemoveMisc,
+    /// What can be done with the media library and the tracks picked in it.
+    Library,
     Previous,
     Play,
     Pause,

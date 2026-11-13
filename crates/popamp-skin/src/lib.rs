@@ -415,7 +415,7 @@ mod tests {
         let skin = fixture("fonts-shade");
         let own_font = |style: &Option<TextStyle>| style.as_ref().and_then(|t| t.font.as_ref()).is_some();
         assert!(own_font(&skin.text) && own_font(&skin.clock), "its own fonts");
-        for key in WindowKey::ALL {
+        for key in [WindowKey::Main, WindowKey::Eq, WindowKey::Playlist] {
             assert!(skin.layout.window(key).unwrap().shade.is_some(), "{key:?} has a shade mode");
         }
     }

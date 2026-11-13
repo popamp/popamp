@@ -172,6 +172,14 @@ settings! {
     pe_width: i32 = 275,
     pe_height: i32 = 232,
     pe_ws: bool = false,
+    // The media library window.
+    ml_open: bool = false,
+    ml_wx: i32 = 375,
+    ml_wy: i32 = 100,
+    ml_width: i32 = 550,
+    ml_height: i32 = 348,
+    /// Look for new and changed files in the library's folders at start.
+    ml_scan_at_start: bool = true,
     // Playback.
     /// 0..=255, Winamp scale.
     volume: i32 = 200,
@@ -286,6 +294,8 @@ impl Settings {
         self.preamp = self.preamp.clamp(0, 63);
         self.pe_width = self.pe_width.max(275);
         self.pe_height = self.pe_height.max(116);
+        self.ml_width = self.ml_width.max(275);
+        self.ml_height = self.ml_height.max(116);
         self.pe_fontsize = self.pe_fontsize.clamp(6, 40);
         self.snaplen = self.snaplen.clamp(0, 100);
         self.zoom = self.zoom.clamp(125, 300);
@@ -395,6 +405,9 @@ impl Paths {
     }
     pub fn replaygain_file(&self) -> PathBuf {
         self.config_dir.join("replaygain.txt")
+    }
+    pub fn library_file(&self) -> PathBuf {
+        self.config_dir.join("library.txt")
     }
     pub fn eq_library(&self) -> PathBuf {
         self.config_dir.join("popamp.q1")

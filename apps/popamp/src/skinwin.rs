@@ -5,6 +5,7 @@
 use crate::bind;
 use crate::canvas::Canvas;
 use crate::font::Fonts;
+use crate::library::Place;
 use crate::model::Model;
 use crate::platform::Mask;
 use crate::render::{self, picture, sprite};
@@ -294,12 +295,38 @@ impl SkinWin {
     }
 
     /// Scrolls so the thumb's middle follows `y` on the scroll bar `r`.
-    fn scroll_to(&mut self, model: &Model, r: Rect, thumb: &Look, y: i32) {
+    fn scroll_to(&mut self, model: &mut Model, r: Rect, thumb: &Look, y: i32) {
         let th = thumb_h(thumb);
         let track = (r.h - th).max(1);
-        let max = model.playlist.len().saturating_sub(self.visible_rows(model));
+        let max = self.scroll_range(model).1;
         let frac = ((y - r.y - th / 2) as f32 / track as f32).clamp(0.0, 1.0);
         self.list.scroll = (frac * max as f32).round() as usize;
+    }
+
+    /// The playlist's first visible row and the last one it can have.
+    fn scroll_range(&self, model: &Model) -> (usize, usize) {
+        (self.scroll(model), model.playlist.len().saturating_sub(self.visible_rows(model)))
+    }
+
+    // --- media library ---------------------------------------------------------
+
+    /// Where the library is, in a window that shows it.
+    fn library_place(&self, model: &Model) -> Option<Place> {
+        let c = self.current(model)?;
+        c.mode.elements.iter().find_map(|el| match &el.kind {
+            Kind::Library { thumb } => Some(place(model, el.at.resolve(c.w, c.h), thumb)),
+            _ => None,
+        })
+    }
+
+    /// A key for the library; false when it has no use for it.
+    pub fn library_key(&mut self, model: &mut Model, key: crate::widgets::Key, shift: bool) -> bool {
+        let Some(at) = self.library_place(model) else { return false };
+        let (used, run) = model.library.key(at, key, shift);
+        if let Some(c) = run {
+            model.exec(c);
+        }
+        used
     }
 
     // --- popups --------------------------------------------------------------
@@ -402,10 +429,20 @@ impl SkinWin {
                 Kind::Vis => model.vis.draw(b, r.x, r.y, r.w, r.h, model.settings(), &skin.viscolor),
                 Kind::EqGraph => draw_eq_graph(model, b, r),
                 Kind::List => self.draw_list(model, &mut fonts.list, b, r, active),
+                Kind::Library { thumb } => {
+                    let playing = model.playlist.current_entry().map(|e| e.location.as_str());
+                    let at = place(model, r, thumb);
+                    model.library.draw(b, &mut fonts.list, at, &skin.pl, active, playing);
+                    for (t, held) in model.library.thumbs(at) {
+                        if let Some(p) = thumb.pick(false, held, true) {
+                            draw_paint(b, skin, p, t, Fill::Once);
+                        }
+                    }
+                }
                 Kind::ListScroll { thumb } => {
                     let track = r.h - thumb_h(thumb);
-                    let max = model.playlist.len().saturating_sub(self.visible_rows(model));
-                    let ty = if max == 0 { 0 } else { (self.scroll(model) as i32 * track) / max as i32 };
+                    let (at, max) = self.scroll_range(model);
+                    let ty = if max == 0 { 0 } else { (at as i32 * track) / max as i32 };
                     if let Some(p) = thumb.pick(false, held, true) {
                         draw_paint(b, skin, p, Rect { y: r.y + ty, ..r }, Fill::Once);
                     }
@@ -516,6 +553,9 @@ impl SkinWin {
                     model.playlist.select_only(i);
                 }
             }
+            if let Some((Element { kind: Kind::Library { thumb }, .. }, r)) = found {
+                model.library.press_right(place(model, r, &thumb), ev.x, ev.y);
+            }
             let menu = found.and_then(|(el, _)| el.menu).unwrap_or(MenuRef::Main);
             return Out::Menu(bind::menu(model, menu));
         }
@@ -564,6 +604,17 @@ impl SkinWin {
             }
             Kind::List => {
                 if !self.press_row(model, ev) {
+                    return Out::Redraw;
+                }
+                self.pressed = Some((shade, i));
+                Out::Capture
+            }
+            Kind::Library { thumb } => {
+                let re = model.library.press(place(model, r, &thumb), ev.x, ev.y, ev.shift, ev.ctrl, ev.double);
+                if let Some(c) = re.run {
+                    model.exec(c);
+                }
+                if !re.capture {
                     return Out::Redraw;
                 }
                 self.pressed = Some((shade, i));
@@ -631,6 +682,7 @@ impl SkinWin {
                 self.marquee_offset = so - (x - sx);
             }
             Kind::List => return self.drag_rows(model, y),
+            Kind::Library { thumb } => return model.library.drag(place(model, r, &thumb), y),
             Kind::ListScroll { thumb } => self.scroll_to(model, r, &thumb, y),
             _ => return false,
         }
@@ -655,8 +707,14 @@ impl SkinWin {
         }
         let Some(i) = pressed else { return Out::None };
         let over = self.hit(model, ev.x, ev.y) == Some(i);
-        let Some((el, _)) = self.element(model, i) else { return Out::Redraw };
+        let Some((el, r)) = self.element(model, i) else { return Out::Redraw };
         match el.kind {
+            Kind::Library { thumb } => {
+                if let Some(c) = model.library.release(place(model, r, &thumb), ev.x, ev.y) {
+                    model.exec(c);
+                }
+                Out::Redraw
+            }
             Kind::Slider(s) => {
                 if let Some(v) = self.preview.take() {
                     bind::set_value(model, s.value, v);
@@ -688,6 +746,9 @@ impl SkinWin {
                 }
                 return;
             }
+        }
+        if let Some(at) = self.library_place(model) {
+            return model.library.wheel(at, x, y, steps);
         }
         match self.def(model).map(|d| d.wheel) {
             Some(Wheel::Volume(step)) => model.set_volume(model.settings().volume + steps * step),
@@ -730,7 +791,7 @@ pub fn image_mask(model: &Model, mode: &Mode, size: (i32, i32), drawn: Scale, sh
             let r = el.at.resolve(w, h);
             match &el.kind {
                 Kind::Image { look: Look { normal: Some(p), .. }, fill, .. } => draw_paint(&mut b, &model.skin, *p, r, *fill),
-                Kind::List | Kind::Vis | Kind::EqGraph => b.fill(r.x, r.y, r.w, r.h, 0x808080),
+                Kind::List | Kind::Library { .. } | Kind::Vis | Kind::EqGraph => b.fill(r.x, r.y, r.w, r.h, 0x808080),
                 _ => {}
             }
         }
@@ -740,6 +801,11 @@ pub fn image_mask(model: &Model, mode: &Mode, size: (i32, i32), drawn: Scale, sh
     let green = |c: u32| (c >> 8) & 0xff;
     let on = black.px.iter().zip(&white.px).map(|(&k, &w)| green(w).saturating_sub(green(k)) < 128).collect();
     Mask { w: black.w, h: black.h, on, scale: if drawn.is_one() { shown } else { Scale::ONE } }
+}
+
+/// Where a library element with `thumb`, at `r`, puts the library.
+fn place(model: &Model, r: Rect, thumb: &Look) -> Place {
+    Place { r, px: model.settings().pe_fontsize, thumb: thumb.normal.map(|p| (p.src.w, p.src.h)) }
 }
 
 fn draw_paint(b: &mut Canvas, skin: &Skin, p: Paint, r: Rect, fill: Fill) {

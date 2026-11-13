@@ -6,6 +6,14 @@
   size). Classic skins stay crisp at fractional sizes. Windows dock and snap together, and
   support windowshade mode, EasyMove, always-on-top and `region.txt` shapes.
   Tooltips explain the main window's buttons.
+- **Media library** (`Alt+L`): a window of its own, docking with the
+  others, for the folders you give it. It lists all the music, the newest
+  tracks and each folder; artists and albums side by side, each with its
+  number of albums or year and tracks, narrow the track table under them,
+  and typing searches every tag and the file path. Play replaces the
+  playlist, Enqueue adds to it. The folders are read again in the
+  background at start (and on Rescan); only changed files are read anew,
+  and the audio files themselves are never written.
 - **Own dialogs:** Jump to file (search as you type), File info, the Skin
   browser (`Alt+S`) and a Preferences window (`Ctrl+P`). They and the menus
   follow the display scaling (Windows' scaling setting, `Xft.dpi` on X11),
@@ -119,5 +127,7 @@
   in the menus and `popamp.ini`.
 - Tags can be changed in MP3, FLAC, Ogg Vorbis, Opus and MP4 files only, one
   file at a time.
-- No media library or Modern (`.wal`) skins yet. See [ROADMAP.md](ROADMAP.md).
+- The media library has no playlists of its own yet, and its tracks cannot
+  be dragged to the playlist; no Modern (`.wal`) skins yet. See
+  [ROADMAP.md](ROADMAP.md).
 

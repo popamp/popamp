@@ -25,6 +25,7 @@ pub fn flag(model: &Model, f: Flag) -> bool {
         Flag::Repeat => s.repeat,
         Flag::EqWindow => s.eq_open,
         Flag::PlaylistWindow => s.pe_open,
+        Flag::LibraryWindow => s.ml_open,
         Flag::AlwaysOnTop => s.aot,
         Flag::DoubleSize => s.dsize,
         Flag::EqOn => s.use_eq,
@@ -93,6 +94,8 @@ pub fn text(model: &Model, t: Text) -> Option<String> {
             };
             format!("{shown:>6}")
         }),
+        Text::LibraryTitle => Some("MEDIA LIBRARY".into()),
+        Text::LibraryStatus => Some(model.library.status().to_uppercase()),
     }
 }
 
@@ -107,6 +110,7 @@ pub fn menu(model: &Model, m: MenuRef) -> Vec<MenuItem> {
         MenuRef::PlaylistRow => model.playlist_row_menu(),
         MenuRef::PlaylistMisc => model.playlist_misc_menu(),
         MenuRef::PlaylistSort => model.sort_menu(),
+        MenuRef::Library => model.library_menu(),
         MenuRef::PlaylistRemoveMisc => vec![
             MenuItem::cmd("Remove missing files", "Alt+Del", C::RemoveMissing),
             MenuItem::cmd("Physically remove selected file(s)…", "", C::PhysicallyRemove),
@@ -181,6 +185,7 @@ pub fn shaded(model: &Model, key: WindowKey) -> bool {
         WindowKey::Main => s.windowshade,
         WindowKey::Eq => s.eq_ws,
         WindowKey::Playlist => s.pe_ws,
+        WindowKey::Library => false,
     }
 }
 
@@ -189,6 +194,7 @@ pub fn title(key: WindowKey) -> &'static str {
         WindowKey::Main => "Popamp",
         WindowKey::Eq => "Popamp Equalizer",
         WindowKey::Playlist => "Popamp Playlist Editor",
+        WindowKey::Library => "Popamp Media Library",
     }
 }
 
@@ -199,6 +205,7 @@ pub fn shown(model: &Model, key: WindowKey) -> bool {
         WindowKey::Main => true,
         WindowKey::Eq => s.eq_open,
         WindowKey::Playlist => s.pe_open,
+        WindowKey::Library => s.ml_open,
     };
     open && model.skin.layout.window(key).is_some()
 }
@@ -209,6 +216,7 @@ pub fn position(model: &Model, key: WindowKey) -> (i32, i32) {
         WindowKey::Main => (s.wx, s.wy),
         WindowKey::Eq => (s.eq_wx, s.eq_wy),
         WindowKey::Playlist => (s.pe_wx, s.pe_wy),
+        WindowKey::Library => (s.ml_wx, s.ml_wy),
     }
 }
 
@@ -218,6 +226,7 @@ pub fn set_position(model: &mut Model, key: WindowKey, p: (i32, i32)) {
         WindowKey::Main => (s.wx, s.wy) = p,
         WindowKey::Eq => (s.eq_wx, s.eq_wy) = p,
         WindowKey::Playlist => (s.pe_wx, s.pe_wy) = p,
+        WindowKey::Library => (s.ml_wx, s.ml_wy) = p,
     }
 }
 
@@ -226,6 +235,7 @@ pub fn stored_size(model: &Model, key: WindowKey) -> (i32, i32) {
     let s = model.settings();
     match key {
         WindowKey::Playlist => (s.pe_width, s.pe_height),
+        WindowKey::Library => (s.ml_width, s.ml_height),
         // A bar covers its monitor's width.
         WindowKey::Main => (model.screen.map_or(0, |m| scale(model, key).skin_up(m.w)), 0),
         _ => (0, 0),
@@ -243,6 +253,7 @@ pub fn resize(model: &mut Model, key: WindowKey, start: (i32, i32), dx: i32, dy:
     let s = model.settings_mut();
     match key {
         WindowKey::Playlist => (s.pe_width, s.pe_height) = size,
+        WindowKey::Library => (s.ml_width, s.ml_height) = size,
         _ => return false,
     }
     true
@@ -325,6 +336,19 @@ mod tests {
         m.skin.layout.windows.retain(|w| w.key == WindowKey::Main);
         assert!(!shown(&m, WindowKey::Eq), "a skin without an equalizer");
         assert_eq!(window_size(&m, WindowKey::Eq), (0, 0));
+    }
+
+    #[test]
+    fn the_library_window_opens_on_its_command_and_resizes_in_steps() {
+        let mut m = Model::for_tests();
+        assert!(!shown(&m, WindowKey::Library), "closed until asked for");
+        m.exec(Command::ToggleLibraryWindow);
+        assert!(shown(&m, WindowKey::Library) && flag(&m, Flag::LibraryWindow));
+        let start = window_size(&m, WindowKey::Library);
+        assert!(resize(&mut m, WindowKey::Library, start, 30, 0));
+        assert_eq!(window_size(&m, WindowKey::Library), (start.0 + 25, start.1), "in the frame's steps");
+        assert_eq!(text(&m, Text::LibraryStatus).as_deref(), Some("0 TRACKS"));
+        assert!(menu(&m, MenuRef::Library).len() >= 4);
     }
 
     #[test]

@@ -112,6 +112,12 @@ commands! {
     AlbumArt = 50030,
     History = 50031,
     ScanReplayGain = 50032,
+    ToggleLibraryWindow = 50033,
+    LibraryPlay = 50034,
+    LibraryEnqueue = 50035,
+    LibraryAddFolder = 50036,
+    LibraryRescan = 50037,
+    LibraryRemoveFolder = 50038,
 }
 
 #[cfg(test)]
