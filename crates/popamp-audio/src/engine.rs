@@ -1334,17 +1334,44 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn without_sound_output_a_track_fails_instead_of_racing() {
-        let wav = silent_wav("no-output", 1000);
+    fn the_default_device_plays_a_track_at_its_own_speed() {
+        if crate::output::available().is_err() {
+            eprintln!("no sound output device: skipped");
+            return;
+        }
+        let wav = silent_wav("macos-speed", 1000);
         let (tx, events) = crossbeam_channel::unbounded();
         let engine = Engine::spawn(crate::output::DEFAULT.into(), Arc::new(Sources::default()), move |e| {
             let _ = tx.send(e);
         });
+        let started = std::time::Instant::now();
         engine.send(EngineCmd::Open { id: 1, location: wav.to_string_lossy().into(), start_ms: 0 });
-        let seen: Vec<EngineEvent> = std::iter::from_fn(|| events.recv_timeout(Duration::from_secs(2)).ok()).collect();
+        assert_eq!(events_until_finished(&events), ["started 1", "finished 1"]);
         let _ = std::fs::remove_file(wav);
-        assert!(seen.iter().any(|e| matches!(e, EngineEvent::Error { id: 1, message } if message.contains("macOS"))), "{seen:?}");
-        assert!(!seen.iter().any(|e| matches!(e, EngineEvent::Finished { .. })), "{seen:?}");
+        assert!(started.elapsed() >= Duration::from_millis(800), "{:?}", started.elapsed());
+    }
+
+    // Picking another track while paused: the new one plays, as on Linux.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn a_track_opened_while_paused_plays() {
+        if crate::output::available().is_err() {
+            eprintln!("no sound output device: skipped");
+            return;
+        }
+        let (first, second) = (silent_wav("macos-paused-1", 2000), silent_wav("macos-paused-2", 300));
+        let (tx, events) = crossbeam_channel::unbounded();
+        let engine = Engine::spawn(crate::output::DEFAULT.into(), Arc::new(Sources::default()), move |e| {
+            let _ = tx.send(e);
+        });
+        engine.send(EngineCmd::Open { id: 1, location: first.to_string_lossy().into(), start_ms: 0 });
+        assert!(matches!(events.recv_timeout(Duration::from_secs(2)), Ok(EngineEvent::Started { id: 1, .. })));
+        engine.send(EngineCmd::Pause(true));
+        engine.send(EngineCmd::Open { id: 2, location: second.to_string_lossy().into(), start_ms: 0 });
+        let seen = events_until_finished(&events);
+        let _ = (std::fs::remove_file(first), std::fs::remove_file(second));
+        assert_eq!(seen.last().map(String::as_str), Some("finished 2"), "{seen:?}");
+        assert!(seen.iter().all(|s| !s.contains("Error")), "{seen:?}");
     }
 
     // The program is a shell script.

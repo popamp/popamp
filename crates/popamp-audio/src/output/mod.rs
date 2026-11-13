@@ -1,6 +1,6 @@
-//! The sound card: ALSA on Linux, WASAPI on Windows, CoreAudio on macOS
-//! (where only `null` plays for now). Each system's `Pcm` is a blocking,
-//! interleaved float stream with the same calls.
+//! The sound card: ALSA on Linux, WASAPI on Windows, CoreAudio on macOS.
+//! Each system's `Pcm` is a blocking, interleaved float stream with the
+//! same calls.
 
 #[cfg(linux_like)]
 mod alsa;
