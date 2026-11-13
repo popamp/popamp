@@ -14,8 +14,10 @@ Contributions are welcome. Please open an issue first for larger items.
 
 ## 1.0: The whole player
 
-- **Native Wayland mode:** draw all windows into one surface, since Wayland
-  does not let apps position their own windows.
+- **Native Wayland mode:** done; the equalizer, the playlist and menus are
+  parts of the main window there, since Wayland does not let apps
+  position their own windows. Left: file drops, and menus kept on the
+  screen (needs winit to give out the window's `xdg_surface`).
 - **Local media library:** folder scanning, search, library playlists.
 - **Modern skins:** Wasabi XML layout and the MAKI script VM.
 - **Hands-on testing before the release:** mouse interaction, docking,

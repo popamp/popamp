@@ -1,9 +1,15 @@
 //! X11: window types through winit, shapes, struts and work areas through
-//! a connection of our own.
+//! a connection of our own. Under Wayland (see `wayland.rs`) none of that
+//! exists, and the calls for it do nothing.
 
-use super::{shape_rects, Mask, WindowRole};
+use super::wayland::{self, Wayland};
+use super::{shape_rects, Mask, Surface, Win, WindowRole};
 use crate::bar::{Screen, Strip};
 use popamp_core::config::BarEdge;
+use popamp_skin::cursors::CursorImage;
+use std::sync::Arc;
+use winit::event_loop::ActiveEventLoop;
+use winit::platform::wayland::ActiveEventLoopExtWayland;
 use winit::platform::x11::{WindowAttributesExtX11, WindowType};
 use winit::window::{Window, WindowAttributes};
 use x11rb::connection::{Connection, RequestConnection};
@@ -25,6 +31,20 @@ pub fn attributes(role: WindowRole) -> WindowAttributes {
     }
 }
 
+/// Picks the window system for the event loop: Wayland where the desktop
+/// is one and either the user asked for it (`wanted`) or X11 programs
+/// cannot run there; X11 otherwise, where Popamp can place its windows.
+pub fn choose_window_system<T>(builder: &mut winit::event_loop::EventLoopBuilder<T>, wanted: bool) {
+    use winit::platform::wayland::EventLoopBuilderExtWayland as _;
+    use winit::platform::x11::EventLoopBuilderExtX11 as _;
+    let has = |var: &str| std::env::var_os(var).is_some_and(|v| !v.is_empty());
+    if has("WAYLAND_DISPLAY") && (wanted || !has("DISPLAY")) {
+        builder.with_wayland();
+    } else {
+        builder.with_x11();
+    }
+}
+
 /// Window managers differ in whether they minimize transient windows with
 /// their owner, so every window is minimized and restored by itself.
 pub const OWNED_FOLLOW_OWNER: bool = false;
@@ -32,12 +52,68 @@ pub const OWNED_FOLLOW_OWNER: bool = false;
 /// A connection to the X server for what winit does not cover.
 pub struct Platform {
     x11: Option<RustConnection>,
+    /// The windows are Wayland's, not X11's.
+    on_wayland: bool,
+    /// There from the main window's making on.
+    wayland: Option<Wayland>,
 }
 
 impl Platform {
     pub fn connect() -> Platform {
-        let x11 = x11rb::connect(None).map(|(c, _)| c).map_err(|e| log::warn!("no X11 connection for window shapes: {e}")).ok();
-        Platform { x11 }
+        Platform { x11: None, on_wayland: false, wayland: None }
+    }
+
+    /// Finds which window system the event loop is on.
+    pub fn start(&mut self, el: &ActiveEventLoop) {
+        self.on_wayland = el.is_wayland();
+        if !self.on_wayland && self.x11.is_none() {
+            self.x11 = x11rb::connect(None).map(|(c, _)| c).map_err(|e| log::warn!("no X11 connection for window shapes: {e}")).ok();
+        }
+    }
+
+    pub fn on_wayland(&self) -> bool {
+        self.on_wayland
+    }
+
+    /// What to draw `window` into. Under Wayland it is the main window,
+    /// at `pos`, which the others are then placed against.
+    pub fn surface(&mut self, window: &Arc<Window>, pos: (i32, i32)) -> Result<Surface, String> {
+        match Wayland::join(window, pos) {
+            Some(joined) => {
+                let wayland = joined?;
+                let surface = wayland.main_surface();
+                self.wayland = Some(wayland);
+                Ok(Surface::Shm(Box::new(surface)))
+            }
+            None => Surface::soft(window),
+        }
+    }
+
+    /// Under Wayland, a window at `pos` that is a part of the main one.
+    /// Without `input` the mouse goes through it.
+    pub fn child(&self, pos: (i32, i32), input: bool) -> Option<(Win, Surface)> {
+        let (sub, shm) = self.wayland.as_ref()?.sub(pos, input);
+        Some((Win::Sub(Box::new(sub)), Surface::Shm(Box::new(shm))))
+    }
+
+    /// What happened to the windows made by `child`.
+    pub fn events(&mut self) -> Vec<wayland::Event> {
+        self.wayland.as_mut().map(Wayland::events).unwrap_or_default()
+    }
+
+    /// The screen pixels in one of the Wayland compositor's units.
+    pub fn set_scale(&self, scale: f64) {
+        if let Some(wayland) = &self.wayland {
+            wayland.set_scale(scale);
+        }
+    }
+
+    /// The mouse's picture over the windows made by `child`: a skin's
+    /// cursor or the desktop's arrow.
+    pub fn set_cursor(&mut self, cursor: Option<&CursorImage>) {
+        if let Some(wayland) = &mut self.wayland {
+            wayland.set_cursor(cursor);
+        }
     }
 
     /// Cuts `window` to the `region.txt` polygons (`None` restores the

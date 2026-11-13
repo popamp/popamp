@@ -1,17 +1,23 @@
-//! Everything that depends on the windowing system: X11 (or Xwayland) on
+//! Everything that depends on the windowing system: X11 or Wayland on
 //! Linux, Win32 on Windows, AppKit on macOS. The rest of the program sees
 //! only this module.
 
 use crate::scale::Scale;
+use std::num::NonZeroU32;
+use std::sync::Arc;
+use winit::dpi::PhysicalPosition;
+use winit::window::{Window, WindowId};
 
 #[cfg(windows)]
 mod windows;
 #[cfg(windows)]
 pub use windows::{attributes, use_parent_console, Platform, OWNED_FOLLOW_OWNER};
 #[cfg(linux_like)]
+pub mod wayland;
+#[cfg(linux_like)]
 mod x11;
 #[cfg(linux_like)]
-pub use x11::{attributes, Platform, OWNED_FOLLOW_OWNER};
+pub use x11::{attributes, choose_window_system, Platform, OWNED_FOLLOW_OWNER};
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
@@ -32,6 +38,144 @@ pub enum WindowRole {
     Tooltip,
     /// Popamp's own dialogs: ordinary windows with a title bar.
     Dialog,
+}
+
+/// A window of ours: one the system knows as a window, or under Wayland a
+/// surface placed against the main window (see `wayland.rs`).
+pub enum Win {
+    Top(Arc<Window>),
+    #[cfg(linux_like)]
+    Sub(Box<wayland::Sub>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WinId {
+    Top(WindowId),
+    #[cfg(linux_like)]
+    Sub(u32),
+}
+
+impl Win {
+    pub fn id(&self) -> WinId {
+        match self {
+            Win::Top(w) => WinId::Top(w.id()),
+            #[cfg(linux_like)]
+            Win::Sub(s) => WinId::Sub(s.id()),
+        }
+    }
+
+    /// The system's window, when it is one.
+    pub fn top(&self) -> Option<&Arc<Window>> {
+        match self {
+            Win::Top(w) => Some(w),
+            #[cfg(linux_like)]
+            Win::Sub(_) => None,
+        }
+    }
+
+    /// Puts the top-left corner at `pos`, in screen pixels.
+    pub fn move_to(&self, pos: (i32, i32)) {
+        match self {
+            Win::Top(w) => w.set_outer_position(PhysicalPosition::new(pos.0, pos.1)),
+            #[cfg(linux_like)]
+            Win::Sub(s) => s.move_to(pos),
+        }
+    }
+
+    pub fn request_redraw(&self) {
+        match self {
+            Win::Top(w) => w.request_redraw(),
+            #[cfg(linux_like)]
+            Win::Sub(s) => s.request_redraw(),
+        }
+    }
+}
+
+/// What a window is drawn into.
+pub enum Surface {
+    Soft(softbuffer::Surface<Arc<Window>, Arc<Window>>),
+    #[cfg(linux_like)]
+    Shm(Box<wayland::Shm>),
+}
+
+impl Surface {
+    /// The usual one, for a window of the system.
+    pub fn soft(window: &Arc<Window>) -> Result<Surface, String> {
+        softbuffer::Context::new(window.clone())
+            .and_then(|c| softbuffer::Surface::new(&c, window.clone()))
+            .map(Surface::Soft)
+            .map_err(|e| format!("softbuffer: {e}"))
+    }
+
+    /// Shows a picture `size` screen pixels big, which `draw` paints.
+    pub fn present(&mut self, size: (i32, i32), draw: impl FnOnce(&mut [u32])) {
+        match self {
+            Surface::Soft(s) => {
+                let (Some(w), Some(h)) = (NonZeroU32::new(size.0.max(0) as u32), NonZeroU32::new(size.1.max(0) as u32)) else { return };
+                if s.resize(w, h).is_err() {
+                    return;
+                }
+                if let Ok(mut buf) = s.buffer_mut() {
+                    draw(&mut buf);
+                    if let Err(e) = buf.present() {
+                        log::debug!("present failed: {e}");
+                    }
+                }
+            }
+            #[cfg(linux_like)]
+            Surface::Shm(s) => s.present(size, draw),
+        }
+    }
+
+    /// Under Wayland the picture carries the window's shape; elsewhere
+    /// the window does (`Platform::set_shape`).
+    #[cfg_attr(not(linux_like), allow(unused_variables))]
+    pub fn set_shape(&mut self, mask: Option<&Mask>, size: (i32, i32)) {
+        #[cfg(linux_like)]
+        if let Surface::Shm(s) = self {
+            s.set_shape(mask, size);
+        }
+    }
+
+    /// Takes a window `size` screen pixels big off the screen where its
+    /// picture decides that (Wayland).
+    #[cfg_attr(not(linux_like), allow(unused_variables))]
+    pub fn hide(&mut self, size: (i32, i32)) {
+        #[cfg(linux_like)]
+        if let Surface::Shm(s) = self {
+            s.hide(size);
+        }
+    }
+
+    /// The system asked for the window to be drawn: it may be from now on.
+    pub fn ready(&mut self) {
+        #[cfg(linux_like)]
+        if let Surface::Shm(s) = self {
+            s.ready();
+        }
+    }
+}
+
+/// Without Wayland every window is the system's.
+#[cfg(not(linux_like))]
+impl Platform {
+    pub fn start(&mut self, _el: &winit::event_loop::ActiveEventLoop) {}
+
+    pub fn on_wayland(&self) -> bool {
+        false
+    }
+
+    pub fn surface(&mut self, window: &Arc<Window>, _pos: (i32, i32)) -> Result<Surface, String> {
+        Surface::soft(window)
+    }
+
+    pub fn child(&self, _pos: (i32, i32), _input: bool) -> Option<(Win, Surface)> {
+        None
+    }
+
+    pub fn set_scale(&self, _scale: f64) {}
+
+    pub fn set_cursor(&mut self, _cursor: Option<&popamp_skin::cursors::CursorImage>) {}
 }
 
 /// Which pixels of a window show: `w` x `h` of them, each `scale` times

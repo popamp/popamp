@@ -143,6 +143,9 @@ pub struct Model {
     /// What a bar spans: the main window's monitor less the desktop's
     /// panels.
     pub screen: Option<crate::bar::Screen>,
+    /// The window system has no place for a bar (Wayland): the main
+    /// window is always a window.
+    pub no_bar: bool,
 }
 
 /// How a bookmark shows in menus and lists: its title, else its location.
@@ -252,6 +255,7 @@ impl Model {
             status: Status::default(),
             stop_after_current: false,
             screen: None,
+            no_bar: false,
             transient: None,
             eq_presets,
             eq_auto,
@@ -1489,7 +1493,7 @@ impl Model {
             };
             items.push(MenuItem::sub("Colours", self.skin.color_sets.iter().enumerate().map(set).collect()));
         }
-        if self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
+        if !self.no_bar && self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
             let as_ = |label: &str, bar: bool| MenuItem::action(label, "", MenuAction::MainAsBar(bar)).checked(s.main_bar == bar);
             items.push(MenuItem::sub("Main window as", vec![as_("A window", false), as_("A bar", true)]));
         }

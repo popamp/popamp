@@ -116,7 +116,10 @@ fn main() {
         let _ = std::fs::remove_file(paths.playlist_file());
     }
 
-    let event_loop = match EventLoop::<AppEvent>::with_user_event().build() {
+    let mut event_loop = EventLoop::<AppEvent>::with_user_event();
+    #[cfg(linux_like)]
+    platform::choose_window_system(&mut event_loop, config.settings.wayland);
+    let event_loop = match event_loop.build() {
         Ok(el) => el,
         Err(e) => {
             eprintln!("popamp: cannot open a display: {e}");

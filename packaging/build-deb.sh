@@ -88,7 +88,7 @@ Maintainer: Gunyakov <web@gunyakov.pro>
 Installed-Size: $(du -sk "$pkg/usr" | cut -f1)
 Homepage: https://github.com/popamp/popamp
 Depends: libc6 (>= $glibc), libasound2t64 | libasound2, libx11-6, libx11-xcb1, libxcursor1, libxi6, libxkbcommon0, libxkbcommon-x11-0, libopus0, fontconfig
-Recommends: zenity | kdialog, fonts-dejavu-core, libopenmpt0t64 | libopenmpt0$vulkan
+Recommends: zenity | kdialog, fonts-dejavu-core, libwayland-client0, libopenmpt0t64 | libopenmpt0$vulkan
 Suggests: fluid-soundfont-gm | timgm6mb-soundfont
 ${other}Description: $summary
  Popamp is an audio player in the style of the classic Winamp 2: main

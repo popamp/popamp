@@ -35,8 +35,10 @@ ebur128 = "0.1"
 rustfft = "6"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 image = { version = "0.25", default-features = false, features = ["bmp", "png", "gif", "jpeg", "ico"] }
-winit = { version = "0.30", default-features = false, features = ["x11", "rwh_06"] }
-softbuffer = { version = "0.4", default-features = false, features = ["x11", "x11-dlopen"] }
+# Wayland: with the title bars winit draws for dialogs where the desktop
+# draws none (GNOME).
+winit = { version = "0.30", default-features = false, features = ["x11", "wayland", "wayland-dlopen", "wayland-csd-adwaita", "rwh_06"] }
+softbuffer = { version = "0.4", default-features = false, features = ["x11", "x11-dlopen", "wayland", "wayland-dlopen"] }
 fontdue = "0.9"
 # Only the renderer: SVG <text> is not drawn, skins outline their text.
 resvg = { version = "0.49", default-features = false, features = ["raster-images"] }

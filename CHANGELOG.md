@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Wayland:** Popamp can run as a Wayland program, without Xwayland. It
+  does so by itself on a Wayland desktop where X11 programs cannot run;
+  elsewhere it stays an X11 program unless `wayland=1` is set in
+  `popamp.ini`. Wayland does not let a program place its windows, so the
+  equalizer, the playlist, menus and tooltips are parts of the main
+  window there: they dock, snap and move as before, and all go along
+  when the main window is moved. Not there, because Wayland has no way
+  for it: always on top, the bar view, remembering where on the screen
+  the windows were, and keeping menus on the screen at its edges.
+  Dropping files onto the windows does not work there yet.
+
 ## [0.9.1] - 2026-11-13
 
 ### Fixed
