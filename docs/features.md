@@ -39,6 +39,12 @@
   gallery did not install itself is left alone. In the build without
   plug-ins only the Skins tab lists anything. Popamp contacts the site only while
   that window is open.
+- **Update check:** at start, at most once a day, Popamp asks
+  [popamp.app](https://popamp.app) for the latest version (the request
+  carries only Popamp's version) and, when a newer one is out, offers
+  its page at the top of the main menu, or says to update through the
+  package manager when Popamp came from a .deb or .rpm. It never
+  downloads or installs anything itself. Off in Preferences > Desktop.
 - **Tags and covers:** File info (`Alt+3`) changes the title, artist,
   album, album artist, year, genre, track and disc numbers, composer and
   comment of MP3, FLAC, Ogg Vorbis, Opus and MP4/M4A files, and sets or removes

@@ -32,6 +32,15 @@ All notable changes to this project are documented here. The format follows
   menu, *Scope: afterglow*) leaves each trace to fade over five frames
   through the skin's oscilloscope colours, like the glow of a
   cathode-ray tube.
+- **Update check:** at start, at most once a day, Popamp reads
+  `https://popamp.app/latest.json` and, when it names a newer version,
+  says so in the display and puts *Popamp X is out* at the top of the
+  main menu, with *Download…* (opens the release's page) and *Skip this
+  version*. Installed from a .deb or .rpm, it says to update through the
+  package manager instead. Popamp never downloads or installs an update
+  itself; the request carries only its version, in the User-Agent, and
+  without network nothing is said. Preferences > Desktop > *Check for a
+  new version* turns it off.
 
 ## [0.9.1] - 2026-11-13
 

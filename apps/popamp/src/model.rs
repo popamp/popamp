@@ -54,6 +54,8 @@ pub enum AppEvent {
     Scan(crate::scan::ScanEvent),
     /// How a scan of the media library's folders goes.
     Library(crate::library::LibEvent),
+    /// What popamp.app says the latest Popamp is.
+    Update(Result<crate::update::Release, String>),
     /// The plug-ins, loaded anew, and an instance of each dsp one for the
     /// engine; the number is that of the request.
     #[cfg(feature = "plugins")]
@@ -114,6 +116,8 @@ pub struct Model {
     pub stop_after_current: bool,
     /// Temporary marquee text (volume, seek, errors) and when it expires.
     pub transient: Option<(String, Instant)>,
+    /// A newer Popamp the site told of.
+    pub update: Option<crate::update::Release>,
     pub eq_presets: Vec<Preset>,
     pub eq_auto: Vec<Preset>,
     /// Favourite files and streams, kept in `bookmarks.m3u8`.
@@ -207,6 +211,7 @@ impl Model {
         if m.settings().ml_scan_at_start {
             m.library_rescan();
         }
+        m.check_for_update();
         m
     }
 
@@ -267,6 +272,7 @@ impl Model {
             screen: None,
             no_bar: false,
             transient: None,
+            update: None,
             eq_presets,
             eq_auto,
             bookmarks,
@@ -1439,6 +1445,8 @@ impl Model {
                 self.settings_mut().wsz_scaling = mode;
                 self.ui.push(UiReq::Layout);
             }
+            MenuAction::UpdateDownload => self.update_download(),
+            MenuAction::UpdateSkip => self.update_skip(),
             MenuAction::SkinColors(set) => {
                 self.settings_mut().skin_colors = set;
                 // The pictures are read with their colours, so read them again.
@@ -1493,7 +1501,8 @@ impl Model {
         use Command as C;
         let s = self.settings();
         let st = self.state();
-        let mut items = vec![
+        let mut items: Vec<MenuItem> = self.update_menu().into_iter().collect();
+        items.extend([
             MenuItem::cmd("About Popamp…", "Ctrl+F1", C::About),
             MenuItem::sep(),
             MenuItem::sub(
@@ -1513,7 +1522,7 @@ impl Model {
             MenuItem::cmd("Playlist Editor", "Alt+E", C::TogglePlaylistWindow).checked(s.pe_open),
             MenuItem::cmd("Equalizer", "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
             MenuItem::cmd("Media Library", "Alt+L", C::ToggleLibraryWindow).checked(s.ml_open),
-        ];
+        ]);
         if self.skin.color_sets.len() > 1 {
             let set = |(i, name): (usize, &String)| {
                 MenuItem::action(name, "", MenuAction::SkinColors(name.clone())).checked(i == self.skin.color_set)

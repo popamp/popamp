@@ -281,6 +281,13 @@ settings! {
     global_hotkeys: bool = false,
     // Network.
     proxy: String = String::new(),
+    /// Ask popamp.app at start, at most once a day, whether a newer
+    /// Popamp is out.
+    update_check: bool = true,
+    /// The day (since 1970, UTC) of the last answer from popamp.app.
+    update_day: u32 = 0,
+    /// The newer version the user chose not to hear of.
+    update_skip: String = String::new(),
     // MIDI.
     /// The SoundFont that plays MIDI files, empty for the system's.
     soundfont: String = String::new(),
