@@ -28,6 +28,10 @@ All notable changes to this project are documented here. The format follows
   not read again. Classic skins and vector skins drawn on the classic
   sheets give it the playlist's frame; a vector skin with its own windows
   draws it as a `[[window]]` with `key = "library"`.
+- **Oscilloscope afterglow:** a fourth oscilloscope style (Visualization
+  menu, *Scope: afterglow*) leaves each trace to fade over five frames
+  through the skin's oscilloscope colours, like the glow of a
+  cathode-ray tube.
 
 ## [0.9.1] - 2026-11-13
 

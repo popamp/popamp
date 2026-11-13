@@ -89,7 +89,8 @@
   - Export as an HTML page (MISC > Misc options).
   - Advanced Title Formatting (`[%artist% - ]$if2(%title%,…)`).
 - **Visualization:** classic spectrum analyzer (normal, fire and line styles,
-  peaks) and oscilloscope (dots, lines, solid).
+  peaks) and oscilloscope (dots, lines, solid, and lines that fade out over five
+  frames, like a cathode-ray tube's afterglow).
 - **Control:**
   - Winamp keyboard shortcuts and Winamp-style menus.
   - Command line with `/PLAY /NEXT /VOL=50 /COMMAND=40045 …` sent to the

@@ -1646,6 +1646,7 @@ impl Model {
             MenuItem::action("Scope: dots", "", MenuAction::OscStyle(0)).checked(s.osc_style == 0),
             MenuItem::action("Scope: lines", "", MenuAction::OscStyle(1)).checked(s.osc_style == 1),
             MenuItem::action("Scope: solid", "", MenuAction::OscStyle(2)).checked(s.osc_style == 2),
+            MenuItem::action("Scope: afterglow", "", MenuAction::OscStyle(3)).checked(s.osc_style == 3),
         ];
         #[cfg(feature = "visualizers")]
         items.extend(self.visualizer_items());

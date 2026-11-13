@@ -235,7 +235,7 @@ settings! {
     /// 0 = normal, 1 = fire, 2 = line.
     sa_style: i32 = 0,
     sa_thick: bool = true,
-    /// 0 = dots, 1 = lines, 2 = solid.
+    /// 0 = dots, 1 = lines, 2 = solid, 3 = lines with an afterglow.
     osc_style: i32 = 1,
     vis_fps: u32 = 30,
     // Equalizer.
