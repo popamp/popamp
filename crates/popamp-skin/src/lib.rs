@@ -3,6 +3,7 @@
 
 pub mod bitmap;
 mod classic;
+mod colors;
 pub mod cursors;
 pub mod layout;
 mod names;
@@ -45,6 +46,10 @@ pub struct Skin {
     /// A vector skin's playlist font file; otherwise `pl.font` names a
     /// system font.
     pub pl_font: Option<Vec<u8>>,
+    /// The names of a vector skin's colour sets; empty when it has none.
+    pub color_sets: Vec<String>,
+    /// Which of `color_sets` the skin was loaded with.
+    pub color_set: usize,
 }
 
 impl Skin {
@@ -54,7 +59,7 @@ impl Skin {
         // The vector skin of the popamp-skin-default repository, built in.
         let files = popamp_skin_default::FILES.iter().map(|(name, data)| (name.to_string(), data.to_vec())).collect();
         // The files are part of the program; a test loads them.
-        vector::load_onto(Skin::bare(), &files).expect("the built-in skin loads")
+        vector::load_onto(Skin::bare(), &files, None).expect("the built-in skin loads")
     }
 
     /// The built-in skin as x1 bitmaps, for classic skins to fall back on.
@@ -77,6 +82,8 @@ impl Skin {
             text: None,
             clock: None,
             pl_font: None,
+            color_sets: Vec::new(),
+            color_set: 0,
         }
     }
 
@@ -118,11 +125,13 @@ impl Skin {
     }
 
     /// Loads a skin archive or directory: a vector skin when it has a
-    /// `skin.toml`, a classic one otherwise.
-    pub fn load(path: &Path) -> Result<Skin, String> {
+    /// `skin.toml`, a classic one otherwise. `colors` names the colour set
+    /// wanted of a vector skin that has several; its first is used when it
+    /// has none of that name.
+    pub fn load(path: &Path, colors: Option<&str>) -> Result<Skin, String> {
         let read = |key: Key| if path.is_dir() { read_dir_files(path, key) } else { read_zip_files(path, key) };
         if is_vector(path) {
-            return read(vector_key).and_then(|files| vector::load(&files)).map_err(|e| format!("{}: {e}", path.display()));
+            return read(vector_key).and_then(|files| vector::load(&files, colors)).map_err(|e| format!("{}: {e}", path.display()));
         }
         let name = path.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
         Ok(Self::from_files(name, &read(classic_key)?))
@@ -374,7 +383,7 @@ mod tests {
         let skin = Skin::from_files("t".into(), &HashMap::from([("region.txt".to_string(), region.to_vec())]));
         let main = skin.layout.window(WindowKey::Main).unwrap();
         assert_eq!(main.normal.shape, Some(Shape::Polygons(vec![vec![(0, 0), (275, 0), (275, 116), (0, 116)]])));
-        assert_eq!(main.mode(true).shape, Some(Shape::Polygons(vec![vec![(0, 0), (9, 0), (0, 9)]])));
+        assert_eq!(main.mode(layout::View::Shade).shape, Some(Shape::Polygons(vec![vec![(0, 0), (9, 0), (0, 9)]])));
         assert_eq!(skin.layout.window(WindowKey::Eq).unwrap().normal.shape, None);
     }
 
@@ -391,7 +400,7 @@ mod tests {
 
     /// A small skin in `tests/fixtures`, made to show one feature.
     fn fixture(name: &str) -> Skin {
-        Skin::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures").join(name)).unwrap()
+        Skin::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures").join(name), None).unwrap()
     }
 
     #[test]

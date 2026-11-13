@@ -26,6 +26,10 @@ pub enum MenuAction {
     /// Window size in percent; 100 turns "Double Size" off.
     Zoom(i32),
     Scaling(popamp_core::config::Scaling),
+    /// The skin's colour set of this name.
+    SkinColors(String),
+    /// The main window as a bar (true) or a window, in a skin with both.
+    MainAsBar(bool),
     BarEdge(popamp_core::config::BarEdge),
     /// A bar's size in percent.
     BarZoom(i32),

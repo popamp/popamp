@@ -173,7 +173,7 @@ impl App {
     }
 
     fn placement(&self, k: WindowKey) -> Placement {
-        self.model.skin.layout.window(k).map_or(Placement::Docked, |d| d.placement)
+        crate::bind::placement(&self.model, k)
     }
 
     fn wanted_visible(&self, k: WindowKey) -> bool {
@@ -488,7 +488,7 @@ impl App {
         for k in WindowKey::ALL {
             let scale = self.scale(k);
             let def = self.model.skin.layout.window(k);
-            let shape = def.and_then(|d| d.mode(crate::bind::shaded(&self.model, k)).shape.as_ref());
+            let shape = def.and_then(|d| d.mode(crate::bind::view(&self.model, k)).shape.as_ref());
             let Some(w) = self.wins[k.index()].as_mut() else { continue };
             let size = (scale.px(w.size.0), scale.px(w.size.1));
             let sig = (shape.map_or(0, |s| s as *const Shape as usize), size.0, size.1);
@@ -496,7 +496,7 @@ impl App {
                 continue;
             }
             w.shape_sig = Some(sig);
-            let mode = def.map(|d| d.mode(crate::bind::shaded(&self.model, k)));
+            let mode = def.map(|d| d.mode(crate::bind::view(&self.model, k)));
             let mask = shape.zip(mode).and_then(|(s, mode)| shape_mask(&self.model, mode, s, w.size, scale));
             if let Err(e) = self.platform.set_shape(&w.window, mask.as_ref(), size) {
                 log::debug!("shape: {e}");

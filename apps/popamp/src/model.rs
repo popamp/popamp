@@ -18,6 +18,7 @@ use popamp_core::plformats::{self, Item};
 use popamp_core::replaygain::Scanned;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
+use popamp_skin::layout::WindowKey;
 use popamp_skin::Skin;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -773,7 +774,7 @@ impl Model {
     pub fn set_skin(&mut self, path: Option<PathBuf>) {
         match &path {
             None => self.skin = Skin::builtin_vector(),
-            Some(p) => match Skin::load(p) {
+            Some(p) => match self.load_skin(p) {
                 Ok(s) => self.skin = s,
                 Err(e) => {
                     self.flash(format!("SKIN ERROR: {e}"));
@@ -796,7 +797,16 @@ impl Model {
             return;
         }
         self.skin_changed_at = now;
-        match Skin::load(&path) {
+        self.reload_skin(&path);
+    }
+
+    /// Loads the skin with the colour set the user picked.
+    pub fn load_skin(&self, path: &std::path::Path) -> Result<Skin, String> {
+        Skin::load(path, Some(&self.settings().skin_colors))
+    }
+
+    fn reload_skin(&mut self, path: &std::path::Path) {
+        match self.load_skin(path) {
             Ok(s) => {
                 self.skin = s;
                 self.ui.push(UiReq::SkinChanged);
@@ -1399,6 +1409,18 @@ impl Model {
                 self.settings_mut().wsz_scaling = mode;
                 self.ui.push(UiReq::Layout);
             }
+            MenuAction::SkinColors(set) => {
+                self.settings_mut().skin_colors = set;
+                // The pictures are read with their colours, so read them again.
+                if let Some(path) = self.skin_path.clone() {
+                    self.reload_skin(&path);
+                }
+            }
+            MenuAction::MainAsBar(bar) => {
+                self.settings_mut().main_bar = bar;
+                // A bar is another kind of window to the desktop.
+                self.ui.push(UiReq::SkinChanged);
+            }
             MenuAction::BarEdge(edge) => {
                 self.settings_mut().bar_edge = Some(edge);
                 self.ui.push(UiReq::Layout);
@@ -1461,6 +1483,16 @@ impl Model {
             MenuItem::cmd("Playlist Editor", "Alt+E", C::TogglePlaylistWindow).checked(s.pe_open),
             MenuItem::cmd("Equalizer", "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
         ];
+        if self.skin.color_sets.len() > 1 {
+            let set = |(i, name): (usize, &String)| {
+                MenuItem::action(name, "", MenuAction::SkinColors(name.clone())).checked(i == self.skin.color_set)
+            };
+            items.push(MenuItem::sub("Colours", self.skin.color_sets.iter().enumerate().map(set).collect()));
+        }
+        if self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
+            let as_ = |label: &str, bar: bool| MenuItem::action(label, "", MenuAction::MainAsBar(bar)).checked(s.main_bar == bar);
+            items.push(MenuItem::sub("Main window as", vec![as_("A window", false), as_("A bar", true)]));
+        }
         if let Some(edge) = crate::bar::edge(self) {
             let at = |label: &str, e: BarEdge| MenuItem::action(label, "", MenuAction::BarEdge(e)).checked(edge == e);
             items.push(MenuItem::sub(
@@ -1912,6 +1944,28 @@ mod tests {
     }
 
     #[test]
+    fn a_skin_with_colour_sets_offers_them_and_remembers_the_pick() {
+        let mut m = Model::for_tests();
+        let colours = |m: &Model| m.main_menu().into_iter().find(|i| i.label == "Colours");
+        assert!(colours(&m).is_none(), "the default skin has one look");
+        let dir = m.paths.skins_dir().join("tinted");
+        std::fs::create_dir_all(&dir).unwrap();
+        let toml = "[meta]\nname = \"Tinted\"\nformat_version = 1\n[colors.day]\nback = \"#ffffff\"\n\
+            [colors.night]\nback = \"#000020\"\n[playlist]\nnormal_bg = \"back\"\n";
+        std::fs::write(dir.join("skin.toml"), toml).unwrap();
+        m.set_skin(Some(dir.clone()));
+        let sets = colours(&m).unwrap().sub;
+        assert_eq!(sets.iter().map(|i| (i.label.as_str(), i.checked)).collect::<Vec<_>>(), [("day", true), ("night", false)]);
+        m.on_menu(sets[1].action.clone().unwrap());
+        assert_eq!(m.skin.pl.normal_bg, 0x000020);
+        assert!(matches!(m.ui.last(), Some(UiReq::SkinChanged)));
+        assert!(colours(&m).unwrap().sub[1].checked);
+        m.set_skin(None);
+        m.set_skin(Some(dir));
+        assert_eq!(m.skin.pl.normal_bg, 0x000020, "night again after another skin");
+    }
+
+    #[test]
     fn an_edited_skin_is_loaded_again() {
         let mut m = Model::for_tests();
         let dir = m.paths.skins_dir().join("vector");
@@ -1968,6 +2022,30 @@ mod tests {
         m.on_menu(items[0].action.clone().unwrap());
         assert_eq!(crate::bar::edge(&m), Some(BarEdge::Top));
         assert!(matches!(m.ui.last(), Some(UiReq::Layout)));
+    }
+
+    #[test]
+    fn a_skin_with_both_lets_the_user_pick_window_or_bar() {
+        use popamp_skin::layout::{Bar, Placement, View};
+        let mut m = Model::for_tests();
+        let pick = |m: &Model| m.main_menu().into_iter().find(|i| i.label == "Main window as");
+        m.settings_mut().main_bar = true;
+        assert!(pick(&m).is_none(), "the skin has no bar view");
+        assert_eq!(crate::bar::edge(&m), None, "and stays a window whatever the setting");
+        m.settings_mut().main_bar = false;
+        let main = &mut m.skin.layout.windows[0];
+        main.bar = Some(Bar { edge: BarEdge::Top, mode: main.normal.clone() });
+        let items = pick(&m).unwrap().sub;
+        assert!(items[0].checked && !items[1].checked, "a window at first");
+        assert!(m.main_menu().iter().all(|i| i.label != "Bar position"));
+        m.on_menu(items[1].action.clone().unwrap());
+        assert!(matches!(m.ui.last(), Some(UiReq::SkinChanged)), "the window is made again as a bar");
+        assert_eq!(crate::bind::view(&m, WindowKey::Main), View::Bar);
+        assert_eq!(crate::bind::placement(&m, WindowKey::Main), Placement::Bar(BarEdge::Top));
+        assert_eq!(crate::bind::view(&m, WindowKey::Eq), View::Normal);
+        assert!(m.main_menu().iter().any(|i| i.label == "Bar position"));
+        m.settings_mut().windowshade = true;
+        assert_eq!(crate::bind::view(&m, WindowKey::Main), View::Bar, "a bar has no shade mode");
     }
 
     #[test]

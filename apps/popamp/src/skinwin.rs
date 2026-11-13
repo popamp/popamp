@@ -14,7 +14,7 @@ use popamp_audio::PlayState;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
 use popamp_skin::layout::{
-    Action, Align, Element, EmptyPress, Fill, Kind, Look, MenuRef, Mode, Paint, PopupItem, Slider, Value, Wheel, WindowDef, WindowKey,
+    Action, Align, Element, EmptyPress, Fill, Kind, Look, MenuRef, Mode, Paint, PopupItem, Slider, Value, View, Wheel, WindowDef, WindowKey,
 };
 use popamp_skin::sprites::{eq as e, Rect};
 use popamp_skin::{Bitmap, CursorKind, Sheet, Skin};
@@ -25,7 +25,7 @@ const MARQUEE_STEP: Duration = Duration::from_millis(180);
 pub struct SkinWin {
     key: WindowKey,
     /// The element under the held mouse button: (shade mode, index).
-    pressed: Option<(bool, usize)>,
+    pressed: Option<(View, usize)>,
     /// Where on the thumb a slider was taken, along the slider.
     grab: i32,
     /// The value of a slider that applies on release, while it is dragged.
@@ -34,8 +34,8 @@ pub struct SkinWin {
     marquee_drag: Option<(i32, i32)>,
     last_scroll: Instant,
     list: ListState,
-    /// The open popup: (shade mode, element index), and the item under the mouse.
-    popup: Option<((bool, usize), Option<usize>)>,
+    /// The open popup: (view, element index), and the item under the mouse.
+    popup: Option<((View, usize), Option<usize>)>,
 }
 
 #[derive(Default)]
@@ -85,8 +85,7 @@ impl SkinWin {
     }
 
     fn current<'a>(&self, model: &'a Model) -> Option<Current<'a>> {
-        let shade = bind::shaded(model, self.key);
-        let mode = self.def(model)?.mode(shade);
+        let mode = self.def(model)?.mode(bind::view(model, self.key));
         let (w, h) = bind::window_size(model, self.key);
         Some(Current { mode, w, h })
     }
@@ -94,7 +93,7 @@ impl SkinWin {
     /// The pressed element, if it belongs to the mode on screen.
     fn pressed_index(&self, model: &Model) -> Option<usize> {
         let (shade, i) = self.pressed?;
-        (shade == bind::shaded(model, self.key)).then_some(i)
+        (shade == bind::view(model, self.key)).then_some(i)
     }
 
     /// The last element under the point that takes the mouse.
@@ -316,7 +315,7 @@ impl SkinWin {
     /// The open popup's items with their places.
     fn popup_items(&self, model: &Model) -> Vec<(PopupItem, Rect)> {
         let Some(((shade, i), _)) = self.popup else { return Vec::new() };
-        if shade != bind::shaded(model, self.key) {
+        if shade != bind::view(model, self.key) {
             return Vec::new();
         }
         let Some((Element { kind: Kind::Popup { items, above, .. }, .. }, r)) = self.element(model, i) else { return Vec::new() };
@@ -399,7 +398,7 @@ impl SkinWin {
                     }
                 }
                 Kind::Marquee { area, .. } => self.draw_marquee(model, fonts, b, marquee_rect(*area, r)),
-                Kind::Clock { align } => self.draw_clock(model, fonts, b, r, *align),
+                Kind::Clock { align, font_size } => self.draw_clock(model, fonts, b, r, (*align, *font_size)),
                 Kind::Vis => model.vis.draw(b, r.x, r.y, r.w, r.h, model.settings(), &skin.viscolor),
                 Kind::EqGraph => draw_eq_graph(model, b, r),
                 Kind::List => self.draw_list(model, &mut fonts.list, b, r, active),
@@ -482,7 +481,7 @@ impl SkinWin {
     }
 
     /// The big time display; paused time blinks once a second.
-    fn draw_clock(&self, model: &Model, fonts: &mut Fonts, b: &mut Canvas, r: Rect, align: Align) {
+    fn draw_clock(&self, model: &Model, fonts: &mut Fonts, b: &mut Canvas, r: Rect, how: (Align, Option<i32>)) {
         let sh = model.engine.shared();
         let blink_off = sh.state() == PlayState::Paused
             && (std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis() / 500) % 2 == 1;
@@ -494,7 +493,7 @@ impl SkinWin {
             (true, Some(l)) => (l.saturating_sub(shown) / 1000, true),
             _ => (shown / 1000, false),
         };
-        render::clock(b, &model.skin, fonts, r, secs, neg, align);
+        render::clock(b, &model.skin, fonts, r, secs, neg, how);
     }
 
     // --- input ---------------------------------------------------------------
@@ -521,7 +520,7 @@ impl SkinWin {
             return Out::Menu(bind::menu(model, menu));
         }
         let (Some(i), Some((el, r))) = (hit, found) else { return self.empty_press(model) };
-        let shade = bind::shaded(model, self.key);
+        let shade = bind::view(model, self.key);
         match el.kind {
             Kind::Drag { double } => {
                 if let (true, Some(c)) = (ev.double, double) {
@@ -586,6 +585,10 @@ impl SkinWin {
     }
 
     fn empty_press(&self, model: &Model) -> Out {
+        // The window's choice is for the window; its bar view has its place.
+        if bind::view(model, self.key) == View::Bar {
+            return Out::None;
+        }
         match self.def(model).map(|d| d.empty_press) {
             Some(EmptyPress::Move) => Out::BeginMove,
             Some(EmptyPress::MoveIfEasy) if model.settings().easymove => Out::BeginMove,
@@ -843,10 +846,22 @@ mod tests {
         let toml = "[meta]\nname = \"Round\"\nformat_version = 1\n[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\n\
             [[window.normal.element]]\ntype = \"button\"\nrect = [10, 10, 20, 20]\nnormal = \"dot.svg\"\nhit = \"dot.svg\"\nclick = \"play\"\ntip = \"Play\"\n";
         let files = [("skin.toml".to_string(), toml.as_bytes().to_vec()), ("dot.svg".to_string(), dot.to_vec())].into();
-        m.skin = popamp_skin::vector::load(&files).unwrap();
+        m.skin = popamp_skin::vector::load(&files, None).unwrap();
         let w = SkinWin::new(WindowKey::Main);
         assert_eq!(w.tooltip(&m, 20, 20).as_deref(), Some("Play"));
         assert_eq!(w.tooltip(&m, 11, 11), None, "the corner is not the button");
+    }
+
+    #[test]
+    fn a_press_on_an_empty_spot_moves_the_window_but_not_its_bar_view() {
+        let mut m = Model::for_tests();
+        let toml =
+            "[meta]\nname = \"Both\"\nformat_version = 1\n[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\nbar.size = [400, 20]\n";
+        m.skin = popamp_skin::vector::load(&[("skin.toml".to_string(), toml.as_bytes().to_vec())].into(), None).unwrap();
+        let mut w = SkinWin::new(WindowKey::Main);
+        assert!(matches!(w.mouse_down(&mut m, &input(5, 5)), Out::BeginMove));
+        m.settings_mut().main_bar = true;
+        assert!(matches!(w.mouse_down(&mut m, &input(5, 5)), Out::None), "a bar stays at its screen edge");
     }
 
     #[test]
@@ -857,7 +872,7 @@ mod tests {
             [[window.normal.element]]\ntype = \"popup\"\nrect = [10, 80, 20, 20]\nabove = true\n\
             [[window.normal.element.item]]\nnormal = \"dot.svg\"\nclick = \"play\"\n";
         let files = [("skin.toml".to_string(), toml.as_bytes().to_vec()), ("dot.svg".to_string(), dot.to_vec())].into();
-        m.skin = popamp_skin::vector::load(&files).unwrap();
+        m.skin = popamp_skin::vector::load(&files, None).unwrap();
         let mut w = SkinWin::new(WindowKey::Main);
         w.mouse_down(&mut m, &input(20, 90));
         w.mouse_up(&mut m, &input(20, 90));
@@ -874,7 +889,7 @@ mod tests {
             see_through = true\n[[window.normal.element]]\ntype = \"image\"\nrect = [0, 0, 40, 20]\nnormal = \"dot.svg\"\nfill = \"tile\"\n\
             [[window.normal.element]]\ntype = \"list\"\nrect = [20, 0, 4, 4]\n";
         let files = [("skin.toml".to_string(), toml.as_bytes().to_vec()), ("dot.svg".to_string(), dot.to_vec())].into();
-        m.skin = popamp_skin::vector::load(&files).unwrap();
+        m.skin = popamp_skin::vector::load(&files, None).unwrap();
         let mode = &m.skin.layout.window(WindowKey::Main).unwrap().normal;
         let x2 = Scale::new(200, popamp_core::config::Scaling::Sharp);
         let mask = image_mask(&m, mode, (40, 20), x2, x2);

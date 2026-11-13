@@ -56,6 +56,8 @@ pub struct WindowDef {
     pub placement: Placement,
     pub normal: Mode,
     pub shade: Option<Mode>,
+    /// The main window as a bar, in a skin that describes it both ways.
+    pub bar: Option<Bar>,
     /// What a press on a spot without an element does.
     pub empty_press: EmptyPress,
     /// What the mouse wheel does over elements that do not use it.
@@ -63,12 +65,47 @@ pub struct WindowDef {
 }
 
 impl WindowDef {
-    pub fn mode(&self, shade: bool) -> &Mode {
-        match (&self.shade, shade) {
-            (Some(s), true) => s,
+    pub fn mode(&self, view: View) -> &Mode {
+        match (view, &self.shade, &self.bar) {
+            (View::Shade, Some(s), _) => s,
+            (View::Bar, _, Some(b)) => &b.mode,
             _ => &self.normal,
         }
     }
+
+    /// The view on screen: the bar when the user wants one and the skin
+    /// describes it, else the shade mode or the normal one.
+    pub fn view(&self, as_bar: bool, shade: bool) -> View {
+        match (as_bar && self.bar.is_some(), shade) {
+            (true, _) => View::Bar,
+            (false, true) => View::Shade,
+            (false, false) => View::Normal,
+        }
+    }
+
+    /// Where the window goes while it shows `view`.
+    pub fn placement_in(&self, view: View) -> Placement {
+        match (view, &self.bar) {
+            (View::Bar, Some(b)) => Placement::Bar(b.edge),
+            _ => self.placement,
+        }
+    }
+}
+
+/// Which of a window's looks is meant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum View {
+    Normal,
+    Shade,
+    Bar,
+}
+
+/// A main window's bar view, beside its normal one.
+#[derive(Debug, Clone)]
+pub struct Bar {
+    /// The screen edge it is at by default.
+    pub edge: BarEdge,
+    pub mode: Mode,
 }
 
 /// Where a window goes on the screen.
@@ -348,6 +385,8 @@ pub enum Kind {
     /// font's time across the element (the classic digits have fixed places).
     Clock {
         align: Align,
+        /// The font's height here, where it is not the skin's `[clock]` size.
+        font_size: Option<i32>,
     },
     Vis,
     /// The equalizer curve.

@@ -202,6 +202,9 @@ settings! {
     zoom: i32 = 200,
     wsz_scaling: Scaling = Scaling::Sharp,
     keeponscreen: bool = true,
+    /// The main window is shown as a bar, in a skin that describes it both
+    /// as a window and as a bar.
+    main_bar: bool = false,
     /// Where a bar skin's bar is; the skin's own edge when unset.
     bar_edge: Option<BarEdge> = None,
     /// How big a bar skin's bar is, in percent, whatever size the other
@@ -244,6 +247,9 @@ settings! {
     titlefmt: String = DEFAULT_TITLE_FORMAT.to_string(),
     // Skins.
     skin: String = String::new(),
+    /// The colour set wanted of a skin that has several, by name; a skin
+    /// without a set of this name shows its first.
+    skin_colors: String = String::new(),
     usecursors: bool = true,
     // ReplayGain.
     replaygain: bool = false,

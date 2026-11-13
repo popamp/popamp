@@ -8,7 +8,7 @@ fn main() {
     let args: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
     let (skin, out) = match args.as_slice() {
         [out] => (Skin::builtin(), out.clone()),
-        [skin, out] => (Skin::load(skin).expect("load skin"), out.clone()),
+        [skin, out] => (Skin::load(skin, None).expect("load skin"), out.clone()),
         _ => {
             eprintln!("usage: dump_sheets [SKIN] OUT_DIR");
             std::process::exit(2);

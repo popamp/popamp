@@ -15,7 +15,7 @@ use popamp_audio::{PlayState, StreamInfo};
 use popamp_core::config::Scaling;
 use popamp_core::config::{Config, Paths, Settings};
 use popamp_skin::layout::WindowKey;
-use popamp_skin::{Bitmap, Skin};
+use popamp_skin::Bitmap;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -63,7 +63,7 @@ impl Renderer {
         let config = Config::load(paths.ini_file());
         let mut m = Model::headless(paths, config);
         if let Some(p) = &self.skin {
-            m.skin = Skin::load(p)?;
+            m.skin = m.load_skin(p)?;
         }
         m.add_now(self.files.clone(), AddMode::Append);
         if m.playlist.is_empty() {

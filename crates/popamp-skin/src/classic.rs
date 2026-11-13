@@ -85,6 +85,7 @@ fn main_window(volume_h: i32, balance_h: i32) -> WindowDef {
         placement: Placement::Free,
         normal: main_normal(volume_h, balance_h),
         shade: Some(main_shade()),
+        bar: None,
         empty_press: EmptyPress::MoveIfEasy,
         wheel: Wheel::Volume(8),
     }
@@ -137,8 +138,11 @@ fn main_normal(volume_h: i32, balance_h: i32) -> Mode {
     v.extend(clutter_bar());
     v.extend(status());
     v.push(
-        Element::new(Place::fixed(m::TIME_AREA.x, m::TIME_AREA.y, m::TIME_AREA.w, m::TIME_AREA.h), Kind::Clock { align: Align::Left })
-            .show(Cond::Unless(Flag::Stopped)),
+        Element::new(
+            Place::fixed(m::TIME_AREA.x, m::TIME_AREA.y, m::TIME_AREA.w, m::TIME_AREA.h),
+            Kind::Clock { align: Align::Left, font_size: None },
+        )
+        .show(Cond::Unless(Flag::Stopped)),
     );
     v.push(hot_spot(rect(m::TIME_AREA), Action::Press(Command::ToggleTimeMode)).menu(MenuRef::Time));
     let mq = m::MARQUEE;
@@ -294,6 +298,7 @@ fn eq_window() -> WindowDef {
         placement: Placement::Docked,
         normal: eq_normal(),
         shade: Some(eq_shade()),
+        bar: None,
         empty_press: EmptyPress::Move,
         wheel: Wheel::Volume(8),
     }
@@ -378,6 +383,7 @@ fn playlist_window() -> WindowDef {
         placement: Placement::Docked,
         normal: playlist_normal(),
         shade: Some(playlist_shade()),
+        bar: None,
         empty_press: EmptyPress::Nothing,
         wheel: Wheel::ScrollList,
     }

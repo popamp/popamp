@@ -2,11 +2,13 @@
 //! pictures. The file describes the windows and elements of a [`Layout`];
 //! docs/skin-format.md explains it for skin authors.
 
+use crate::colors::{Palette, SetsFile};
 use crate::cursors::CursorKind;
 use crate::layout::*;
 use crate::names::{Named, N};
 use crate::sprites::{Rect, Sheet};
 use crate::Skin;
+use popamp_core::config::BarEdge;
 use popamp_core::Command;
 use serde::de::{self, Deserializer};
 use serde::Deserialize;
@@ -18,26 +20,28 @@ const FORMAT_VERSION: u32 = 1;
 
 /// Builds a skin from its files (path inside the skin -> bytes). Windows
 /// the file leaves out come from the built-in skin.
-pub fn load(files: &HashMap<String, Vec<u8>>) -> Result<Skin, String> {
-    load_onto(Skin::builtin_vector(), files)
+/// `colors` is the colour set wanted, by name.
+pub fn load(files: &HashMap<String, Vec<u8>>, colors: Option<&str>) -> Result<Skin, String> {
+    load_onto(Skin::builtin_vector(), files, colors)
 }
 
 /// Builds a skin over `base`, which gives what the file leaves out.
-pub(crate) fn load_onto(base: Skin, files: &HashMap<String, Vec<u8>>) -> Result<Skin, String> {
+pub(crate) fn load_onto(base: Skin, files: &HashMap<String, Vec<u8>>, colors: Option<&str>) -> Result<Skin, String> {
     let text = files.get(FILE).ok_or(format!("no {FILE}"))?;
     let text = std::str::from_utf8(text).map_err(|e| format!("{FILE}: not UTF-8 text: {e}"))?;
     check_head(text)?;
     let file: SkinFile = toml::from_str(text).map_err(|e| at(text, e.span(), e.message()))?;
-    let mut build = Builder { text, files, skin: base, svg_ids: HashMap::new() };
+    let palette = Palette::read(&file.colors, colors).map_err(|(span, msg)| at(text, Some(span), &msg))?;
+    let mut build = Builder { text, files, skin: base, svg_ids: HashMap::new(), css: palette.css(), palette };
     build.skin.name = file.meta.name.clone();
+    build.skin.color_sets = build.palette.sets.clone();
+    build.skin.color_set = build.palette.chosen;
     build.skin.vector = true;
     build.sheets(&file.sheets)?;
     build.shapes(&file.shapes)?;
     build.texts(&file)?;
     for w in &file.windows {
-        let def = build.window(w)?;
-        build.skin.layout.windows.retain(|old| old.key != def.key);
-        build.skin.layout.windows.push(def);
+        build.window(w)?;
     }
     build.skin.layout.windows.sort_by_key(|w| w.key.index());
     Ok(build.skin)
@@ -92,6 +96,9 @@ struct SkinFile {
     /// Window shapes for the classic layout (`main`, `main_shade`, `eq`...).
     #[serde(default)]
     shapes: HashMap<String, Spanned<PaintFile>>,
+    /// Colour sets: named colours for the pictures and the keys below.
+    #[serde(default)]
+    colors: SetsFile,
     text: Option<TextFile>,
     clock: Option<TextFile>,
     playlist: Option<PlaylistFile>,
@@ -120,7 +127,7 @@ struct Meta {
 struct TextFile {
     font: Option<Spanned<String>>,
     size: i32,
-    color: Color,
+    color: ColorFile,
 }
 
 /// Playlist colours; the classic ones stand in for those left out.
@@ -128,10 +135,10 @@ struct TextFile {
 #[serde(deny_unknown_fields)]
 struct PlaylistFile {
     font: Option<Spanned<String>>,
-    normal: Option<Color>,
-    current: Option<Color>,
-    normal_bg: Option<Color>,
-    selected_bg: Option<Color>,
+    normal: Option<ColorFile>,
+    current: Option<ColorFile>,
+    normal_bg: Option<ColorFile>,
+    selected_bg: Option<ColorFile>,
 }
 
 /// The visualization colours in classic `viscolor.txt` order: background,
@@ -139,57 +146,37 @@ struct PlaylistFile {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct VisFile {
-    colors: [Color; 24],
+    colors: [ColorFile; 24],
 }
 
-/// A colour written `#rrggbb`.
-#[derive(Clone, Copy)]
-struct Color(u32);
-
-impl<'de> Deserialize<'de> for Color {
-    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        let s = String::deserialize(d)?;
-        let ok = s.len() == 7 && s.starts_with('#');
-        ok.then(|| crate::textcfg::parse_color(&s))
-            .flatten()
-            .map(Color)
-            .ok_or_else(|| de::Error::custom(format!("`{s}` is not a colour; write it #rrggbb")))
-    }
-}
+/// A colour written `#rrggbb` or by its name in the skin's colour sets.
+type ColorFile = Spanned<String>;
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct WindowFile {
     key: N<WindowKey>,
-    #[serde(default = "free")]
-    placement: N<Placement>,
-    #[serde(default = "move_window")]
-    empty_press: N<EmptyPress>,
-    /// Volume change per wheel step over the window.
-    #[serde(default = "eight")]
-    wheel_volume: i32,
+    /// `free` when left out.
+    placement: Option<N<Placement>>,
+    /// `move` when left out.
+    empty_press: Option<N<EmptyPress>>,
+    /// Volume change per wheel step over the window; 8 when left out.
+    wheel_volume: Option<i32>,
     /// The wheel scrolls the window's list instead.
-    #[serde(default)]
-    wheel_scrolls_list: bool,
-    normal: ModeFile,
+    wheel_scrolls_list: Option<bool>,
+    /// Without it the window keeps the classic layout, and only `bar` can
+    /// be given.
+    normal: Option<ModeFile>,
     shade: Option<ModeFile>,
-}
-
-fn free() -> N<Placement> {
-    N(Placement::Free)
-}
-
-fn move_window() -> N<EmptyPress> {
-    N(EmptyPress::Move)
-}
-
-fn eight() -> i32 {
-    8
+    /// The main window as a bar, which the user can switch to.
+    bar: Option<Spanned<ModeFile>>,
 }
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ModeFile {
+    /// The screen edge a bar is at by default; for `[window.bar]` only.
+    edge: Option<Spanned<N<BarEdge>>>,
     size: [i32; 2],
     /// Makes the window resizable in these steps.
     resize_step: Option<[i32; 2]>,
@@ -242,6 +229,7 @@ struct ElementFile {
     text: Option<N<Text>>,
     area: Option<[i32; 4]>,
     align: Option<N<Align>>,
+    font_size: Option<i32>,
     // Popups.
     #[serde(default, rename = "item")]
     items: Vec<ItemFile>,
@@ -289,6 +277,7 @@ impl ElementFile {
             ("text", self.text.is_some()),
             ("area", self.area.is_some()),
             ("align", self.align.is_some()),
+            ("font_size", self.font_size.is_some()),
             ("item", !self.items.is_empty()),
             ("bar", self.bar.is_some()),
         ];
@@ -306,7 +295,7 @@ const KINDS: &[(&str, &[&str])] = &[
     ("slider", &["value", "vertical", "track", "thumb", "thumb_len", "live", "reset", "wheel_step", "detent"]),
     ("text", &["text"]),
     ("marquee", &["area", "double"]),
-    ("clock", &["align"]),
+    ("clock", &["align", "font_size"]),
     ("vis", &[]),
     ("eq-graph", &[]),
     ("list", &[]),
@@ -426,6 +415,9 @@ struct Builder<'a> {
     files: &'a HashMap<String, Vec<u8>>,
     skin: Skin,
     svg_ids: HashMap<String, u16>,
+    palette: Palette,
+    /// The colour set as a style sheet for the pictures.
+    css: Option<String>,
 }
 
 impl Builder<'_> {
@@ -477,24 +469,30 @@ impl Builder<'_> {
         self.skin.clock = file.clock.as_ref().map(|t| self.style(t)).transpose()?;
         if let Some(pl) = &file.playlist {
             let classic = crate::PlColors::default();
-            let pick = |c: Option<Color>, or: u32| c.map_or(or, |c| c.0);
             self.skin.pl_font = pl.font.as_ref().map(|f| self.font(f)).transpose()?;
+            let pick = |c: &Option<ColorFile>, or: u32| c.as_ref().map_or(Ok(or), |c| self.color(c));
             self.skin.pl = crate::PlColors {
-                normal: pick(pl.normal, classic.normal),
-                current: pick(pl.current, classic.current),
-                normal_bg: pick(pl.normal_bg, classic.normal_bg),
-                selected_bg: pick(pl.selected_bg, classic.selected_bg),
+                normal: pick(&pl.normal, classic.normal)?,
+                current: pick(&pl.current, classic.current)?,
+                normal_bg: pick(&pl.normal_bg, classic.normal_bg)?,
+                selected_bg: pick(&pl.selected_bg, classic.selected_bg)?,
                 font: "sans-serif".into(),
             };
         }
         if let Some(vis) = &file.vis {
-            self.skin.viscolor = vis.colors.map(|c| c.0);
+            for (i, c) in vis.colors.iter().enumerate() {
+                self.skin.viscolor[i] = self.color(c)?;
+            }
         }
         Ok(())
     }
 
     fn style(&self, t: &TextFile) -> Result<crate::TextStyle, String> {
-        Ok(crate::TextStyle { font: t.font.as_ref().map(|f| self.font(f)).transpose()?, size: t.size, color: t.color.0 })
+        Ok(crate::TextStyle { font: t.font.as_ref().map(|f| self.font(f)).transpose()?, size: t.size, color: self.color(&t.color)? })
+    }
+
+    fn color(&self, c: &ColorFile) -> Result<u32, String> {
+        self.palette.color(c.get_ref()).map_err(|msg| at(self.text, Some(c.span()), &msg))
     }
 
     /// The bytes of a font file in the skin, checked to be a font.
@@ -507,26 +505,67 @@ impl Builder<'_> {
         Ok(data.clone())
     }
 
-    fn window(&mut self, w: &WindowFile) -> Result<WindowDef, String> {
-        let mut normal = self.mode(&w.normal)?;
-        if let Placement::Bar(_) = w.placement.0 {
-            if w.key.0 != WindowKey::Main {
-                return Err(format!("{}: only the main window can be a bar", w.key.0.name()));
+    /// Puts the window into the layout: in place of the one it describes
+    /// anew, or as a bar view added to the classic one.
+    fn window(&mut self, w: &WindowFile) -> Result<(), String> {
+        let name = w.key.0.name();
+        let bar = w.bar.as_ref().map(|b| self.bar(w, b)).transpose()?;
+        let Some(normal) = &w.normal else {
+            let described = w.placement.is_some() || w.empty_press.is_some() || w.wheel_volume.is_some() || w.wheel_scrolls_list.is_some();
+            if bar.is_none() || described || w.shade.is_some() {
+                return Err(format!("{name}: a window needs `normal`; without it only `bar` can be given, beside the classic layout"));
             }
-            // As wide as the screen; `size` is the narrowest it gets.
-            normal.width = Dim::Free { min: w.normal.size[0], step: 1 };
+            let classic = self.skin.layout.windows.iter_mut().find(|old| old.key == w.key.0);
+            classic.ok_or(format!("{name}: there is no classic window to add a bar to"))?.bar = bar;
+            return Ok(());
+        };
+        let mut normal = self.mode(normal)?;
+        let placement = w.placement.map_or(Placement::Free, |p| p.0);
+        if let Placement::Bar(_) = placement {
+            if w.key.0 != WindowKey::Main {
+                return Err(format!("{name}: only the main window can be a bar"));
+            }
+            normal = spanning_the_screen(normal);
         }
-        Ok(WindowDef {
+        let def = WindowDef {
             key: w.key.0,
-            placement: w.placement.0,
+            placement,
             normal,
             shade: w.shade.as_ref().map(|m| self.mode(m)).transpose()?,
-            empty_press: w.empty_press.0,
-            wheel: if w.wheel_scrolls_list { Wheel::ScrollList } else { Wheel::Volume(w.wheel_volume) },
-        })
+            bar,
+            empty_press: w.empty_press.map_or(EmptyPress::Move, |e| e.0),
+            wheel: match w.wheel_scrolls_list {
+                Some(true) => Wheel::ScrollList,
+                _ => Wheel::Volume(w.wheel_volume.unwrap_or(8)),
+            },
+        };
+        self.skin.layout.windows.retain(|old| old.key != def.key);
+        self.skin.layout.windows.push(def);
+        Ok(())
     }
 
+    /// The bar view of a window that is also described as a window.
+    fn bar(&mut self, w: &WindowFile, b: &Spanned<ModeFile>) -> Result<Bar, String> {
+        let fail = |msg: &str| Err(at(self.text, Some(b.span()), msg));
+        if w.key.0 != WindowKey::Main {
+            return fail("only the main window can be a bar");
+        }
+        if let Some(N(Placement::Bar(_))) = w.placement {
+            return fail("this window is always a bar by its `placement`; describe the bar in `normal`");
+        }
+        let edge = b.get_ref().edge.as_ref().map_or(BarEdge::Bottom, |e| e.get_ref().0);
+        Ok(Bar { edge, mode: spanning_the_screen(self.view(b.get_ref())?) })
+    }
+
+    /// A normal or shade mode, which has no screen edge.
     fn mode(&mut self, m: &ModeFile) -> Result<Mode, String> {
+        match &m.edge {
+            Some(e) => Err(at(self.text, Some(e.span()), "`edge` is for `[window.bar]` only")),
+            None => self.view(m),
+        }
+    }
+
+    fn view(&mut self, m: &ModeFile) -> Result<Mode, String> {
         let dim = |i: usize| match m.resize_step {
             Some(step) => Dim::Free { min: m.size[i], step: step[i] },
             None => Dim::Fixed(m.size[i]),
@@ -564,7 +603,7 @@ impl Builder<'_> {
                 Kind::Popup { items, bar: self.paint(f.bar.as_ref())?, above: f.above }
             }
             "drag" => Kind::Drag { double: f.double.map(|x| x.0) },
-            "clock" => Kind::Clock { align: f.align.map_or(Align::Left, |a| a.0) },
+            "clock" => Kind::Clock { align: f.align.map_or(Align::Left, |a| a.0), font_size: f.font_size },
             "vis" => Kind::Vis,
             "eq-graph" => Kind::EqGraph,
             "list" => Kind::List,
@@ -661,7 +700,7 @@ impl Builder<'_> {
             Some(&id) => id,
             None => {
                 let data = self.files.get(file).ok_or_else(|| format!("no file `{file}` in the skin"))?;
-                let id = self.skin.svgs.add(data).map_err(|e| format!("{file}: {e}"))?;
+                let id = self.skin.svgs.add(data, self.css.as_deref()).map_err(|e| format!("{file}: {e}"))?;
                 self.svg_ids.insert(file.to_string(), id);
                 id
             }
@@ -669,6 +708,14 @@ impl Builder<'_> {
         let (w, h) = self.skin.svgs.size(id).unwrap_or_default();
         Ok((id, (w.ceil() as i32, h.ceil() as i32)))
     }
+}
+
+/// A bar's mode: as wide as the screen; its `size` is the narrowest it gets.
+fn spanning_the_screen(mode: Mode) -> Mode {
+    let min = match mode.width {
+        Dim::Fixed(min) | Dim::Free { min, .. } => min,
+    };
+    Mode { width: Dim::Free { min, step: 1 }, ..mode }
 }
 
 /// Checks the element's `type` and that its fields fit it; returns the type.
@@ -740,7 +787,7 @@ mod tests {
             ("play.svg".to_string(), SQUARE.to_vec()),
             ("dot.svg".to_string(), DOT.to_vec()),
         ]);
-        load(&files)
+        load(&files, None)
     }
 
     const HEAD: &str = "[meta]\nname = \"Test\"\nformat_version = 1\n";
@@ -789,21 +836,22 @@ rect = [26, 21, 62, 18]
             ))
             .map(|s| s.layout.window(WindowKey::Main).unwrap().normal.elements[0].kind.clone())
         };
-        assert!(matches!(clock(""), Ok(Kind::Clock { align: Align::Left })));
+        assert!(matches!(clock(""), Ok(Kind::Clock { align: Align::Left, font_size: None })));
         assert!(matches!(
             clock(
                 "align = \"right\"
 "
             ),
-            Ok(Kind::Clock { align: Align::Right })
+            Ok(Kind::Clock { align: Align::Right, font_size: None })
         ));
         assert!(matches!(
             clock(
                 "align = \"center\"
 "
             ),
-            Ok(Kind::Clock { align: Align::Center })
+            Ok(Kind::Clock { align: Align::Center, font_size: None })
         ));
+        assert!(matches!(clock("font_size = 10\n"), Ok(Kind::Clock { align: Align::Left, font_size: Some(10) })), "smaller in a bar");
         assert!(clock(
             "align = \"middle\"
 "
@@ -872,7 +920,7 @@ click = \"play\"
         assert_eq!(s.sheet_svgs.len(), builtin.sheet_svgs.len(), "sheets left out are the built-in skin's drawings");
         assert_eq!((s.sheet(Sheet::Main).w, s.sheet(Sheet::Main).px[0]), (23, 0x00ff00), "an x1 copy for pixel reads");
         let main = s.layout.window(WindowKey::Main).unwrap();
-        assert!(matches!(main.mode(true).shape, Some(Shape::Picture(_))));
+        assert!(matches!(main.mode(View::Shade).shape, Some(Shape::Picture(_))));
         assert_eq!(main.normal.shape, None);
         let e = skin(&format!("{HEAD}[sheets]\nmian = \"play.svg\"\n")).err().unwrap();
         assert!(e.starts_with("skin.toml, line 5: unknown sheet `mian`; it can be one of: main, cbuttons"), "{e}");
@@ -921,6 +969,55 @@ edges = [12, 20, \"end-20\", \"end-38\"]
         assert!(e.contains("only the main window can be a bar"), "{e}");
     }
 
+    const BOTH: &str = "[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\n";
+
+    #[test]
+    fn a_main_window_can_be_a_window_and_a_bar() {
+        let s = skin(&format!("{HEAD}{BOTH}[window.bar]\nedge = \"top\"\nsize = [400, 20]\n")).unwrap();
+        let main = s.layout.window(WindowKey::Main).unwrap();
+        assert_eq!(main.placement, Placement::Free, "a window until the user asks for the bar");
+        assert_eq!(main.view(false, true), View::Shade);
+        assert_eq!(main.view(true, true), View::Bar);
+        assert_eq!(main.placement_in(View::Bar), Placement::Bar(BarEdge::Top));
+        assert_eq!(main.mode(View::Bar).width, Dim::Free { min: 400, step: 1 });
+        assert_eq!(main.mode(View::Normal).width, Dim::Fixed(275));
+        let s = skin(&format!("{HEAD}{BOTH}bar.size = [400, 20]\n")).unwrap();
+        assert_eq!(s.layout.window(WindowKey::Main).unwrap().placement_in(View::Bar), Placement::Bar(BarEdge::Bottom));
+    }
+
+    #[test]
+    fn the_classic_window_can_get_a_bar_view() {
+        let s = skin(&format!("{HEAD}[[window]]\nkey = \"main\"\nbar.size = [640, 20]\n")).unwrap();
+        let main = s.layout.window(WindowKey::Main).unwrap();
+        assert_eq!((main.normal.width, main.normal.elements.len() > 20), (Dim::Fixed(275), true), "the classic layout stays");
+        assert!(main.shade.is_some());
+        assert_eq!(main.mode(View::Bar).width, Dim::Free { min: 640, step: 1 });
+        let e = |toml: &str| skin(&format!("{HEAD}[[window]]\nkey = \"main\"\n{toml}")).err().unwrap();
+        assert!(e("").contains("main: a window needs `normal`"));
+        assert!(e("bar.size = [640, 20]\nplacement = \"docked\"\n").contains("without it only `bar` can be given"));
+    }
+
+    #[test]
+    fn a_skin_without_a_bar_view_stays_a_window() {
+        let s = skin(&format!("{HEAD}{BOTH}")).unwrap();
+        let main = s.layout.window(WindowKey::Main).unwrap();
+        assert_eq!(main.view(true, false), View::Normal);
+        assert_eq!(main.placement_in(View::Bar), Placement::Free);
+    }
+
+    #[test]
+    fn a_bar_view_is_refused_where_it_makes_no_sense() {
+        let bad = |toml: &str| skin(&format!("{HEAD}{toml}")).err().unwrap();
+        let e = bad("[[window]]\nkey = \"eq\"\nnormal.size = [275, 116]\nbar.size = [400, 20]\n");
+        assert_eq!(e, "skin.toml, line 7: only the main window can be a bar");
+        let e = bad("[[window]]\nkey = \"main\"\nplacement = \"bar-top\"\nnormal.size = [400, 20]\nbar.size = [400, 20]\n");
+        assert!(e.contains("always a bar"), "{e}");
+        let e = bad("[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\nnormal.edge = \"top\"\n");
+        assert_eq!(e, "skin.toml, line 7: `edge` is for `[window.bar]` only");
+        let e = bad(&format!("{BOTH}bar.size = [400, 20]\nbar.edge = \"left\"\n"));
+        assert!(e.contains("unknown edge `left`; it can be one of: top, bottom"), "{e}");
+    }
+
     fn error(body: &str) -> String {
         skin(&format!("{HEAD}\n[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\n[[window.normal.element]]\n{body}")).err().unwrap()
     }
@@ -962,6 +1059,44 @@ colors = [{}]
         assert_eq!(s.clock, None);
         assert_eq!((s.pl.current, s.pl.normal), (0xffffff, crate::PlColors::default().normal));
         assert_eq!(s.viscolor, [0x010203; 24]);
+    }
+
+    const TINTED: &[u8] = br##"<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2">
+        <rect class="back" width="2" height="2" fill="#ff0000"/></svg>"##;
+
+    fn tinted(colors: Option<&str>) -> Skin {
+        let toml = format!(
+            "{HEAD}[colors.day]\nback = \"#ffffff\"\nink = \"#000000\"\n[colors.night]\nback = \"#000020\"\n\
+            [text]\nsize = 7\ncolor = \"ink\"\n[playlist]\nnormal_bg = \"back\"\n\
+            [[window]]\nkey = \"main\"\nnormal.size = [2, 2]\n\
+            [[window.normal.element]]\ntype = \"image\"\nrect = [0, 0, 2, 2]\nnormal = \"tinted.svg\"\n"
+        );
+        let files = HashMap::from([(FILE.to_string(), toml.into_bytes()), ("tinted.svg".to_string(), TINTED.to_vec())]);
+        load(&files, colors).unwrap()
+    }
+
+    fn first_pixel(s: &Skin) -> u32 {
+        let Kind::Image { look, .. } = &s.layout.window(WindowKey::Main).unwrap().normal.elements[0].kind else { panic!() };
+        let Some(Paint { picture: Picture::Svg(id), src, .. }) = look.normal else { panic!() };
+        s.svgs.raster(id, src, 2, 2).unwrap().px[0]
+    }
+
+    #[test]
+    fn a_colour_set_paints_the_pictures_and_the_texts() {
+        let day = tinted(None);
+        assert_eq!((day.color_sets.as_slice(), day.color_set), (["day".to_string(), "night".to_string()].as_slice(), 0));
+        assert_eq!((first_pixel(&day), day.pl.normal_bg, day.text.unwrap().color), (0xffffffff, 0xffffff, 0));
+        let night = tinted(Some("night"));
+        assert_eq!(night.color_set, 1);
+        assert_eq!((first_pixel(&night), night.pl.normal_bg, night.text.unwrap().color), (0xff000020, 0x000020, 0));
+    }
+
+    #[test]
+    fn a_skin_without_colour_sets_keeps_its_pictures_as_drawn() {
+        let s = skin(HEAD).unwrap();
+        assert!(s.color_sets.is_empty());
+        let e = skin(&format!("{HEAD}[colors.a]\nink = \"black\"\n")).err().unwrap();
+        assert_eq!(e, "skin.toml, line 5: `black` is not a colour; write it #rrggbb");
     }
 
     #[test]
