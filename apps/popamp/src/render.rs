@@ -87,11 +87,15 @@ fn clock_text(secs: u64, negative: bool) -> String {
 }
 
 /// The big play time in `r` (the clock element), from a vector skin's
-/// font, placed across `r` by `align`, or the classic digit bitmaps.
-pub fn clock(b: &mut Canvas, skin: &Skin, fonts: &mut Fonts, r: Rect, secs: u64, negative: bool, align: Align) {
+/// font, placed across `r` by `align` at the element's own size if it has
+/// one, or the classic digit bitmaps.
+pub fn clock(b: &mut Canvas, skin: &Skin, fonts: &mut Fonts, r: Rect, secs: u64, negative: bool, (align, size): (Align, Option<i32>)) {
     match (&skin.clock, fonts.clock.as_mut()) {
         // Centred on its digits: fonts leave different room above them.
-        (Some(st), Some(font)) => b.text_centred(font, r, &clock_text(secs, negative), "0123456789", st.size as u32, st.color, align),
+        (Some(st), Some(font)) => {
+            let size = size.unwrap_or(st.size) as u32;
+            b.text_centred(font, r, &clock_text(secs, negative), "0123456789", size, st.color, align)
+        }
         _ => time_digits(b, skin, Some(secs), negative, r.x - main::TIME_AREA.x, r.y - main::TIME_AREA.y),
     }
 }

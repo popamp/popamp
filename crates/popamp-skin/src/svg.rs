@@ -13,8 +13,9 @@ type Key = (u16, Rect, i32, i32);
 
 /// Options under which a picture may only use what it carries inside itself.
 /// A skin can come from anywhere, so its `<image>` must not reach files on disk.
-fn self_contained() -> usvg::Options<'static> {
+fn self_contained(style_sheet: Option<String>) -> usvg::Options<'static> {
     usvg::Options {
+        style_sheet,
         image_href_resolver: usvg::ImageHrefResolver { resolve_string: Box::new(|_, _| None), ..Default::default() },
         ..Default::default()
     }
@@ -27,10 +28,11 @@ pub struct Svgs {
 }
 
 impl Svgs {
-    /// Parses an SVG file and returns its number.
-    pub fn add(&mut self, data: &[u8]) -> Result<u16, String> {
+    /// Parses an SVG file and returns its number. `css` is applied over
+    /// the file's own styles: it is how a skin's colour set reaches it.
+    pub fn add(&mut self, data: &[u8], css: Option<&str>) -> Result<u16, String> {
         let id = u16::try_from(self.trees.len()).map_err(|_| "too many SVG files".to_string())?;
-        let tree = usvg::Tree::from_data(data, &self_contained()).map_err(|e| e.to_string())?;
+        let tree = usvg::Tree::from_data(data, &self_contained(css.map(str::to_string))).map_err(|e| e.to_string())?;
         self.trees.push(tree);
         Ok(id)
     }
@@ -73,7 +75,7 @@ mod tests {
     #[test]
     fn pictures_render_at_the_asked_size_and_area() {
         let mut s = Svgs::default();
-        let id = s.add(HALF_RED).unwrap();
+        let id = s.add(HALF_RED, None).unwrap();
         let full = s.raster(id, Rect { x: 0, y: 0, w: 2, h: 1 }, 4, 2).unwrap();
         assert_eq!(full.px, [0xffff0000, 0xffff0000, 0, 0, 0xffff0000, 0xffff0000, 0, 0]);
         let right = s.raster(id, Rect { x: 1, y: 0, w: 1, h: 1 }, 3, 3).unwrap();
@@ -101,8 +103,34 @@ mod tests {
 
     fn drawn(svg: &[u8]) -> u32 {
         let mut s = Svgs::default();
-        let id = s.add(svg).unwrap();
+        let id = s.add(svg, None).unwrap();
         s.raster(id, Rect { x: 0, y: 0, w: 1, h: 1 }, 1, 1).unwrap().px[0]
+    }
+
+    fn styled(body: &str, css: &str) -> u32 {
+        let svg = format!(r#"<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">{body}</svg>"#);
+        let mut s = Svgs::default();
+        let id = s.add(svg.as_bytes(), Some(css)).unwrap();
+        s.raster(id, Rect { x: 0, y: 0, w: 1, h: 1 }, 1, 1).unwrap().px[0]
+    }
+
+    const BLUE: u32 = 0xff0000ff;
+
+    #[test]
+    fn a_style_sheet_recolours_what_carries_its_class() {
+        let css = ".c { fill: #0000ff !important } .c-stroke { stroke: #0000ff !important } .c-stop { stop-color: #0000ff !important }";
+        assert_eq!(styled(r##"<rect class="c" width="1" height="1" fill="#ff0000"/>"##, css), BLUE, "over the fill attribute");
+        assert_eq!(styled(r##"<rect class="c" width="1" height="1" style="fill:#ff0000"/>"##, css), BLUE, "over an inline style");
+        assert_eq!(styled(r##"<rect width="1" height="1" fill="#ff0000"/>"##, css), 0xffff0000, "the rest keeps its colour");
+        assert_eq!(styled(r##"<g class="c"><rect width="1" height="1"/></g>"##, css), BLUE, "a group passes it down");
+        assert_eq!(
+            styled(r##"<path class="c-stroke" d="M0 0 L1 1" fill="none" stroke="#ff0000" stroke-width="4"/>"##, css),
+            BLUE,
+            "a line's colour"
+        );
+        let gradient = r##"<linearGradient id="g"><stop class="c-stop" offset="0" stop-color="#ff0000"/>
+            <stop class="c-stop" offset="1" stop-color="#ff0000"/></linearGradient><rect width="1" height="1" fill="url(#g)"/>"##;
+        assert_eq!(styled(gradient, css), BLUE, "a gradient's colours");
     }
 
     /// A real picture on disk, removed when the test ends.
@@ -142,6 +170,6 @@ mod tests {
 
     #[test]
     fn broken_files_are_errors() {
-        assert!(Svgs::default().add(b"<svg").is_err());
+        assert!(Svgs::default().add(b"<svg", None).is_err());
     }
 }

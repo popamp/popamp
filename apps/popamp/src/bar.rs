@@ -16,9 +16,9 @@ pub struct Screen {
     pub h: i32,
 }
 
-/// The edge the bar is at; `None` when the skin's main window is no bar.
+/// The edge the bar is at; `None` when the main window is no bar now.
 pub fn edge(model: &Model) -> Option<BarEdge> {
-    match model.skin.layout.window(WindowKey::Main)?.placement {
+    match crate::bind::placement(model, WindowKey::Main) {
         Placement::Bar(skin_edge) => Some(model.settings().bar_edge.unwrap_or(skin_edge)),
         _ => None,
     }

@@ -59,6 +59,7 @@ macro_rules! named {
 
 named!(Command, "command", Command::ALL);
 named!(WindowKey, "window", WindowKey::ALL);
+named!(BarEdge, "edge", [BarEdge::Top, BarEdge::Bottom]);
 named!(Fill, "fill", [Fill::Once, Fill::Tile]);
 named!(Align, "alignment", [Align::Left, Align::Center, Align::Right]);
 named!(FrameMap, "frame order", [FrameMap::Rising, FrameMap::Falling, FrameMap::FromMiddle]);

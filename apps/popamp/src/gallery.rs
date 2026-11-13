@@ -287,7 +287,7 @@ fn place_skin(item: &Item, dir: &Path, work: &Path, data: &[u8]) -> Result<PathB
     let name = format!("{}.{ext}", item.id);
     let staged = work.join(&name);
     std::fs::write(&staged, data).map_err(|e| e.to_string())?;
-    popamp_skin::Skin::load(&staged).map_err(|e| format!("not a usable skin ({e})"))?;
+    popamp_skin::Skin::load(&staged, None).map_err(|e| format!("not a usable skin ({e})"))?;
     let dest = dir.join(name);
     std::fs::rename(&staged, &dest).map_err(|e| e.to_string())?;
     Ok(dest)

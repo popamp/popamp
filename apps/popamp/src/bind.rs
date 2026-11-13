@@ -7,7 +7,7 @@ use crate::scale::Scale;
 use popamp_audio::PlayState;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
-use popamp_skin::layout::{Cond, Dim, Flag, MenuRef, Text, Value, WindowKey};
+use popamp_skin::layout::{Cond, Dim, Flag, MenuRef, Placement, Text, Value, View, WindowKey};
 
 pub fn flag(model: &Model, f: Flag) -> bool {
     let s = model.settings();
@@ -160,6 +160,17 @@ pub fn menu(model: &Model, m: MenuRef) -> Vec<MenuItem> {
     }
 }
 
+/// The look the window has on screen.
+pub fn view(model: &Model, key: WindowKey) -> View {
+    let as_bar = key == WindowKey::Main && model.settings().main_bar;
+    model.skin.layout.window(key).map_or(View::Normal, |d| d.view(as_bar, shaded(model, key)))
+}
+
+/// Where the window goes, for the look it has now.
+pub fn placement(model: &Model, key: WindowKey) -> Placement {
+    model.skin.layout.window(key).map_or(Placement::Docked, |d| d.placement_in(view(model, key)))
+}
+
 /// Whether the window shows its shade mode.
 pub fn shaded(model: &Model, key: WindowKey) -> bool {
     let s = model.settings();
@@ -246,7 +257,7 @@ pub fn scale(model: &Model, key: WindowKey) -> Scale {
 
 pub fn window_size(model: &Model, key: WindowKey) -> (i32, i32) {
     let Some(def) = model.skin.layout.window(key) else { return (0, 0) };
-    let mode = def.mode(shaded(model, key));
+    let mode = def.mode(view(model, key));
     let (sw, sh) = stored_size(model, key);
     let len = |d: Dim, stored: i32| match d {
         Dim::Fixed(n) => n,
@@ -259,7 +270,6 @@ pub fn window_size(model: &Model, key: WindowKey) -> (i32, i32) {
 mod tests {
     use super::*;
     use popamp_core::config::BarEdge;
-    use popamp_skin::layout::Placement;
 
     #[test]
     fn sizes_come_from_the_layout_and_settings() {
