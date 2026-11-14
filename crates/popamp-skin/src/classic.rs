@@ -11,7 +11,7 @@ use popamp_core::Command;
 const SLIDER_THUMB_BELOW: i32 = 422;
 
 pub fn layout(volume_h: i32, balance_h: i32) -> Layout {
-    Layout { windows: vec![main_window(volume_h, balance_h), eq_window(), playlist_window()] }
+    Layout { windows: vec![main_window(volume_h, balance_h), eq_window(), playlist_window(), library_window()] }
 }
 
 fn at(pos: (i32, i32), w: i32, h: i32) -> Place {
@@ -468,11 +468,7 @@ fn playlist_normal() -> Mode {
         Element::new(span(End(-222), End(-28), End(-150), End(-10)), Kind::Vis).show(Cond::MinWidth(350)),
         Element::new(span(End(-20), End(-20), End(0), End(0)), Kind::Resize).cursor(C::PSize),
     ];
-    use Command as K;
-    let mini = [(6, 8, K::Previous), (14, 8, K::Play), (22, 9, K::Pause), (31, 8, K::Stop), (39, 8, K::Next), (48, 9, K::OpenFile)];
-    for (x, w, cmd) in mini {
-        v.push(hot_spot(span(End(-150 + x), End(-16), End(-150 + x + w), End(-7)), Action::click(cmd)));
-    }
+    v.extend(mini_transport());
     v.extend(playlist_menus());
     Mode {
         width: Dim::Free { min: p::MIN_SIZE.0, step: p::STEP.0 },
@@ -481,6 +477,67 @@ fn playlist_normal() -> Mode {
         elements: v,
         shape: None,
     }
+}
+
+/// The media library in the playlist editor's frame, which every classic
+/// skin has: its top without the title picture, its sides, and its bottom
+/// without the ADD, REM, SEL and MISC buttons. The small display shows
+/// the library's state, the transport buttons work as in the playlist,
+/// and the LIST button opens the library's menu.
+fn library_window() -> WindowDef {
+    let bottom_left = Rect { w: 12, ..p::BOTTOM_LEFT };
+    let mut v = vec![
+        piece(Start(0), Start(0), pair_look(p::TOP_LEFT), 25, 20),
+        Element::new(
+            span(Start(25), Start(0), End(-25), Start(20)),
+            Kind::Image { look: pair_look(p::TOP_TILE), fill: Fill::Tile, lit: None },
+        ),
+        piece(End(-25), Start(0), pair_look(p::TOP_RIGHT), 25, 20),
+        Element::new(span(Center(-33), Start(7), Center(32), Start(13)), Kind::Text(Text::LibraryTitle)),
+        tiles(span(Start(0), Start(20), Start(12), End(-38)), p::LEFT_TILE),
+        tiles(span(End(-20), Start(20), End(0), End(-38)), p::RIGHT_TILE),
+        tiles(span(Start(12), End(-38), End(-150), End(0)), p::BOTTOM_TILE),
+        piece(Start(0), End(-38), Look::plain(paint(Sheet::PlEdit, bottom_left)), 12, 38),
+        piece(End(-150), End(-38), Look::plain(paint(Sheet::PlEdit, p::BOTTOM_RIGHT)), 150, 38),
+        Element::new(span(Start(0), Start(0), End(0), Start(20)), Kind::Drag { double: None }).cursor(C::PTBar),
+        button(span(End(-11), Start(3), End(-2), Start(12)), pl_overlay(p::CLOSE_PRESSED), Action::click(Command::ToggleLibraryWindow))
+            .cursor(C::PClose),
+        // Over the right side's groove: each list has a bar of its own.
+        Element::new(
+            span(Start(12), Start(20), End(-7), End(-38)),
+            Kind::Library {
+                thumb: Look::button(paint(Sheet::PlEdit, p::SCROLL_THUMB.normal), paint(Sheet::PlEdit, p::SCROLL_THUMB.pressed)),
+            },
+        )
+        .menu(MenuRef::Library),
+        Element::new(span(End(-143), End(-28), End(-58), End(-22)), Kind::Text(Text::LibraryStatus)),
+        Element::new(span(End(-82), End(-14), End(-52), End(-8)), Kind::Text(Text::PlaylistClock)).show(Cond::Unless(Flag::Stopped)),
+        hot_spot(span(End(-44), End(-30), End(-22), End(-12)), Action::MenuOnRelease(MenuRef::Library)),
+        Element::new(span(End(-20), End(-20), End(0), End(0)), Kind::Resize).cursor(C::PSize),
+    ];
+    v.extend(mini_transport());
+    WindowDef {
+        key: WindowKey::Library,
+        placement: Placement::Docked,
+        normal: Mode {
+            width: Dim::Free { min: p::MIN_SIZE.0, step: p::STEP.0 },
+            height: Dim::Free { min: p::MIN_SIZE.1, step: p::STEP.1 },
+            cursor: C::PNormal,
+            elements: v,
+            shape: None,
+        },
+        shade: None,
+        bar: None,
+        empty_press: EmptyPress::Nothing,
+        wheel: Wheel::ScrollList,
+    }
+}
+
+/// The small transport buttons drawn in the playlist frame's bottom right.
+fn mini_transport() -> impl Iterator<Item = Element> {
+    use Command as K;
+    let mini = [(6, 8, K::Previous), (14, 8, K::Play), (22, 9, K::Pause), (31, 8, K::Stop), (39, 8, K::Next), (48, 9, K::OpenFile)];
+    mini.into_iter().map(|(x, w, cmd)| hot_spot(span(End(-150 + x), End(-16), End(-150 + x + w), End(-7)), Action::click(cmd)))
 }
 
 /// The ADD, REM, SEL, MISC and LIST buttons and their picture menus.
@@ -519,9 +576,11 @@ mod tests {
     fn paints(k: &Kind) -> Vec<Paint> {
         let look = |l: &Look| [l.normal, l.pressed, l.on, l.on_pressed, l.inactive].into_iter().flatten().collect::<Vec<_>>();
         match k {
-            Kind::Image { look: l, .. } | Kind::Button { look: l, .. } | Kind::Toggle { look: l, .. } | Kind::ListScroll { thumb: l } => {
-                look(l)
-            }
+            Kind::Image { look: l, .. }
+            | Kind::Button { look: l, .. }
+            | Kind::Toggle { look: l, .. }
+            | Kind::ListScroll { thumb: l }
+            | Kind::Library { thumb: l } => look(l),
             Kind::Slider(s) => look(&s.thumb),
             Kind::Popup { items, bar, .. } => items.iter().flat_map(|i| look(&i.look)).chain(*bar).collect(),
             _ => Vec::new(),
@@ -596,5 +655,20 @@ mod tests {
             assert!(matches!(hit(pl, w, h, w - 11, 40).unwrap().kind, Kind::ListScroll { .. }));
             assert!(matches!(hit(pl, w, h, w - 40, h - 20).unwrap().kind, Kind::Popup { .. }), "LIST button");
         }
+    }
+
+    #[test]
+    fn the_library_has_the_playlist_frame_without_its_buttons() {
+        let l = layout(433, 433);
+        let lib = &l.window(WindowKey::Library).unwrap().normal;
+        assert!(lib.elements.iter().any(|e| matches!(e.kind, Kind::Library { .. })), "the player's part");
+        assert!(!lib.elements.iter().any(|e| matches!(e.kind, Kind::Popup { .. } | Kind::List)), "no playlist buttons");
+        assert!(!lib.elements.iter().any(|e| matches!(e.kind, Kind::ListScroll { .. })), "no bar for the whole window");
+        let (w, h) = (450, 348);
+        let close = hit(lib, w, h, w - 6, 7).unwrap();
+        assert!(matches!(close.kind, Kind::Button { action: Action::Click { plain: Command::ToggleLibraryWindow, .. }, .. }));
+        let list = hit(lib, w, h, w - 30, h - 20).unwrap();
+        assert!(matches!(list.kind, Kind::Button { action: Action::MenuOnRelease(MenuRef::Library), .. }), "LIST opens its menu");
+        assert!(matches!(hit(lib, w, h, 100, 100).unwrap().kind, Kind::Library { .. }));
     }
 }

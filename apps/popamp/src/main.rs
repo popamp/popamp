@@ -22,6 +22,7 @@ mod hotkeys;
 mod ipc;
 #[cfg(feature = "visualizers")]
 mod keep_awake;
+mod library;
 mod media;
 mod menu;
 mod model;

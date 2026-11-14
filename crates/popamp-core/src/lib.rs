@@ -7,6 +7,7 @@ pub mod cue;
 pub mod eqf;
 pub mod history;
 pub mod ini;
+pub mod library;
 pub mod meta;
 pub mod playlist;
 pub mod plformats;

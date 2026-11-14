@@ -13,6 +13,14 @@
 | Equalizer keys | `1`–`0` / `Q`–`P` raise/lower bands, `N` on/off, `S` presets |
 | Tags and cover / album art | `Alt+3` (File info) / `Alt+A` |
 | Double size / shade | `Ctrl+D` / `Ctrl+W` (or double-click the title bar) |
+| Media library | `Alt+L`, or the main menu |
+
+In the media library window, typing searches (`Esc` clears it), `Tab` /
+`Shift+Tab` go between the artists, the albums and the tracks, the arrows,
+`PgUp`/`PgDn` and `Home`/`End` move in that list (`Shift` takes a range of
+tracks), `Enter` plays and `Shift+Enter` adds to the playlist, `Ctrl+A`
+selects all the tracks. A double click on a track, an artist or an album
+plays it.
 
 ## Remote control
 

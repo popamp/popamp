@@ -80,7 +80,11 @@ impl Named for Placement {
     }
 }
 
-named!(Text, "text", [Text::Kbps, Text::Khz, Text::ShortTime, Text::Title, Text::PlaylistTime, Text::PlaylistClock]);
+named!(
+    Text,
+    "text",
+    [Text::Kbps, Text::Khz, Text::ShortTime, Text::Title, Text::PlaylistTime, Text::PlaylistClock, Text::LibraryTitle, Text::LibraryStatus]
+);
 named!(
     Flag,
     "player state",
@@ -95,6 +99,7 @@ named!(
         Flag::Repeat,
         Flag::EqWindow,
         Flag::PlaylistWindow,
+        Flag::LibraryWindow,
         Flag::AlwaysOnTop,
         Flag::DoubleSize,
         Flag::EqOn,
@@ -113,6 +118,7 @@ named!(
         MenuRef::PlaylistMisc,
         MenuRef::PlaylistSort,
         MenuRef::PlaylistRemoveMisc,
+        MenuRef::Library,
         MenuRef::Previous,
         MenuRef::Play,
         MenuRef::Pause,

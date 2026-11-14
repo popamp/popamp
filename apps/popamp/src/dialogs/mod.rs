@@ -30,6 +30,8 @@ pub enum DialogKind {
         play: bool,
     },
     LoadPlaylist,
+    /// A folder to take into the media library.
+    LibraryFolder,
     SavePlaylist,
     SaveHtml,
     JumpToTime,

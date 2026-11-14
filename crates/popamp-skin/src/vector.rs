@@ -299,6 +299,7 @@ const KINDS: &[(&str, &[&str])] = &[
     ("vis", &[]),
     ("eq-graph", &[]),
     ("list", &[]),
+    ("library", &["thumb"]),
     ("list-scroll", &["thumb"]),
     ("popup", &["item", "bar"]),
     ("resize", &[]),
@@ -451,7 +452,9 @@ impl Builder<'_> {
             let key = WindowKey::all().into_iter().find(|w| w.name() == key);
             let window = key.and_then(|k| self.skin.layout.windows.iter().position(|w| w.key == k));
             let Some(window) = window else {
-                return Err(fail(&format!("unknown window `{name}`; it can be main, eq, playlist, or one of them with _shade")));
+                return Err(fail(&format!(
+                    "unknown window `{name}`; it can be main, eq, playlist, library, or one of the first three with _shade"
+                )));
             };
             let paint = self.paint(Some(file)).map_err(|e| at(self.text, e.span, &e.msg))?.map(Shape::Picture);
             let w = &mut self.skin.layout.windows[window];
@@ -607,6 +610,7 @@ impl Builder<'_> {
             "vis" => Kind::Vis,
             "eq-graph" => Kind::EqGraph,
             "list" => Kind::List,
+            "library" => Kind::Library { thumb: self.thumb(f)? },
             _ => Kind::Resize,
         })
     }
@@ -1147,5 +1151,45 @@ min_popamp = \"0.8\"
     fn other_format_versions_are_refused() {
         let e = skin("[meta]\nname = \"X\"\nformat_version = 2\n").err().unwrap();
         assert_eq!(e, "skin.toml, line 3: this player reads format_version 1");
+    }
+
+    #[test]
+    fn a_skin_can_draw_the_media_library_window() {
+        let without = skin(HEAD).unwrap();
+        let classic = without.layout.window(WindowKey::Library).unwrap();
+        assert!(classic.normal.elements.iter().any(|e| matches!(e.kind, Kind::Library { .. })), "the built-in frame stands in");
+        let s = skin(&format!(
+            "{HEAD}
+[[window]]
+key = \"library\"
+placement = \"docked\"
+normal.size = [300, 200]
+normal.resize_step = [10, 10]
+
+[[window.normal.element]]
+type = \"library\"
+edges = [5, 20, \"end-5\", \"end-5\"]
+menu = \"library\"
+
+[[window.normal.element]]
+type = \"button\"
+rect = [280, 2, 23, 18]
+normal = \"play.svg\"
+click = \"toggle-library-window\"
+
+[[window.normal.element]]
+type = \"text\"
+rect = [5, 2, 100, 8]
+text = \"library-status\"
+"
+        ))
+        .unwrap();
+        let own = s.layout.window(WindowKey::Library).unwrap();
+        assert_eq!(own.normal.elements.len(), 3);
+        assert_eq!(own.normal.elements[0].menu, Some(MenuRef::Library));
+        assert_eq!(s.layout.windows.len(), 4, "in place of the built-in one");
+        let e = skin(&format!("{HEAD}\n[[window]]\nkey = \"library\"\nnormal.size = [9, 9]\n\n[[window.normal.element]]\ntype = \"library\"\nrect = [0, 0, 9, 9]\nthumb = {{ normal = \"play.svg\" }}\n"));
+        let thumbed = e.unwrap().layout.window(WindowKey::Library).unwrap().normal.elements[0].kind.clone();
+        assert!(matches!(thumbed, Kind::Library { thumb } if thumb.normal.is_some()), "its lists' scroll thumb");
     }
 }

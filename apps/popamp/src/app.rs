@@ -99,8 +99,8 @@ pub struct App {
     pub model: Model,
     fonts: Fonts,
     /// The skinned windows, by `idx`.
-    skins: [SkinWin; 3],
-    wins: [Option<SkinWindow>; 3],
+    skins: [SkinWin; 4],
+    wins: [Option<SkinWindow>; 4],
     popups: Vec<Popup>,
     panels: Vec<PanelWindow>,
     #[cfg(feature = "visualizers")]
@@ -142,8 +142,8 @@ impl App {
         App {
             model,
             fonts,
-            skins: [SkinWin::new(WindowKey::Main), SkinWin::new(WindowKey::Eq), SkinWin::new(WindowKey::Playlist)],
-            wins: [None, None, None],
+            skins: WindowKey::ALL.map(SkinWin::new),
+            wins: [None, None, None, None],
             popups: Vec::new(),
             #[cfg(feature = "visualizers")]
             visualizer: None,
@@ -346,7 +346,7 @@ impl App {
     /// panel of the desktop, and nothing is tied to it.
     fn attach_docked(&self) {
         let owner = self.win(WindowKey::Main).filter(|w| w.role == WindowRole::Main).and_then(|w| w.window.top()).map(|w| &**w);
-        for k in [WindowKey::Eq, WindowKey::Playlist] {
+        for k in [WindowKey::Eq, WindowKey::Playlist, WindowKey::Library] {
             if let Some(w) = self.win(k).and_then(|w| w.window.top()) {
                 if let Err(e) = self.platform.attach(w, owner) {
                     log::warn!("cannot tie {k:?} to the main window: {e}");
@@ -377,7 +377,7 @@ impl App {
         }
         self.attach_docked();
         if left_bar {
-            for k in [WindowKey::Eq, WindowKey::Playlist] {
+            for k in [WindowKey::Eq, WindowKey::Playlist, WindowKey::Library] {
                 let pos = self.saved_pos(k);
                 if let Some(w) = self.win_mut(k) {
                     w.pos = pos;
@@ -451,7 +451,10 @@ impl App {
             .collect();
         let new_pos: Vec<(i32, i32)> = match bar {
             Some((edge, screen)) => {
-                bar::places(edge, screen, [sizes[0], sizes[1], sizes[2]], self.wanted_visible(WindowKey::Playlist)).to_vec()
+                // The library stays where the user has it.
+                let library = self.win(WindowKey::Library).map_or_else(|| self.saved_pos(WindowKey::Library), |w| w.pos);
+                let by_bar = bar::places(edge, screen, [sizes[0], sizes[1], sizes[2]], self.wanted_visible(WindowKey::Playlist));
+                by_bar.into_iter().chain([library]).collect()
             }
             None => {
                 // Without a bar all windows have one scale: the equalizer's.
@@ -1044,10 +1047,10 @@ impl App {
                 }
             }
             Some(Drag::Resize { start_size, start }) => {
-                let s = self.scale(WindowKey::Playlist);
+                let s = self.scale(k);
                 let (dx, dy) = (s.skin(cursor.0 - start.0), s.skin(cursor.1 - start.1));
-                if crate::bind::resize(&mut self.model, WindowKey::Playlist, *start_size, dx, dy) {
-                    self.apply_layout(WindowKey::Playlist);
+                if crate::bind::resize(&mut self.model, k, *start_size, dx, dy) {
+                    self.apply_layout(k);
                 }
             }
             None => {}
@@ -1073,8 +1076,7 @@ impl App {
             Out::BeginMove => self.begin_move(k),
             Out::BeginResize => {
                 let start = self.cursor_screen(k);
-                let s = self.model.settings();
-                self.drag = Some(Drag::Resize { start_size: (s.pe_width, s.pe_height), start });
+                self.drag = Some(Drag::Resize { start_size: crate::bind::stored_size(&self.model, k), start });
             }
             Out::Menu(items) => {
                 let at = self.cursor_screen(k);
@@ -1128,9 +1130,27 @@ impl App {
             return;
         }
         let target = self.capture.take().unwrap_or(k);
+        if target == WindowKey::Library && self.model.library.take_carried() {
+            self.drop_on_playlist();
+        }
         let input = self.input(target, false, false);
         let out = self.skins[target.index()].mouse_up(&mut self.model, &input);
         self.handle_out(el, target, out);
+    }
+
+    /// Tracks carried out of the library go into the playlist at the row
+    /// they are let go over; anywhere else, nowhere.
+    fn drop_on_playlist(&mut self) {
+        let at = self.cursor_screen(WindowKey::Library);
+        let s = self.scale(WindowKey::Playlist);
+        let Some(pl) = self.win(WindowKey::Playlist).filter(|w| w.visible) else { return };
+        let (x, y) = (at.0 - pl.pos.0, at.1 - pl.pos.1);
+        if x < 0 || y < 0 || x >= s.px(pl.size.0) || y >= s.px(pl.size.1) {
+            return;
+        }
+        let row = self.skins[WindowKey::Playlist.index()].row_at(&self.model, s.skin(y));
+        self.model.library_play(AddMode::Insert(row.min(self.model.playlist.len())));
+        self.render(WindowKey::Playlist);
     }
 
     fn mouse_moved(&mut self, k: WindowKey) {
@@ -1324,6 +1344,20 @@ impl App {
                 return self.run(el, c);
             }
         }
+        if k == WindowKey::Library && !alt {
+            let used = match (ctrl, code) {
+                (true, K::KeyA) => {
+                    self.model.library.select_all();
+                    true
+                }
+                (true, _) => false,
+                (false, _) => form_key(ev, false).is_some_and(|key| self.skins[k.index()].library_key(&mut self.model, key, shift)),
+            };
+            if used {
+                self.after_model(el);
+                return self.redraw_all();
+            }
+        }
         if k == WindowKey::Eq && ctrl && code == K::KeyW {
             return self.run(el, C::ToggleEqShade);
         }
@@ -1347,6 +1381,7 @@ impl App {
             K::KeyW if alt => Some(C::ToggleMainWindow),
             K::KeyE if alt => Some(C::TogglePlaylistWindow),
             K::KeyG if alt => Some(C::ToggleEqWindow),
+            K::KeyL if alt => Some(C::ToggleLibraryWindow),
             K::KeyS if alt => Some(C::SkinBrowser),
             K::KeyM if alt => Some(C::Minimize),
             K::Digit3 if alt => Some(C::FileInfo),
@@ -1405,8 +1440,9 @@ impl App {
 
     fn cycle_focus(&mut self, from: WindowKey) {
         let start = from.index();
-        for i in 1..=3 {
-            let k = WindowKey::ALL[(start + i) % 3];
+        let n = WindowKey::ALL.len();
+        for i in 1..=n {
+            let k = WindowKey::ALL[(start + i) % n];
             let Some(w) = self.win(k).filter(|w| w.visible) else { continue };
             match w.window.top().filter(|_| !self.platform.on_wayland()) {
                 Some(top) => top.focus_window(),
@@ -1674,6 +1710,10 @@ impl ApplicationHandler<AppEvent> for App {
             AppEvent::Meta(id, m) => self.model.on_meta(id, m),
             AppEvent::Expanded { items, mode } => self.model.on_expanded(items, mode),
             AppEvent::Scan(ev) => self.model.on_scan(ev),
+            AppEvent::Library(ev) => {
+                self.model.on_library(ev);
+                self.render(WindowKey::Library);
+            }
             AppEvent::Dialog(r) if matches!(r.kind, crate::dialogs::DialogKind::PickCover { .. }) => {
                 if let (Some(i), Some(f)) = (self.panels.iter().position(|p| p.panel.kind() == PanelKind::FileInfo), r.values.first()) {
                     self.panels[i].panel.cover_picked(std::path::Path::new(f));

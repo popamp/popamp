@@ -40,7 +40,7 @@ impl Gains {
 }
 
 /// What a file looked like when it was measured.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Stamp {
     pub size: u64,
     /// Seconds since the Unix epoch.

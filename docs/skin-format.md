@@ -193,7 +193,7 @@ Colour sets came in Popamp 1.0.0, so a skin with them sets
 
 ```toml
 [[window]]
-key = "main"                 # main, eq or playlist
+key = "main"                 # main, eq, playlist or library
 placement = "free"           # free (moves the docked group), docked,
                              # bar-top or bar-bottom (main window only)
 empty_press = "move"         # nothing, move or move-if-easy
@@ -233,6 +233,14 @@ the main menu's "Bar position" puts the bar at the other edge. A bar has
 its own size, set in the main menu's "Bar size" and ×2 at first, apart
 from the other windows' size: a bar 14 skin pixels high is 28 screen
 pixels high.
+
+The `library` window is the media library. Its frame is the skin's; one
+`library` element is the rectangle the player lays the library out in.
+Each of its lists has its own scroll bar along its right side, as wide as
+the element's `thumb` picture, which is the bar's thumb (`pressed` while
+it is dragged); without a `thumb` the player draws narrow bars of its
+own. The window needs no `list-scroll`. A skin without a `library` window gets one made of its playlist's
+pictures. It came in Popamp 1.0.0.
 
 `[window.shade]` describes the shade mode the same way. Elements are drawn
 in the order they are listed; the mouse goes to the last one under it.
@@ -320,7 +328,8 @@ hit = "play.svg"       # only the round part is the button
 | `vis` | Spectrum analyzer or oscilloscope | |
 | `eq-graph` | The equalizer curve | |
 | `list` | The playlist's track list | |
-| `list-scroll` | The track list's scroll bar | `thumb` |
+| `list-scroll` | The playlist's scroll bar | `thumb` |
+| `library` | The media library's content: views, search, artists, albums, track table and buttons, in the playlist's font and `[playlist]` colours, with a scroll bar for each list | `thumb` |
 | `popup` | A button opening a column of picture buttons | `item` (each with `normal`, `pressed` and what it does), `bar`, `above` |
 | `resize` | Resizes the window | |
 
@@ -378,17 +387,18 @@ A wrong word is reported with the list of right ones.
 - **Commands:** the player's commands in lower case with dashes, for
   example `play`, `pause`, `stop`, `next`, `previous`, `open-file`,
   `toggle-shuffle`, `toggle-repeat`, `toggle-eq-window`,
-  `toggle-playlist-window`, `toggle-windowshade`, `minimize`, `exit`.
+  `toggle-playlist-window`, `toggle-library-window`, `toggle-windowshade`,
+  `minimize`, `exit`.
 - **Player states** (`flag`, `lit`, `show`, `hide`): `playing`, `paused`,
   `stopped`, `seekable`, `stereo`, `mono`, `shuffle`, `repeat`,
-  `eq-window`, `playlist-window`, `always-on-top`, `double-size`, `eq-on`,
+  `eq-window`, `playlist-window`, `library-window`, `always-on-top`, `double-size`, `eq-on`,
   `eq-autoload`.
 - **Values:** `volume`, `balance`, `position`, `preamp`, `eq-band-1` to
   `eq-band-10`.
 - **Texts:** `kbps`, `khz`, `short-time`, `title`, `playlist-time`,
-  `playlist-clock`.
+  `playlist-clock`, `library-title`, `library-status`.
 - **Menus:** `main`, `options`, `vis`, `eq-presets`, `playlist-row`,
-  `playlist-misc`, `playlist-sort`, `playlist-remove-misc`, and the
+  `playlist-misc`, `playlist-sort`, `playlist-remove-misc`, `library`, and the
   button menus `previous`, `play`, `pause`, `stop`, `next`, `eject`,
   `seek`, `repeat`, `shuffle`, `time`, `song-title`.
 - **Cursors:** the classic cursor file names without `.cur`: `normal`,

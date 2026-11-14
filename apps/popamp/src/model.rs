@@ -52,6 +52,8 @@ pub enum AppEvent {
     Gallery(crate::gallery::Fetched),
     /// How a ReplayGain scan goes.
     Scan(crate::scan::ScanEvent),
+    /// How a scan of the media library's folders goes.
+    Library(crate::library::LibEvent),
     /// The plug-ins, loaded anew, and an instance of each dsp one for the
     /// engine; the number is that of the request.
     #[cfg(feature = "plugins")]
@@ -122,6 +124,8 @@ pub struct Model {
     pub scanned: Arc<Scanned>,
     /// Where the ReplayGain scan is; its window shows it.
     pub scan: crate::scan::ScanState,
+    /// The media library, kept in `library.txt`, and what its window shows.
+    pub library: crate::library::LibraryPane,
     pub vis: Vis,
     pub ui: Vec<UiReq>,
     /// The windows are hidden; the tray icon is there to bring them back.
@@ -199,7 +203,11 @@ impl Model {
         let engine = Engine::spawn(config.settings.output_device.clone(), sources.clone(), move |ev| {
             let _ = engine_proxy.send_event(AppEvent::Engine(ev));
         });
-        Self::with_engine(paths, config, engine, sources, Events(Some(proxy)))
+        let mut m = Self::with_engine(paths, config, engine, sources, Events(Some(proxy)));
+        if m.settings().ml_scan_at_start {
+            m.library_rescan();
+        }
+        m
     }
 
     /// A model with no audio device and no event loop, for drawing the
@@ -243,7 +251,9 @@ impl Model {
         let history = History::load(&paths.history_file());
         let scanned = Arc::new(Scanned::load(&paths.replaygain_file()));
         let format = Format::cached(&config.settings.titlefmt);
+        let library = crate::library::LibraryPane::new(popamp_core::library::Library::load(&paths.library_file()));
         let mut m = Model {
+            library,
             paths,
             config,
             playlist: Playlist::new(),
@@ -844,6 +854,7 @@ impl Model {
         let req = match &kind {
             DialogKind::OpenFiles { .. } => Request::Files { title: "Open file(s)".into(), multiple: true, filter: media_filter, start },
             DialogKind::OpenFolder { .. } => Request::Folder { title: "Open folder".into(), start },
+            DialogKind::LibraryFolder => Request::Folder { title: "Add a folder to the media library".into(), start },
             DialogKind::OpenUrl { .. } => Request::Entry {
                 title: "Open URL".into(),
                 text: "Enter a URL to open (a stream or a playlist):".into(),
@@ -1073,6 +1084,11 @@ impl Model {
                     self.install_skin(Path::new(&f));
                 }
             }
+            DialogKind::LibraryFolder => {
+                if let Some(f) = first.map(|f| f.trim().to_string()).filter(|f| !f.is_empty()) {
+                    self.library_add_folder(&f);
+                }
+            }
             DialogKind::Info => {}
             // The File info window takes the picture (app.rs).
             DialogKind::PickCover { .. } => {}
@@ -1205,6 +1221,16 @@ impl Model {
             C::AlbumArt => self.ui.push(UiReq::Panel(PanelKind::AlbumArt)),
             C::History => self.ui.push(UiReq::Panel(PanelKind::History)),
             C::ScanReplayGain => self.scan_replaygain(),
+            C::ToggleLibraryWindow => {
+                let v = !self.settings().ml_open;
+                self.settings_mut().ml_open = v;
+                self.ui.push(UiReq::Layout);
+            }
+            C::LibraryPlay => self.library_play(AddMode::ReplaceAndPlay),
+            C::LibraryEnqueue => self.library_play(AddMode::Append),
+            C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
+            C::LibraryRescan => self.library_rescan(),
+            C::LibraryRemoveFolder => self.library_remove_folder(),
             #[cfg(feature = "plugins")]
             C::Plugins => self.ui.push(UiReq::Panel(PanelKind::Plugins)),
             #[cfg(not(feature = "plugins"))]
@@ -1486,6 +1512,7 @@ impl Model {
             MenuItem::cmd("Main Window", "Alt+W", C::ToggleMainWindow),
             MenuItem::cmd("Playlist Editor", "Alt+E", C::TogglePlaylistWindow).checked(s.pe_open),
             MenuItem::cmd("Equalizer", "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
+            MenuItem::cmd("Media Library", "Alt+L", C::ToggleLibraryWindow).checked(s.ml_open),
         ];
         if self.skin.color_sets.len() > 1 {
             let set = |(i, name): (usize, &String)| {

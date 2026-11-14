@@ -18,6 +18,16 @@ All notable changes to this project are documented here. The format follows
   for it: always on top, the bar view, remembering where on the screen
   the windows were, and keeping menus on the screen at its edges.
   Dropping files onto the windows does not work there yet.
+- **Media library** (`Alt+L`), a window of its own: give it folders and
+  it lists their tracks, with all the music, the newest tracks and each
+  folder on the left, artists and albums side by side above the track
+  table, and a search over every tag and the path. Play puts the picked
+  tracks in place of the playlist, Enqueue adds them, and tracks dragged
+  onto the playlist go in where they are let go. The folders are
+  read again in the background at start; files that did not change are
+  not read again. Classic skins and vector skins drawn on the classic
+  sheets give it the playlist's frame; a vector skin with its own windows
+  draws it as a `[[window]]` with `key = "library"`.
 
 ## [0.9.1] - 2026-11-13
 
