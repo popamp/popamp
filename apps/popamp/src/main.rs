@@ -37,6 +37,7 @@ mod scale;
 mod scan;
 mod skinwin;
 mod ui;
+mod update;
 mod vis;
 #[cfg(feature = "visualizers")]
 mod visualizer;

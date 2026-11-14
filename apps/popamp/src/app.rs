@@ -50,8 +50,17 @@ struct SkinWindow {
     cursor: (i32, i32),
     frame: Bitmap,
     shape_sig: Option<(usize, i32, i32)>,
-    /// The skin cursor last set on this window.
-    cursor_kind: Option<CursorKind>,
+    /// The cursor last set on this window.
+    pointer: Option<Pointer>,
+}
+
+/// What a window's cursor shows.
+#[derive(Clone, Copy, PartialEq)]
+enum Pointer {
+    /// The skin's, for the control under it.
+    Skin(CursorKind),
+    /// Tracks carried out of the library: whether they can be let go here.
+    Carry(CursorIcon),
 }
 
 struct Popup {
@@ -320,7 +329,7 @@ impl App {
             cursor: (0, 0),
             frame: Bitmap::new(w, h, 0),
             shape_sig: None,
-            cursor_kind: None,
+            pointer: None,
         });
         self.store_pos(k, pos);
         true
@@ -774,7 +783,7 @@ impl App {
             }
         }
         for w in self.wins.iter_mut().flatten() {
-            w.cursor_kind = None;
+            w.pointer = None;
         }
         self.sub_cursor = None;
         self.platform.set_cursor(None);
@@ -782,6 +791,10 @@ impl App {
 
     /// Shows the skin cursor for the control under the mouse in window `k`.
     fn update_cursor(&mut self, k: WindowKey) {
+        if k == WindowKey::Library && self.model.library.carrying() {
+            self.show_carry_cursor();
+            return;
+        }
         let input = self.input(k, false, false);
         let kind = self.skins[k.index()].cursor(&self.model, input.x, input.y);
         let custom = self.cursors.get(&kind).or_else(|| self.cursors.get(&CursorKind::Normal)).cloned();
@@ -795,13 +808,26 @@ impl App {
             }
             return;
         };
-        if w.cursor_kind == Some(kind) {
+        if w.pointer == Some(Pointer::Skin(kind)) {
             return;
         }
-        w.cursor_kind = Some(kind);
+        w.pointer = Some(Pointer::Skin(kind));
         match custom {
             Some(c) => top.set_cursor(c),
             None => top.set_cursor(CursorIcon::Default),
+        }
+    }
+
+    /// While tracks are carried out of the library, the cursor tells
+    /// whether letting go puts them in the playlist. The library window
+    /// holds the mouse, so its cursor shows over the others too.
+    fn show_carry_cursor(&mut self) {
+        let icon = if self.playlist_row_under_mouse().is_some() { CursorIcon::Copy } else { CursorIcon::NoDrop };
+        let Some(w) = self.wins[WindowKey::Library.index()].as_mut() else { return };
+        let Some(top) = w.window.top() else { return };
+        if w.pointer != Some(Pointer::Carry(icon)) {
+            w.pointer = Some(Pointer::Carry(icon));
+            top.set_cursor(icon);
         }
     }
 
@@ -889,6 +915,7 @@ impl App {
             self.popups.clear();
             self.model.on_menu(action);
             self.after_model(el);
+            self.redraw_all();
         }
     }
 
@@ -1132,6 +1159,7 @@ impl App {
         let target = self.capture.take().unwrap_or(k);
         if target == WindowKey::Library && self.model.library.take_carried() {
             self.drop_on_playlist();
+            self.update_cursor(target);
         }
         let input = self.input(target, false, false);
         let out = self.skins[target.index()].mouse_up(&mut self.model, &input);
@@ -1141,16 +1169,20 @@ impl App {
     /// Tracks carried out of the library go into the playlist at the row
     /// they are let go over; anywhere else, nowhere.
     fn drop_on_playlist(&mut self) {
+        let Some(row) = self.playlist_row_under_mouse() else { return };
+        self.model.library_play(AddMode::Insert(row));
+        self.render(WindowKey::Playlist);
+    }
+
+    /// The playlist row the mouse held by the library is over, if it is
+    /// over the playlist.
+    fn playlist_row_under_mouse(&self) -> Option<usize> {
         let at = self.cursor_screen(WindowKey::Library);
         let s = self.scale(WindowKey::Playlist);
-        let Some(pl) = self.win(WindowKey::Playlist).filter(|w| w.visible) else { return };
+        let pl = self.win(WindowKey::Playlist).filter(|w| w.visible)?;
         let (x, y) = (at.0 - pl.pos.0, at.1 - pl.pos.1);
-        if x < 0 || y < 0 || x >= s.px(pl.size.0) || y >= s.px(pl.size.1) {
-            return;
-        }
-        let row = self.skins[WindowKey::Playlist.index()].row_at(&self.model, s.skin(y));
-        self.model.library_play(AddMode::Insert(row.min(self.model.playlist.len())));
-        self.render(WindowKey::Playlist);
+        let inside = x >= 0 && y >= 0 && x < s.px(pl.size.0) && y < s.px(pl.size.1);
+        inside.then(|| self.skins[WindowKey::Playlist.index()].row_at(&self.model, s.skin(y)).min(self.model.playlist.len()))
     }
 
     fn mouse_moved(&mut self, k: WindowKey) {
@@ -1710,6 +1742,10 @@ impl ApplicationHandler<AppEvent> for App {
             AppEvent::Meta(id, m) => self.model.on_meta(id, m),
             AppEvent::Expanded { items, mode } => self.model.on_expanded(items, mode),
             AppEvent::Scan(ev) => self.model.on_scan(ev),
+            AppEvent::Update(found) => {
+                self.model.on_update(found);
+                self.render(WindowKey::Main);
+            }
             AppEvent::Library(ev) => {
                 self.model.on_library(ev);
                 self.render(WindowKey::Library);

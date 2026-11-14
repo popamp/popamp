@@ -801,7 +801,7 @@ impl LibraryPane {
         for list in [List::Artists, List::Albums] {
             if let Some(n) = self.row_at(&p, list, x, y) {
                 self.pick(list, n);
-                return if double { Reaction::run(Command::LibraryPlay) } else { Reaction::default() };
+                return if double { Reaction::run(Command::LibraryOpen) } else { Reaction::default() };
             }
         }
         self.press_table(&p, at.px, (x, y), shift, ctrl, double)
@@ -833,6 +833,11 @@ impl LibraryPane {
         moved
     }
 
+    /// Whether the picked tracks are being carried by the mouse.
+    pub fn carrying(&self) -> bool {
+        self.carry == Some(Carry::Moving)
+    }
+
     /// True once after the picked tracks were carried out by the mouse,
     /// for the window layer to put them where they were let go.
     pub fn take_carried(&mut self) -> bool {
@@ -862,7 +867,7 @@ impl LibraryPane {
         match (double, shift, ctrl) {
             (true, ..) => {
                 self.select_only(n);
-                return Reaction::run(Command::LibraryPlay);
+                return Reaction::run(Command::LibraryOpen);
             }
             (_, true, _) => self.select_range(n),
             (_, _, true) => {
@@ -926,7 +931,7 @@ impl LibraryPane {
                 self.query.clear();
                 self.refresh();
             }
-            Key::Enter => return (true, Some(if shift { Command::LibraryEnqueue } else { Command::LibraryPlay })),
+            Key::Enter => return (true, Some(if shift { Command::LibraryOpenOther } else { Command::LibraryOpen })),
             Key::Tab if self.has_panes() => {
                 let order = [List::Artists, List::Albums, List::Tracks];
                 let at = order.iter().position(|&l| l == self.focus).unwrap_or(2);
@@ -1146,11 +1151,22 @@ impl Model {
         }
     }
 
+    /// What Enter and a double click run (`other`: Shift+Enter): Play, or
+    /// Enqueue when that is the default.
+    pub fn library_open(&self, other: bool) -> Command {
+        if self.settings().enqueuedef != other {
+            Command::LibraryEnqueue
+        } else {
+            Command::LibraryPlay
+        }
+    }
+
     pub fn library_menu(&self) -> Vec<crate::menu::MenuItem> {
         use crate::menu::MenuItem;
+        let key = |c| if self.library_open(false) == c { "Enter" } else { "Shift+Enter" };
         let mut items = vec![
-            MenuItem::cmd("Play", "Enter", Command::LibraryPlay),
-            MenuItem::cmd("Enqueue", "Shift+Enter", Command::LibraryEnqueue),
+            MenuItem::cmd("Play", key(Command::LibraryPlay), Command::LibraryPlay),
+            MenuItem::cmd("Enqueue", key(Command::LibraryEnqueue), Command::LibraryEnqueue),
             MenuItem::sep(),
             MenuItem::cmd("Add folder…", "", Command::LibraryAddFolder),
             MenuItem::cmd("Rescan folders", "", Command::LibraryRescan),
@@ -1262,7 +1278,7 @@ mod tests {
         click(&mut p, artists.rows, 0);
         assert_eq!(titles(&p).len(), 5, "the first row is all of them");
         let play = p.press(AT, albums.rows.x + 5, albums.rows.y + 2 * (PX + 3) + 2, false, false, true);
-        assert_eq!((play.run, p.picked().len()), (Some(Command::LibraryPlay), 1), "a double click plays the album");
+        assert_eq!((play.run, p.picked().len()), (Some(Command::LibraryOpen), 1), "a double click opens the album");
     }
 
     #[test]
@@ -1308,8 +1324,9 @@ mod tests {
         p.press(AT, at(1).0, at(1).1, false, true, false);
         assert_eq!(p.picked().len(), 2, "Ctrl takes one out");
         let double = p.press(AT, at(3).0, at(3).1, false, false, true);
-        assert_eq!((double.run, p.picked()), (Some(Command::LibraryPlay), vec!["/more/4.mp3".to_string()]));
-        assert_eq!(p.key(AT, Key::Enter, true), (true, Some(Command::LibraryEnqueue)));
+        assert_eq!((double.run, p.picked()), (Some(Command::LibraryOpen), vec!["/more/4.mp3".to_string()]));
+        assert_eq!(p.key(AT, Key::Enter, false), (true, Some(Command::LibraryOpen)));
+        assert_eq!(p.key(AT, Key::Enter, true), (true, Some(Command::LibraryOpenOther)));
     }
 
     #[test]
@@ -1321,8 +1338,10 @@ mod tests {
         p.press(AT, x, y + PX + 3, true, false, false);
         assert!(p.press(AT, x, y, false, false, false).capture, "a press on a row keeps the mouse");
         assert!(!p.drag(AT, x + 2, y + 2), "a shaky click carries nothing");
+        assert!(!p.carrying());
         assert!(p.drag(AT, x, y + 40));
-        assert!(p.take_carried() && !p.take_carried(), "taken once");
+        assert!(p.carrying());
+        assert!(p.take_carried() && !p.take_carried() && !p.carrying(), "taken once");
         p.release(AT, x, y + 40);
         assert_eq!(p.picked().len(), 2, "the selection goes along whole");
         p.press(AT, x, y, false, false, false);
@@ -1452,5 +1471,17 @@ mod tests {
         assert!(m.library_menu().len() > 5, "a folder's view offers to remove it");
         m.library_remove_folder();
         assert!(m.library.lib.folders.is_empty() && m.library.lib.tracks.is_empty());
+    }
+
+    #[test]
+    fn enter_enqueues_by_default_and_shift_enter_plays() {
+        let mut m = Model::for_tests();
+        let keys = |m: &Model| m.library_menu().into_iter().take(2).map(|i| (i.label, i.accel)).collect::<Vec<_>>();
+        let pair = |a: &str, b: &str| vec![("Play".to_string(), a.to_string()), ("Enqueue".to_string(), b.to_string())];
+        assert_eq!((m.library_open(false), m.library_open(true)), (Command::LibraryEnqueue, Command::LibraryPlay));
+        assert_eq!(keys(&m), pair("Shift+Enter", "Enter"), "the menu tells which key does what");
+        m.settings_mut().enqueuedef = false;
+        assert_eq!((m.library_open(false), m.library_open(true)), (Command::LibraryPlay, Command::LibraryEnqueue));
+        assert_eq!(keys(&m), pair("Enter", "Shift+Enter"));
     }
 }

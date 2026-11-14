@@ -151,14 +151,22 @@ pub const GLYPH_H: i32 = 6;
 
 /// Cell (column, row) of `c` in `text.bmp`; unknown characters map to space.
 pub fn glyph_cell(c: char) -> (i32, i32) {
+    glyph(c).unwrap_or(SPACE)
+}
+
+const SPACE: (i32, i32) = (30, 0);
+
+/// Cell (column, row) of `c` in `text.bmp`, if the font has it.
+pub fn glyph(c: char) -> Option<(i32, i32)> {
     let c = fold_char(c);
     if c.is_ascii_lowercase() {
-        return (c as i32 - 'a' as i32, 0);
+        return Some((c as i32 - 'a' as i32, 0));
     }
     if c.is_ascii_digit() {
-        return (c as i32 - '0' as i32, 1);
+        return Some((c as i32 - '0' as i32, 1));
     }
-    match c {
+    Some(match c {
+        ' ' => SPACE,
         '"' => (26, 0),
         '@' => (27, 0),
         '…' => (10, 1),
@@ -187,8 +195,20 @@ pub fn glyph_cell(c: char) -> (i32, i32) {
         'ä' => (2, 2),
         '?' => (3, 2),
         '*' => (4, 2),
-        _ => (30, 0), // space
+        _ => return None,
+    })
+}
+
+/// The colour of the letters in `text.bmp`: the commonest one after the
+/// background's.
+pub fn text_ink(font: &crate::Bitmap) -> u32 {
+    let mut counts = std::collections::HashMap::new();
+    for &p in &font.px {
+        *counts.entry(p).or_insert(0usize) += 1;
     }
+    let mut by_use: Vec<(usize, u32)> = counts.into_iter().map(|(p, n)| (n, p)).collect();
+    by_use.sort_unstable_by(|a, b| b.cmp(a));
+    by_use.get(1).or(by_use.first()).map_or(0, |&(_, p)| p)
 }
 
 /// Lower-cases and strips accents the skin font can't show.
@@ -217,6 +237,22 @@ fn fold_char(c: char) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_skin_font_has_latin_letters_but_not_cyrillic() {
+        assert!("Hello, World! 1999 (4:46) café".chars().all(|c| glyph(c).is_some()));
+        assert_eq!(glyph('Б'), None);
+        assert_eq!(glyph_cell('Б'), glyph_cell(' '), "drawn as a space");
+    }
+
+    #[test]
+    fn the_letters_are_the_commonest_colour_after_the_background() {
+        let mut font = crate::Bitmap::new(10, 2, 0x000011);
+        font.px[..6].fill(0x00ff00);
+        font.px[6] = 0xff0000;
+        assert_eq!(text_ink(&font), 0x00ff00);
+        assert_eq!(text_ink(&crate::Bitmap::new(2, 2, 0x123456)), 0x123456, "one colour is all there is");
+    }
 
     #[test]
     fn viscolor() {

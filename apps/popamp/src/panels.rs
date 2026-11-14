@@ -9,7 +9,7 @@ use crate::fileinfo::{AlbumArt, FileInfo};
 use crate::filetypes::Group;
 use crate::model::{Model, UiReq};
 use crate::museum::{self, Fetched, Job};
-use crate::widgets::{Event, Form, Rect, Widget, BUTTON, ROW_H};
+use crate::widgets::{Event, Form, Rect, Widget, BUTTON, PAGE_H, ROW_H};
 use popamp_audio::output::Device;
 use popamp_core::config::Settings;
 use popamp_core::Command;
@@ -40,6 +40,8 @@ pub enum Act {
     ChangeCover,
     RemoveCover,
     Flag(Flag),
+    /// A section of Preferences was picked.
+    Section,
     /// A file type check box, read on OK.
     #[cfg(linux_like)]
     FileType,
@@ -336,14 +338,11 @@ pub enum Flag {
     NotifyTracks,
     GlobalHotkeys,
     KeepScanOpen,
+    CheckUpdates,
+    EnqueueDefault,
 }
 
 impl Flag {
-    const WINDOWS: [Flag; 6] = [Flag::Snap, Flag::EasyMove, Flag::KeepOnScreen, Flag::AlwaysOnTop, Flag::DoubleSize, Flag::SkinCursors];
-    const DISPLAY: [Flag; 6] =
-        [Flag::ScrollTitle, Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad, Flag::AutoAdvance, Flag::KeepScanOpen];
-    const DESKTOP: [Flag; 4] = [Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys];
-
     fn label(self) -> &'static str {
         match self {
             Flag::Snap => "Snap windows together",
@@ -360,8 +359,10 @@ impl Flag {
             Flag::TrayIcon => "Icon in the system tray",
             Flag::MinimizeToTray => "Minimize to the tray",
             Flag::NotifyTracks => "Notify of each new track",
+            Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
-            Flag::KeepScanOpen => "Keep the scan window open",
+            Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
+            Flag::EnqueueDefault => "Enter and double-click enqueue instead of playing",
         }
     }
 
@@ -394,8 +395,10 @@ impl Flag {
             Flag::TrayIcon => &mut s.tray_icon,
             Flag::MinimizeToTray => &mut s.minimize_to_tray,
             Flag::NotifyTracks => &mut s.notify_tracks,
+            Flag::CheckUpdates => &mut s.update_check,
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
+            Flag::EnqueueDefault => &mut s.enqueuedef,
         }
     }
 
@@ -435,9 +438,6 @@ pub enum Field {
 }
 
 impl Field {
-    const ALL: [Field; 7] =
-        [Field::FontSize, Field::TitleFormat, Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::Proxy, Field::SoundFont];
-
     fn label(self) -> &'static str {
         match self {
             Field::FontSize => "Playlist font size",
@@ -509,6 +509,56 @@ impl FileTypes {
     }
 }
 
+/// The sections of Preferences, listed down its left side; each shows its
+/// check boxes, then its typed values.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Section {
+    Windows,
+    Playlist,
+    Playback,
+    Library,
+    Desktop,
+    Internet,
+}
+
+impl Section {
+    const ALL: [Section; 6] =
+        [Section::Windows, Section::Playlist, Section::Playback, Section::Library, Section::Desktop, Section::Internet];
+
+    fn label(self) -> &'static str {
+        match self {
+            Section::Windows => "Windows",
+            Section::Playlist => "Playlist",
+            Section::Playback => "Playback",
+            Section::Library => "Media Library",
+            Section::Desktop => "Desktop",
+            Section::Internet => "Internet",
+        }
+    }
+
+    fn flags(self) -> &'static [Flag] {
+        match self {
+            Section::Windows => {
+                &[Flag::Snap, Flag::EasyMove, Flag::KeepOnScreen, Flag::AlwaysOnTop, Flag::DoubleSize, Flag::SkinCursors, Flag::ScrollTitle]
+            }
+            Section::Playlist => &[Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad],
+            Section::Playback => &[Flag::AutoAdvance, Flag::KeepScanOpen],
+            Section::Library => &[Flag::EnqueueDefault],
+            Section::Desktop => &[Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys],
+            Section::Internet => &[Flag::CheckUpdates],
+        }
+    }
+
+    fn fields(self) -> &'static [Field] {
+        match self {
+            Section::Playlist => &[Field::FontSize, Field::TitleFormat],
+            Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::SoundFont],
+            Section::Internet => &[Field::Proxy],
+            Section::Windows | Section::Library | Section::Desktop => &[],
+        }
+    }
+}
+
 pub struct Preferences {
     form: Form<Act>,
     /// Where the default players are chosen, and the check box of each
@@ -529,71 +579,83 @@ const DEVICE_ROWS: i32 = 4;
 
 impl Preferences {
     fn new(s: &Settings, mut devices: Vec<Device>, file_types: FileTypes) -> Preferences {
-        let w = 480;
+        let w = 560;
         let mut form = Form::new(w, 0);
-        let mut y = 10;
-        for (title, flags) in
-            [("Windows", &Flag::WINDOWS[..]), ("Display and playback", &Flag::DISPLAY[..]), ("Desktop", &Flag::DESKTOP[..])]
-        {
-            let rows = flags.len().div_ceil(2) as i32;
-            form.add(Rect::new(10, y, w - 20, 22 + rows * 22), Widget::Group { label: title.into() });
+        let labels = Section::ALL.map(|p| p.label().to_string()).to_vec();
+        let (x0, cw) = (160, w - 170);
+        let mut bottom = 14 + labels.len() as i32 * PAGE_H;
+        let mut fields = Vec::new();
+        #[cfg(linux_like)]
+        let mut type_checks = [0; 3];
+        let mut device_list = 0;
+        for (page, section) in Section::ALL.into_iter().enumerate() {
+            let flags = section.flags();
+            let rows = flags.len() as i32;
+            form.add_on(page, Rect::new(x0, 10, cw, 22 + rows * 22), Widget::Group { label: section.label().into() });
             for (n, &f) in flags.iter().enumerate() {
-                let (cx, cy) = (22 + (n as i32 % 2) * (w / 2 - 12), y + 20 + (n as i32 / 2) * 22);
-                form.add(
-                    Rect::new(cx, cy, w / 2 - 30, 20),
+                form.add_on(
+                    page,
+                    Rect::new(x0 + 12, 30 + n as i32 * 22, cw - 24, 20),
                     Widget::Check { label: f.label().into(), checked: f.get(s), action: Act::Flag(f) },
                 );
             }
-            y += 30 + rows * 22;
+            let mut y = 40 + rows * 22;
+            for &f in section.fields() {
+                form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: f.label().into(), dim: false });
+                let text = f.get(s);
+                let cursor = text.chars().count();
+                fields.push((f, form.add_on(page, Rect::new(x0 + 140, y, cw - 140, 24), Widget::Input { text, cursor })));
+                y += 30;
+            }
+            match section {
+                Section::Playback => {
+                    if !devices.iter().any(|d| d.name == s.output_device) {
+                        // Unplugged, or typed into the settings file: kept until changed.
+                        devices.push(Device { label: format!("{} (not found)", s.output_device), name: s.output_device.clone() });
+                    }
+                    let current = devices.iter().position(|d| d.name == s.output_device);
+                    form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: "Output device".into(), dim: false });
+                    let list = Widget::List { rows: vec![], selected: None, scroll: 0 };
+                    device_list = form.add_on(page, Rect::new(x0 + 140, y, cw - 140, DEVICE_ROWS * ROW_H + 4), list);
+                    form.set_rows(device_list, devices.iter().map(|d| d.label.clone()).collect(), current);
+                    y += DEVICE_ROWS * ROW_H + 10;
+                }
+                Section::Desktop => {
+                    form.add_on(page, Rect::new(x0, y, cw, 22 + 3 * 22), Widget::Group { label: "Open with Popamp".into() });
+                    #[cfg(linux_like)]
+                    {
+                        let on = file_types.defaults();
+                        type_checks = std::array::from_fn(|n| {
+                            let label = Group::ALL[n].label().into();
+                            let r = Rect::new(x0 + 12, y + 20 + n as i32 * 22, cw - 24, 20);
+                            form.add_on(page, r, Widget::Check { label, checked: on[n], action: Act::FileType })
+                        });
+                    }
+                    #[cfg(windows)]
+                    {
+                        let note = "Windows lets you choose the default player in its Settings.".into();
+                        form.add_on(page, Rect::new(x0 + 12, y + 20, cw - 24, 24), Widget::Label { text: note, dim: false });
+                        let r = Rect::new(x0 + 12, y + 48, BUTTON.0 + 20, BUTTON.1);
+                        form.add_on(page, r, Widget::Button { label: "Default apps".into(), action: Act::DefaultApps, default: false });
+                    }
+                    #[cfg(target_os = "macos")]
+                    {
+                        let note = "Choose Popamp in Finder: Get Info, then Open with.".into();
+                        form.add_on(page, Rect::new(x0 + 12, y + 20, cw - 24, 24), Widget::Label { text: note, dim: false });
+                    }
+                    y += 30 + 3 * 22;
+                }
+                _ => {}
+            }
+            bottom = bottom.max(y);
         }
-        form.add(Rect::new(10, y, w - 20, 44), Widget::Group { label: "Open with Popamp".into() });
-        #[cfg(linux_like)]
-        let type_checks = {
-            let on = file_types.defaults();
-            let third = (w - 44) / 3;
-            std::array::from_fn(|n| {
-                let label = Group::ALL[n].label().into();
-                form.add(
-                    Rect::new(22 + n as i32 * third, y + 20, third - 8, 20),
-                    Widget::Check { label, checked: on[n], action: Act::FileType },
-                )
-            })
-        };
-        #[cfg(windows)]
-        {
-            let note = "Windows lets you choose the default player in its Settings.".into();
-            form.add(Rect::new(22, y + 18, w - BUTTON.0 - 54, 24), Widget::Label { text: note, dim: false });
-            button(&mut form, w - BUTTON.0 - 22, y + 16, "Default apps", Act::DefaultApps, false);
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let note = "Choose Popamp in Finder: Get Info, then Open with.".into();
-            form.add(Rect::new(22, y + 18, w - 44, 24), Widget::Label { text: note, dim: false });
-        }
-        y += 52;
-        let mut fields = Vec::new();
-        for f in Field::ALL {
-            form.add(Rect::new(14, y, 136, 24), Widget::Label { text: f.label().into(), dim: false });
-            let text = f.get(s);
-            let cursor = text.chars().count();
-            fields.push((f, form.add(Rect::new(150, y, w - 160, 24), Widget::Input { text, cursor })));
-            y += 30;
-        }
-        if !devices.iter().any(|d| d.name == s.output_device) {
-            // Unplugged, or typed into the settings file: kept until changed.
-            devices.push(Device { label: format!("{} (not found)", s.output_device), name: s.output_device.clone() });
-        }
-        let current = devices.iter().position(|d| d.name == s.output_device);
-        form.add(Rect::new(14, y, 136, 24), Widget::Label { text: "Output device".into(), dim: false });
-        let device_list =
-            form.add(Rect::new(150, y, w - 160, DEVICE_ROWS * ROW_H + 4), Widget::List { rows: vec![], selected: None, scroll: 0 });
-        form.set_rows(device_list, devices.iter().map(|d| d.label.clone()).collect(), current);
-        y += DEVICE_ROWS * ROW_H + 10;
-        y += 6;
-        let status = form.add(Rect::new(10, y, w - 2 * BUTTON.0 - 36, BUTTON.1), Widget::Label { text: String::new(), dim: false });
+        let y = bottom + 10;
+        let status = form.add(Rect::new(x0, y, w - 2 * BUTTON.0 - 22 - x0, BUTTON.1), Widget::Label { text: String::new(), dim: false });
         button(&mut form, w - 2 * BUTTON.0 - 16, y, "OK", Act::Ok, true);
         button(&mut form, w - BUTTON.0 - 10, y, "Cancel", Act::Close, false);
         form.h = y + BUTTON.1 + 10;
+        // The list of sections runs down to the buttons, room to spare.
+        form.add(Rect::new(10, 10, 140, form.h - 20), Widget::Pages { labels, selected: 0, action: Act::Section });
         Preferences {
             form,
             file_types,
@@ -1052,11 +1114,26 @@ pub(crate) mod tests {
         assert!(!press(&mut p, &mut m, Key::Enter));
     }
 
-    /// Where the check box for `flag` is.
-    fn check_box(p: &Panel, flag: Flag) -> Rect {
+    /// Shows the section of Preferences control `i` is on, picking it on
+    /// the left as a user would, and gives where the control is.
+    fn reach(p: &mut Panel, m: &mut Model, i: usize) -> Rect {
+        let Panel::Prefs(pr) = &*p else { panic!("not preferences") };
+        let (page, r) = (pr.form.page_of(i), pr.form.rect(i));
+        if let Some(page) = page {
+            click(p, m, Rect::new(10, 10 + page as i32 * PAGE_H, 1, 1));
+        }
+        r
+    }
+
+    fn check_index(p: &Panel, flag: Flag) -> usize {
         let Panel::Prefs(pr) = p else { panic!("not preferences") };
-        let i = (0..).find(|&i| matches!(pr.form.widget(i), Widget::Check { action: Act::Flag(f), .. } if *f == flag)).unwrap();
-        pr.form.rect(i)
+        (0..).find(|&i| matches!(pr.form.widget(i), Widget::Check { action: Act::Flag(f), .. } if *f == flag)).unwrap()
+    }
+
+    /// Where the check box for `flag` is, its section shown.
+    fn check_box(p: &mut Panel, m: &mut Model, flag: Flag) -> Rect {
+        let i = check_index(p, flag);
+        reach(p, m, i)
     }
 
     pub(crate) fn click(p: &mut Panel, m: &mut Model, r: Rect) -> bool {
@@ -1069,14 +1146,34 @@ pub(crate) mod tests {
         let mut m = songs(&[]);
         let mut p = Panel::open(PanelKind::Preferences, &m);
         assert!(m.settings().snap && m.settings().pladv && !m.settings().aot);
-        let r = check_box(&p, Flag::Snap);
+        let r = check_box(&mut p, &mut m, Flag::Snap);
         click(&mut p, &mut m, r);
-        let r = check_box(&p, Flag::AutoAdvance);
+        let r = check_box(&mut p, &mut m, Flag::AutoAdvance);
         click(&mut p, &mut m, r);
-        let r = check_box(&p, Flag::AlwaysOnTop);
+        let r = check_box(&mut p, &mut m, Flag::AlwaysOnTop);
         click(&mut p, &mut m, r);
         assert!(!m.settings().snap && !m.settings().pladv && m.settings().aot);
         assert!(m.ui.iter().any(|r| matches!(r, UiReq::AlwaysOnTop)), "the windows are told");
+    }
+
+    #[test]
+    fn each_section_shows_only_its_own_controls() {
+        let mut m = songs(&[]);
+        let mut p = Panel::open(PanelKind::Preferences, &m);
+        let snap = check_box(&mut p, &mut m, Flag::Snap);
+        let enqueue = check_box(&mut p, &mut m, Flag::EnqueueDefault);
+        assert_eq!(snap, enqueue, "both are the first box of their section");
+        let Panel::Prefs(pr) = &p else { unreachable!() };
+        assert_eq!(pr.form.shown_page(), Section::ALL.iter().position(|&s| s == Section::Library).unwrap());
+        assert!(m.settings().enqueuedef && m.settings().snap);
+        click(&mut p, &mut m, enqueue);
+        assert!(!m.settings().enqueuedef && m.settings().snap, "the box shown is the one ticked");
+        for section in Section::ALL {
+            for &f in section.flags() {
+                let Panel::Prefs(pr) = &p else { unreachable!() };
+                assert_eq!(pr.form.page_of(check_index(&p, f)), Section::ALL.iter().position(|&s| s == section), "{f:?}");
+            }
+        }
     }
 
     fn field(p: &Panel, f: Field) -> usize {
@@ -1085,7 +1182,8 @@ pub(crate) mod tests {
     }
 
     fn retype(p: &mut Panel, m: &mut Model, f: Field, text: &str) {
-        let r = p.form().rect(field(p, f));
+        let i = field(p, f);
+        let r = reach(p, m, i);
         click(p, m, r);
         for _ in 0..100 {
             press(p, m, Key::Backspace);
@@ -1158,9 +1256,10 @@ pub(crate) mod tests {
     }
 
     #[cfg(linux_like)]
-    fn type_check(p: &Panel, g: Group) -> Rect {
-        let Panel::Prefs(pr) = p else { panic!("not preferences") };
-        pr.form.rect(pr.type_checks[Group::ALL.iter().position(|&x| x == g).unwrap()])
+    fn type_check(p: &mut Panel, m: &mut Model, g: Group) -> Rect {
+        let Panel::Prefs(pr) = &*p else { panic!("not preferences") };
+        let i = pr.type_checks[Group::ALL.iter().position(|&x| x == g).unwrap()];
+        reach(p, m, i)
     }
 
     #[cfg(linux_like)]
@@ -1170,7 +1269,7 @@ pub(crate) mod tests {
         let types = test_types("ok");
         let root = types.config.parent().unwrap().to_path_buf();
         let mut p = Panel::Prefs(Preferences::new(m.settings(), vec![], types));
-        let r = type_check(&p, Group::Playlists);
+        let r = type_check(&mut p, &mut m, Group::Playlists);
         click(&mut p, &mut m, r);
         assert!(!root.exists(), "nothing written before OK");
         assert!(!press(&mut p, &mut m, Key::Enter));
@@ -1194,7 +1293,7 @@ pub(crate) mod tests {
         let types = test_types("cancel");
         let root = types.config.parent().unwrap().to_path_buf();
         let mut p = Panel::Prefs(Preferences::new(m.settings(), vec![], types));
-        let r = type_check(&p, Group::Audio);
+        let r = type_check(&mut p, &mut m, Group::Audio);
         click(&mut p, &mut m, r);
         assert!(!press(&mut p, &mut m, Key::Escape));
         assert!(!root.exists());
@@ -1211,7 +1310,7 @@ pub(crate) mod tests {
     /// Clicks the n-th row of the device list.
     fn pick_device(p: &mut Panel, m: &mut Model, row: i32) {
         let Panel::Prefs(pr) = &*p else { panic!("not preferences") };
-        let r = pr.form.rect(pr.device_list);
+        let r = reach(p, m, pr.device_list);
         click(p, m, Rect::new(r.x, r.y + row * ROW_H, r.w, ROW_H));
     }
 

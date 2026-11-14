@@ -18,7 +18,15 @@ pub struct Screen {
 
 /// The edge the bar is at; `None` when the main window is no bar now.
 pub fn edge(model: &Model) -> Option<BarEdge> {
-    match crate::bind::placement(model, WindowKey::Main) {
+    let now = matches!(crate::bind::placement(model, WindowKey::Main), Placement::Bar(_));
+    chosen_edge(model).filter(|_| now)
+}
+
+/// The edge the bar is at, or would be at when turned on; `None` when the
+/// skin has no bar or bars are not made here.
+pub fn chosen_edge(model: &Model) -> Option<BarEdge> {
+    let main = model.skin.layout.window(WindowKey::Main).filter(|_| !model.no_bar)?;
+    match main.placement_in(popamp_skin::layout::View::Bar) {
         Placement::Bar(skin_edge) => Some(model.settings().bar_edge.unwrap_or(skin_edge)),
         _ => None,
     }
