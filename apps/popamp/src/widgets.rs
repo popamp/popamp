@@ -1,5 +1,6 @@
 //! A tiny set of controls for Popamp's own dialogs: labels, text fields,
-//! lists, buttons, check boxes and group frames. A [`Form`] holds them,
+//! lists, buttons, check boxes, group frames and a list of pages. A
+//! [`Form`] holds them,
 //! turns mouse and keys into [`Event`]s and draws itself in the colours of
 //! the pop-up menus. Coordinates are dialog pixels, as at ×1; a [`Pen`]
 //! draws them at the size of the skin's windows.
@@ -81,6 +82,13 @@ pub enum Widget<A> {
         selected: usize,
         action: A,
     },
+    /// The pages of the form, one under another; picking one shows the
+    /// controls on it.
+    Pages {
+        labels: Vec<String>,
+        selected: usize,
+        action: A,
+    },
     /// A picture, or `note` in an empty frame until it arrives.
     Image {
         image: Option<Bitmap>,
@@ -95,7 +103,7 @@ pub enum Event<A> {
     /// A button was clicked, or Enter pressed with a default button.
     Clicked(A),
     Toggled(A, bool),
-    /// Another segment of a [`Widget::Tabs`] was picked.
+    /// Another segment of a [`Widget::Tabs`] or page of a [`Widget::Pages`] was picked.
     Picked(A, usize),
     /// The text of a field changed.
     Edited,
@@ -109,6 +117,8 @@ pub enum Event<A> {
 
 pub const ROW_H: i32 = 18;
 pub const BUTTON: (i32, i32) = (80, 24);
+/// The height of one entry of a [`Widget::Pages`].
+pub const PAGE_H: i32 = 24;
 /// Text fields and lists are a little darker than the dialog.
 const FIELD_BG: u32 = darken(BG);
 
@@ -121,6 +131,10 @@ pub struct Form<A> {
     pub w: i32,
     pub h: i32,
     controls: Vec<(Rect, Widget<A>)>,
+    /// The page each control is on; `None`: on every page.
+    pages: Vec<Option<usize>>,
+    /// The page shown.
+    page: usize,
     focus: Option<usize>,
     /// The button held down by the mouse.
     pressed: Option<usize>,
@@ -128,18 +142,59 @@ pub struct Form<A> {
 
 impl<A: Copy + PartialEq> Form<A> {
     pub fn new(w: i32, h: i32) -> Form<A> {
-        Form { w, h, controls: Vec::new(), focus: None, pressed: None }
+        Form { w, h, controls: Vec::new(), pages: Vec::new(), page: 0, focus: None, pressed: None }
     }
 
-    /// Adds a control and returns its index. The first text field or list
-    /// gets the keyboard.
+    /// Adds a control shown on every page and returns its index. The first
+    /// text field or list shown gets the keyboard.
     pub fn add(&mut self, rect: Rect, widget: Widget<A>) -> usize {
+        self.put(None, rect, widget)
+    }
+
+    /// Adds a control shown only while `page` is.
+    pub fn add_on(&mut self, page: usize, rect: Rect, widget: Widget<A>) -> usize {
+        self.put(Some(page), rect, widget)
+    }
+
+    fn put(&mut self, page: Option<usize>, rect: Rect, widget: Widget<A>) -> usize {
         let i = self.controls.len();
-        if self.focus.is_none() && matches!(widget, Widget::Input { .. } | Widget::List { .. }) {
+        self.controls.push((rect, widget));
+        self.pages.push(page);
+        if self.focus.is_none() && self.focusable(i) {
             self.focus = Some(i);
         }
-        self.controls.push((rect, widget));
         i
+    }
+
+    /// Whether control `i` is on the page shown.
+    fn shown(&self, i: usize) -> bool {
+        self.pages[i].is_none_or(|p| p == self.page)
+    }
+
+    /// A text field or list on the page shown.
+    fn focusable(&self, i: usize) -> bool {
+        self.shown(i) && matches!(self.controls[i].1, Widget::Input { .. } | Widget::List { .. })
+    }
+
+    /// The page shown.
+    #[cfg(test)]
+    pub fn shown_page(&self) -> usize {
+        self.page
+    }
+
+    /// The page control `i` is on; `None`: every page.
+    #[cfg(test)]
+    pub fn page_of(&self, i: usize) -> Option<usize> {
+        self.pages[i]
+    }
+
+    /// Shows `page`; the keyboard goes to its first field or list when it
+    /// was on another page.
+    fn show_page(&mut self, page: usize) {
+        self.page = page;
+        if !self.focus.is_some_and(|f| self.shown(f)) {
+            self.focus = (0..self.controls.len()).find(|&i| self.focusable(i));
+        }
     }
 
     #[cfg(test)]
@@ -237,14 +292,17 @@ impl<A: Copy + PartialEq> Form<A> {
     }
 
     fn default_action(&self) -> Option<A> {
-        self.controls.iter().find_map(|(_, w)| match w {
-            Widget::Button { action, default: true, .. } => Some(*action),
+        self.controls.iter().enumerate().find_map(|(i, (_, w))| match w {
+            Widget::Button { action, default: true, .. } if self.shown(i) => Some(*action),
             _ => None,
         })
     }
 
+    /// The list the wheel and the arrows move: the one with the keyboard,
+    /// else the first shown.
     fn list_index(&self) -> Option<usize> {
-        self.controls.iter().position(|(_, w)| matches!(w, Widget::List { .. }))
+        let list = |i: &usize| self.shown(*i) && matches!(self.controls[*i].1, Widget::List { .. });
+        self.focus.filter(list).or_else(|| (0..self.controls.len()).find(list))
     }
 
     /// Visible rows of the list at `i`.
@@ -264,11 +322,10 @@ impl<A: Copy + PartialEq> Form<A> {
     }
 
     pub fn mouse_down(&mut self, x: i32, y: i32, double: bool) -> Event<A> {
-        let Some(i) = self
-            .controls
-            .iter()
-            .position(|(r, w)| r.contains(x, y) && !matches!(w, Widget::Label { .. } | Widget::Group { .. } | Widget::Image { .. }))
-        else {
+        let Some(i) = (0..self.controls.len()).find(|&i| {
+            let (r, w) = &self.controls[i];
+            self.shown(i) && r.contains(x, y) && !matches!(w, Widget::Label { .. } | Widget::Group { .. } | Widget::Image { .. })
+        }) else {
             return Event::None;
         };
         let rect = self.controls[i].0;
@@ -308,8 +365,23 @@ impl<A: Copy + PartialEq> Form<A> {
                     Event::None
                 }
             }
+            Widget::Pages { .. } => self.pick_page(i, y),
             Widget::Label { .. } | Widget::Group { .. } | Widget::Image { .. } => Event::None,
         }
+    }
+
+    /// A press at height `y` on pages `i` shows the page there.
+    fn pick_page(&mut self, i: usize, y: i32) -> Event<A> {
+        let (rect, widget) = &mut self.controls[i];
+        let Widget::Pages { labels, selected, action } = widget else { return Event::None };
+        let n = ((y - rect.y - 2) / PAGE_H) as usize;
+        if n >= labels.len() || n == *selected {
+            return Event::None;
+        }
+        *selected = n;
+        let action = *action;
+        self.show_page(n);
+        Event::Picked(action, n)
     }
 
     /// A button fires when the mouse is released over it.
@@ -352,8 +424,7 @@ impl<A: Copy + PartialEq> Form<A> {
     }
 
     fn focus_next(&mut self) {
-        let focusable: Vec<usize> =
-            (0..self.controls.len()).filter(|&i| matches!(self.controls[i].1, Widget::Input { .. } | Widget::List { .. })).collect();
+        let focusable: Vec<usize> = (0..self.controls.len()).filter(|&i| self.focusable(i)).collect();
         if focusable.is_empty() {
             return;
         }
@@ -382,7 +453,7 @@ impl<A: Copy + PartialEq> Form<A> {
 
     pub fn draw(&self, pen: &mut Pen) {
         pen.fill(0, 0, self.w, self.h, BG);
-        for (i, (r, w)) in self.controls.iter().enumerate() {
+        for (i, (r, w)) in self.controls.iter().enumerate().filter(|&(i, _)| self.shown(i)) {
             let focused = self.focus == Some(i);
             match w {
                 Widget::Label { text, dim } => {
@@ -396,6 +467,7 @@ impl<A: Copy + PartialEq> Form<A> {
                 Widget::Group { label } => draw_group(pen, *r, label),
                 Widget::Image { image, note } => draw_image(pen, *r, image.as_ref(), note),
                 Widget::Tabs { labels, selected, .. } => draw_tabs(pen, *r, labels, *selected),
+                Widget::Pages { labels, selected, .. } => draw_pages(pen, *r, labels, *selected),
             }
         }
     }
@@ -523,6 +595,18 @@ fn draw_tabs(pen: &mut Pen, r: Rect, labels: &[String], selected: usize) {
         let t = pen.fit(label, seg.w - 6);
         let tw = pen.width(&t);
         pen.text(seg.x + (seg.w - tw) / 2, text_y(seg), &t, TEXT, seg.x + 2, seg.w - 4);
+    }
+}
+
+fn draw_pages(pen: &mut Pen, r: Rect, labels: &[String], selected: usize) {
+    sunken(pen, r, false);
+    for (k, label) in labels.iter().enumerate() {
+        let row = Rect::new(r.x + 2, r.y + 2 + k as i32 * PAGE_H, r.w - 4, PAGE_H);
+        if k == selected {
+            pen.fill(row.x, row.y, row.w, row.h, HILITE);
+        }
+        let t = pen.fit(label, row.w - 12);
+        pen.text(row.x + 6, text_y(row), &t, TEXT, row.x, row.w);
     }
 }
 
@@ -729,5 +813,26 @@ mod tests {
         assert_eq!((small.w, small.h), (2, 1));
         assert_eq!(small.px, [0xff00_007f, 0xffff_ffff]);
         assert_eq!(fit(&img, 10, 10).w, 4, "small ones stay as they are");
+    }
+
+    #[test]
+    fn pages_show_their_own_controls() {
+        let mut f = Form::new(300, 200);
+        let labels = vec!["One".to_string(), "Two".to_string()];
+        f.add(Rect::new(0, 0, 80, 4 + 2 * PAGE_H), Widget::Pages { labels, selected: 0, action: Act::Cancel });
+        let field = f.add_on(0, Rect::new(100, 10, 100, 22), Widget::Input { text: String::new(), cursor: 0 });
+        f.add_on(1, Rect::new(100, 10, 100, 22), Widget::Check { label: "x".into(), checked: false, action: Act::Flag });
+        f.add_on(1, Rect::new(100, 40, 100, 4 + 3 * ROW_H), Widget::List { rows: rows(3), selected: None, scroll: 0 });
+        f.add(Rect::new(100, 150, 80, 24), Widget::Button { label: "OK".into(), action: Act::Ok, default: true });
+        assert_eq!(f.mouse_down(105, 15, false), Event::None, "the field, not the check box under it");
+        type_text(&mut f, "a");
+        assert_eq!(f.mouse_down(10, 2 + PAGE_H + 5, false), Event::Picked(Act::Cancel, 1));
+        assert_eq!(f.shown_page(), 1);
+        assert_eq!(f.mouse_down(10, 2 + PAGE_H + 5, false), Event::None, "picked already");
+        assert_eq!(f.mouse_down(105, 15, false), Event::Toggled(Act::Flag, true));
+        type_text(&mut f, "b");
+        assert_eq!(f.text(field), "a", "the hidden field lost the keyboard");
+        assert_eq!(f.key(Key::Down), Event::Selected, "the arrows move the list of the page shown");
+        assert_eq!(f.key(Key::Enter), Event::Clicked(Act::Ok), "controls on every page stay");
     }
 }

@@ -22,8 +22,10 @@ All notable changes to this project are documented here. The format follows
   it lists their tracks, with all the music, the newest tracks and each
   folder on the left, artists and albums side by side above the track
   table, and a search over every tag and the path. Play puts the picked
-  tracks in place of the playlist, Enqueue adds them, and tracks dragged
-  onto the playlist go in where they are let go. The folders are
+  tracks in place of the playlist, Enqueue adds them; Enter and a double
+  click enqueue, or play when Preferences > Media Library says so, and
+  Shift+Enter does the other. Tracks dragged onto the playlist go in
+  where they are let go, the cursor telling whether they can. The folders are
   read again in the background at start; files that did not change are
   not read again. Classic skins and vector skins drawn on the classic
   sheets give it the playlist's frame; a vector skin with its own windows
@@ -39,8 +41,25 @@ All notable changes to this project are documented here. The format follows
   version*. Installed from a .deb or .rpm, it says to update through the
   package manager instead. Popamp never downloads or installs an update
   itself; the request carries only its version, in the User-Agent, and
-  without network nothing is said. Preferences > Desktop > *Check for a
+  without network nothing is said. Preferences > Internet > *Check for a
   new version* turns it off.
+
+### Changed
+
+- Preferences is split into sections, listed down its left side:
+  Windows, Playlist, Playback, Media Library, Desktop and Internet.
+- The main menu's *Bar position* and *Bar size* are now *Position* and
+  *Size* in its *Toolbar mode*, which also turns the bar on and off when
+  the skin has a window as well, and they can be set before it is on.
+
+### Fixed
+
+- A song title with letters a classic skin's font lacks (Cyrillic, say)
+  is written in the playlist's font, in the colour of the skin's, instead
+  of leaving those letters out.
+- What a menu item changes shows at once in every window: an equalizer
+  preset picked from the Presets menu moved the sliders only after the
+  next click in that window.
 
 ## [0.9.1] - 2026-11-13
 

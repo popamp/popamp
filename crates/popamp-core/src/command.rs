@@ -1,5 +1,9 @@
 //! User-level commands. Discriminants are the original Winamp command ids
 //! so `/COMMAND=<id>` scripts keep working.
+//!
+//! `LibraryOpen` is Enter or a double click in the library: Play, or
+//! Enqueue when `enqueuedef` is on; `LibraryOpenOther` (Shift+Enter) is the
+//! other of the two.
 
 macro_rules! commands {
     ($( $name:ident = $id:expr ),* $(,)?) => {
@@ -118,6 +122,8 @@ commands! {
     LibraryAddFolder = 50036,
     LibraryRescan = 50037,
     LibraryRemoveFolder = 50038,
+    LibraryOpen = 50039,
+    LibraryOpenOther = 50040,
 }
 
 #[cfg(test)]

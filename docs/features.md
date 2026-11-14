@@ -11,8 +11,10 @@
   tracks and each folder; artists and albums side by side, each with its
   number of albums or year and tracks, narrow the track table under them,
   and typing searches every tag and the file path. Play replaces the
-  playlist, Enqueue adds to it, and tracks dragged onto the playlist go
-  in where they are let go. The folders are read again in the
+  playlist, Enqueue adds to it; Enter and a double click enqueue, or play
+  when "Enter and double-click enqueue" is off in Preferences > Media
+  Library, and Shift+Enter does the other. Tracks dragged onto the
+  playlist go in where they are let go. The folders are read again in the
   background at start (and on Rescan); only changed files are read anew,
   and the audio files themselves are never written.
 - **Own dialogs:** Jump to file (search as you type), File info, the Skin
@@ -44,7 +46,7 @@
   carries only Popamp's version) and, when a newer one is out, offers
   its page at the top of the main menu, or says to update through the
   package manager when Popamp came from a .deb or .rpm. It never
-  downloads or installs anything itself. Off in Preferences > Desktop.
+  downloads or installs anything itself. Off in Preferences > Internet.
 - **Tags and covers:** File info (`Alt+3`) changes the title, artist,
   album, album artist, year, genre, track and disc numbers, composer and
   comment of MP3, FLAC, Ogg Vorbis, Opus and MP4/M4A files, and sets or removes
@@ -131,8 +133,8 @@
   The equalizer and the playlist always move with the main window there.
   Through Xwayland, which stays the default where it runs, all of that
   works.
-- The Preferences window (`Ctrl+P`) covers the common options; the rest are
-  in the menus and `popamp.ini`.
+- The Preferences window (`Ctrl+P`) covers the common options, in sections
+  listed down its left side; the rest are in the menus and `popamp.ini`.
 - Tags can be changed in MP3, FLAC, Ogg Vorbis, Opus and MP4 files only, one
   file at a time.
 - The media library has no playlists of its own yet; no Modern (`.wal`) skins yet. See

@@ -229,8 +229,8 @@ as the screen at that edge, inside the desktop's own panels, which other
 windows keep out of like a taskbar. Its `size` gives the height and the narrowest width; place its
 elements with `edges` so they follow the width. The playlist and the
 equalizer sit against the bar at the screen's right end and do not move;
-the main menu's "Bar position" puts the bar at the other edge. A bar has
-its own size, set in the main menu's "Bar size" and ×2 at first, apart
+the main menu's "Toolbar mode" > "Position" puts the bar at the other edge. A bar has
+its own size, set in "Toolbar mode" > "Size" and ×2 at first, apart
 from the other windows' size: a bar 14 skin pixels high is 28 screen
 pixels high.
 
@@ -248,7 +248,7 @@ in the order they are listed; the mouse goes to the last one under it.
 ### A window that can also be a bar
 
 A main window that is a window can have a bar view as well. The user
-switches between the two in the main menu's "Main window as", so one skin
+switches between the two in the main menu's "Toolbar mode" (On or Off), so one skin
 serves both:
 
 ```toml

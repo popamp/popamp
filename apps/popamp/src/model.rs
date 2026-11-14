@@ -1234,6 +1234,8 @@ impl Model {
             }
             C::LibraryPlay => self.library_play(AddMode::ReplaceAndPlay),
             C::LibraryEnqueue => self.library_play(AddMode::Append),
+            C::LibraryOpen => self.exec(self.library_open(false)),
+            C::LibraryOpenOther => self.exec(self.library_open(true)),
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
             C::LibraryRescan => self.library_rescan(),
             C::LibraryRemoveFolder => self.library_remove_folder(),
@@ -1529,17 +1531,17 @@ impl Model {
             };
             items.push(MenuItem::sub("Colours", self.skin.color_sets.iter().enumerate().map(set).collect()));
         }
-        if !self.no_bar && self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
-            let as_ = |label: &str, bar: bool| MenuItem::action(label, "", MenuAction::MainAsBar(bar)).checked(s.main_bar == bar);
-            items.push(MenuItem::sub("Main window as", vec![as_("A window", false), as_("A bar", true)]));
-        }
-        if let Some(edge) = crate::bar::edge(self) {
+        if let Some(edge) = crate::bar::chosen_edge(self) {
+            let mut mode = Vec::new();
+            // A skin with a window too lets the bar be turned off.
+            if self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
+                let on = |label: &str, bar: bool| MenuItem::action(label, "", MenuAction::MainAsBar(bar)).checked(s.main_bar == bar);
+                mode.extend([on("On", true), on("Off", false), MenuItem::sep()]);
+            }
             let at = |label: &str, e: BarEdge| MenuItem::action(label, "", MenuAction::BarEdge(e)).checked(edge == e);
-            items.push(MenuItem::sub(
-                "Bar position",
-                vec![at("Top of the screen", BarEdge::Top), at("Bottom of the screen", BarEdge::Bottom)],
-            ));
-            items.push(MenuItem::sub("Bar size", zooms(s.bar_zoom, MenuAction::BarZoom)));
+            mode.push(MenuItem::sub("Position", vec![at("Top of the screen", BarEdge::Top), at("Bottom of the screen", BarEdge::Bottom)]));
+            mode.push(MenuItem::sub("Size", zooms(s.bar_zoom, MenuAction::BarZoom)));
+            items.push(MenuItem::sub("Toolbar mode", mode));
         }
         items.extend([
             MenuItem::sep(),
@@ -2051,14 +2053,19 @@ mod tests {
         assert!(m.media_snapshot().tray, "an icon asked for stays");
     }
 
+    /// The entry `label` of the main menu's Toolbar mode.
+    fn toolbar(m: &Model, label: &str) -> Option<MenuItem> {
+        let mode = m.main_menu().into_iter().find(|i| i.label == "Toolbar mode")?;
+        mode.sub.into_iter().find(|i| i.label == label)
+    }
+
     #[test]
     fn a_bar_skin_offers_the_edge_in_the_main_menu() {
         let mut m = Model::for_tests();
-        let edge_menu = |m: &Model| m.main_menu().into_iter().find(|i| i.label == "Bar position");
-        assert!(m.main_menu().iter().all(|i| i.label != "Bar size"));
-        assert!(edge_menu(&m).is_none(), "no bar, no choice");
+        assert!(m.main_menu().iter().all(|i| i.label != "Toolbar mode"), "no bar, no choice");
         m.skin.layout.windows[0].placement = popamp_skin::layout::Placement::Bar(BarEdge::Bottom);
-        let items = edge_menu(&m).unwrap().sub;
+        assert!(toolbar(&m, "On").is_none() && toolbar(&m, "Size").is_some(), "a bar it is, with a size");
+        let items = toolbar(&m, "Position").unwrap().sub;
         assert!(items[1].checked && !items[0].checked, "the skin's edge");
         m.on_menu(items[0].action.clone().unwrap());
         assert_eq!(crate::bar::edge(&m), Some(BarEdge::Top));
@@ -2069,22 +2076,22 @@ mod tests {
     fn a_skin_with_both_lets_the_user_pick_window_or_bar() {
         use popamp_skin::layout::{Bar, Placement, View};
         let mut m = Model::for_tests();
-        let pick = |m: &Model| m.main_menu().into_iter().find(|i| i.label == "Main window as");
         m.settings_mut().main_bar = true;
-        assert!(pick(&m).is_none(), "the skin has no bar view");
+        assert!(toolbar(&m, "On").is_none(), "the skin has no bar view");
         assert_eq!(crate::bar::edge(&m), None, "and stays a window whatever the setting");
         m.settings_mut().main_bar = false;
         let main = &mut m.skin.layout.windows[0];
         main.bar = Some(Bar { edge: BarEdge::Top, mode: main.normal.clone() });
-        let items = pick(&m).unwrap().sub;
-        assert!(items[0].checked && !items[1].checked, "a window at first");
-        assert!(m.main_menu().iter().all(|i| i.label != "Bar position"));
-        m.on_menu(items[1].action.clone().unwrap());
+        let (on, off) = (toolbar(&m, "On").unwrap(), toolbar(&m, "Off").unwrap());
+        assert!(off.checked && !on.checked, "a window at first");
+        let top = toolbar(&m, "Position").unwrap().sub[0].clone();
+        assert!(top.checked && toolbar(&m, "Size").is_some(), "where and how big it will be, chosen before it is on");
+        m.on_menu(on.action.unwrap());
         assert!(matches!(m.ui.last(), Some(UiReq::SkinChanged)), "the window is made again as a bar");
         assert_eq!(crate::bind::view(&m, WindowKey::Main), View::Bar);
         assert_eq!(crate::bind::placement(&m, WindowKey::Main), Placement::Bar(BarEdge::Top));
         assert_eq!(crate::bind::view(&m, WindowKey::Eq), View::Normal);
-        assert!(m.main_menu().iter().any(|i| i.label == "Bar position"));
+        assert!(toolbar(&m, "On").unwrap().checked);
         m.settings_mut().windowshade = true;
         assert_eq!(crate::bind::view(&m, WindowKey::Main), View::Bar, "a bar has no shade mode");
     }
@@ -2093,7 +2100,7 @@ mod tests {
     fn a_bar_has_its_own_size_in_the_main_menu() {
         let mut m = Model::for_tests();
         m.skin.layout.windows[0].placement = popamp_skin::layout::Placement::Bar(BarEdge::Bottom);
-        let sizes = m.main_menu().into_iter().find(|i| i.label == "Bar size").unwrap().sub;
+        let sizes = toolbar(&m, "Size").unwrap().sub;
         let checked: Vec<_> = sizes.iter().filter(|i| i.checked).map(|i| i.label.as_str()).collect();
         assert_eq!(checked, ["×2"]);
         let x15 = sizes.iter().find(|i| i.label == "×1.5").unwrap();
