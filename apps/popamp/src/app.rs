@@ -1710,6 +1710,10 @@ impl ApplicationHandler<AppEvent> for App {
             AppEvent::Meta(id, m) => self.model.on_meta(id, m),
             AppEvent::Expanded { items, mode } => self.model.on_expanded(items, mode),
             AppEvent::Scan(ev) => self.model.on_scan(ev),
+            AppEvent::Update(found) => {
+                self.model.on_update(found);
+                self.render(WindowKey::Main);
+            }
             AppEvent::Library(ev) => {
                 self.model.on_library(ev);
                 self.render(WindowKey::Library);

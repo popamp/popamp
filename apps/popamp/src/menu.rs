@@ -38,6 +38,10 @@ pub enum MenuAction {
     EqDialog(DialogKind),
     PlaySelected,
     PlayBookmark(usize),
+    /// Opens the newer version's page.
+    UpdateDownload,
+    /// Tells no more of the newer version.
+    UpdateSkip,
 }
 
 #[derive(Debug, Clone)]

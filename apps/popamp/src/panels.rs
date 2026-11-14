@@ -336,13 +336,14 @@ pub enum Flag {
     NotifyTracks,
     GlobalHotkeys,
     KeepScanOpen,
+    CheckUpdates,
 }
 
 impl Flag {
     const WINDOWS: [Flag; 6] = [Flag::Snap, Flag::EasyMove, Flag::KeepOnScreen, Flag::AlwaysOnTop, Flag::DoubleSize, Flag::SkinCursors];
     const DISPLAY: [Flag; 6] =
         [Flag::ScrollTitle, Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad, Flag::AutoAdvance, Flag::KeepScanOpen];
-    const DESKTOP: [Flag; 4] = [Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys];
+    const DESKTOP: [Flag; 5] = [Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys, Flag::CheckUpdates];
 
     fn label(self) -> &'static str {
         match self {
@@ -360,6 +361,7 @@ impl Flag {
             Flag::TrayIcon => "Icon in the system tray",
             Flag::MinimizeToTray => "Minimize to the tray",
             Flag::NotifyTracks => "Notify of each new track",
+            Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
             Flag::KeepScanOpen => "Keep the scan window open",
         }
@@ -394,6 +396,7 @@ impl Flag {
             Flag::TrayIcon => &mut s.tray_icon,
             Flag::MinimizeToTray => &mut s.minimize_to_tray,
             Flag::NotifyTracks => &mut s.notify_tracks,
+            Flag::CheckUpdates => &mut s.update_check,
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
         }
