@@ -1230,14 +1230,18 @@ mod tests {
         assert!(resets_then_blocks && seen.last().is_some_and(|s| s == "process 0"), "{seen:?}");
     }
 
-    /// Counts the frames it is given and keeps the loudest sample.
+    /// Counts the frames it is given and keeps the loudest sample. It
+    /// takes a quarter of their time, as a device would take all of it:
+    /// `null` alone plays a track out at once, before the next one opens.
     struct Meter(Arc<parking_lot::Mutex<(u64, f32)>>);
 
     impl crate::dsp::Effect for Meter {
         fn reset(&mut self, _: u32) {}
         fn process(&mut self, block: &mut [f32]) {
+            let frames = block.len() as u64 / 2;
+            std::thread::sleep(Duration::from_micros(frames * 1_000_000 / 44_100 / 4));
             let mut m = self.0.lock();
-            m.0 += block.len() as u64 / 2;
+            m.0 += frames;
             m.1 = block.iter().fold(m.1, |peak, s| peak.max(s.abs()));
         }
     }
