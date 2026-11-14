@@ -85,8 +85,7 @@ impl<'a> Canvas<'a> {
     pub fn text_centred(&mut self, font: &mut Font, r: Rect, text: &str, sample: &str, size: u32, color: u32, align: Align) {
         let size = size as f32 * self.scale.factor();
         let (x, y, w, h) = self.screen(r.x, r.y, r.w, r.h);
-        let Some((top, bottom)) = font.ink(sample, size) else { return };
-        let baseline = y + (h - (top - bottom)) / 2 + top;
+        let Some(baseline) = centred_baseline(font, sample, size, y, h) else { return };
         let left = match align {
             Align::Left => x,
             Align::Center => x + (w - font.width_at(text, size)) / 2,
@@ -95,11 +94,26 @@ impl<'a> Canvas<'a> {
         font.draw_at(self.bitmap, left, baseline, text, size, color, x, w);
     }
 
+    /// Draws `text` `size` skin pixels tall from `x`, its capitals centred
+    /// from top to bottom in `clip`, and cut to `clip`'s width.
+    pub fn text_line(&mut self, font: &mut Font, x: i32, clip: Rect, text: &str, size: u32, color: u32) {
+        let size = size as f32 * self.scale.factor();
+        let (cx, cy, cw, ch) = self.screen(clip.x, clip.y, clip.w, clip.h);
+        let Some(baseline) = centred_baseline(font, "H", size, cy, ch) else { return };
+        font.draw_at(self.bitmap, self.scale.px(x), baseline, text, size, color, cx, cw);
+    }
+
     /// The width of `text` in skin pixels, rounded up.
     pub fn text_width(&self, font: &mut Font, text: &str, size: u32) -> i32 {
         let s = self.scale;
         s.skin_up(font.width_at(text, size as f32 * s.factor()))
     }
+}
+
+/// The baseline that centres the ink of `sample` in `h` pixels from `y`.
+fn centred_baseline(font: &mut Font, sample: &str, size: f32, y: i32, h: i32) -> Option<i32> {
+    let (top, bottom) = font.ink(sample, size)?;
+    Some(y + (h - (top - bottom)) / 2 + top)
 }
 
 #[cfg(test)]

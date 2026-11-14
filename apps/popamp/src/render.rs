@@ -4,7 +4,7 @@ use crate::canvas::Canvas;
 use crate::font::Fonts;
 use popamp_skin::layout::Align;
 use popamp_skin::sprites::{main, Rect};
-use popamp_skin::textcfg::{glyph_cell, GLYPH_H, GLYPH_W};
+use popamp_skin::textcfg::{glyph, glyph_cell, text_ink, GLYPH_H, GLYPH_W};
 use popamp_skin::{Picture, Sheet, Skin};
 
 pub fn sprite(b: &mut Canvas, skin: &Skin, sheet: Sheet, src: Rect, x: i32, y: i32) {
@@ -60,15 +60,22 @@ pub fn skin_text_width(text: &str) -> i32 {
     text.chars().count() as i32 * GLYPH_W
 }
 
+/// How tall, in skin pixels, a text the skin font cannot write is drawn
+/// instead: its capitals then stand as tall as the skin font's letters.
+const SYSTEM_TEXT_SIZE: u32 = 8;
+
 /// Draws a small text into `area`, `offset` pixels into it (for
-/// scrolling): in a vector skin's font, or with the classic `text.bmp`.
+/// scrolling): in a vector skin's font, with the classic `text.bmp`, or,
+/// when that has not all its letters (Cyrillic, say), in the playlist's
+/// font in the colour of the skin font's.
 pub fn text(b: &mut Canvas, skin: &Skin, fonts: &mut Fonts, area: Rect, text: &str, offset: i32) {
     match (&skin.text, fonts.text.as_mut()) {
         (Some(st), Some(font)) => {
             let y = area.y + (area.h - st.size) / 2;
             b.text(font, area.x - offset, y, text, st.size as u32, st.color, area);
         }
-        _ => skin_text(b, skin, area, text, offset),
+        _ if in_skin_font(text) => skin_text(b, skin, area, text, offset),
+        _ => b.text_line(&mut fonts.list, area.x - offset, area, text, SYSTEM_TEXT_SIZE, text_ink(skin.sheet(Sheet::Text))),
     }
 }
 
@@ -76,8 +83,13 @@ pub fn text(b: &mut Canvas, skin: &Skin, fonts: &mut Fonts, area: Rect, text: &s
 pub fn text_width(skin: &Skin, fonts: &mut Fonts, text: &str) -> i32 {
     match (&skin.text, fonts.text.as_mut()) {
         (Some(st), Some(font)) => font.width(text, st.size as u32),
-        _ => skin_text_width(text),
+        _ if in_skin_font(text) => skin_text_width(text),
+        _ => fonts.list.width(text, SYSTEM_TEXT_SIZE),
     }
+}
+
+fn in_skin_font(text: &str) -> bool {
+    text.chars().all(|c| glyph(c).is_some())
 }
 
 /// The play time as a vector skin writes it: `-m:ss` or ` m:ss`.
@@ -131,6 +143,24 @@ pub fn time_digits(b: &mut Canvas, skin: &Skin, secs: Option<u64>, negative: boo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Pixels of `text` drawn in a classic skin's title.
+    fn drawn(text: &str) -> Vec<u32> {
+        let skin = Skin::builtin();
+        let mut fonts = Fonts::for_skin(&skin);
+        let mut b = popamp_skin::Bitmap::new(60, 12, 0);
+        super::text(&mut Canvas::new(&mut b, crate::scale::Scale::ONE), &skin, &mut fonts, Rect { x: 0, y: 3, w: 60, h: 6 }, text, 0);
+        b.px
+    }
+
+    #[test]
+    fn a_title_the_skin_font_lacks_is_written_in_a_system_font() {
+        assert!(drawn("Без любви") != drawn("         "), "not blanks");
+        let skin = Skin::builtin();
+        let mut fonts = Fonts::for_skin(&skin);
+        assert_eq!(text_width(&skin, &mut fonts, "Love"), 4 * GLYPH_W, "the skin font when it has every letter");
+        assert!(text_width(&skin, &mut fonts, "Любовь") > 0);
+    }
 
     #[test]
     fn vector_clocks_write_minutes_and_seconds() {
