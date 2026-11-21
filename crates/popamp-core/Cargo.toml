@@ -13,3 +13,5 @@ homepage.workspace = true
 encoding_rs.workspace = true
 fastrand.workspace = true
 log.workspace = true
+serde.workspace = true
+toml.workspace = true

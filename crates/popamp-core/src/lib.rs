@@ -5,6 +5,7 @@ pub mod command;
 pub mod config;
 pub mod cue;
 pub mod eqf;
+pub mod files;
 pub mod history;
 pub mod ini;
 pub mod library;
@@ -12,6 +13,8 @@ pub mod meta;
 pub mod playlist;
 pub mod plformats;
 pub mod replaygain;
+pub mod smart;
+pub mod stats;
 pub mod text;
 pub mod version;
 

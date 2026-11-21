@@ -182,6 +182,9 @@ settings! {
     ml_ws: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,
+    /// A play counts once this many percent of the track was heard:
+    /// 50..=100 in steps of 5.
+    listen_percent: u32 = 50,
     // Playback.
     /// 0..=255, Winamp scale.
     volume: i32 = 200,
@@ -327,6 +330,7 @@ impl Settings {
         self.sa = self.sa.clamp(0, 2);
         self.buffer_ms = self.buffer_ms.clamp(40, 2000);
         self.crossfade_ms = self.crossfade_ms.min(10_000);
+        self.listen_percent = self.listen_percent.clamp(50, 100) / 5 * 5;
         if self.output_device.trim().is_empty() {
             self.output_device = "default".to_string();
         }
@@ -433,6 +437,12 @@ impl Paths {
     }
     pub fn history_file(&self) -> PathBuf {
         self.config_dir.join("history.txt")
+    }
+    pub fn smart_file(&self) -> PathBuf {
+        self.config_dir.join("smart.toml")
+    }
+    pub fn stats_file(&self) -> PathBuf {
+        self.config_dir.join("stats.txt")
     }
     pub fn replaygain_file(&self) -> PathBuf {
         self.config_dir.join("replaygain.txt")

@@ -7,6 +7,7 @@
 
 use crate::meta::TrackMeta;
 use crate::replaygain::Stamp;
+use crate::stats::Stats;
 use crate::text::{escape_field as escape, natural_cmp, unescape_field as unescape};
 use std::cmp::Ordering;
 use std::path::Path;
@@ -86,7 +87,7 @@ impl Track {
     /// Whether the track has every word of `words` (lower case) in its
     /// tags or its path. The file type is no part of that: `3` would find
     /// every `.mp3`.
-    fn has(&self, words: &[String]) -> bool {
+    pub(crate) fn has(&self, words: &[String]) -> bool {
         let path = Path::new(&self.path).with_extension("").to_string_lossy().into_owned();
         let hay = [&self.title, &self.artist, &self.album, &self.genre, &self.year, &path].map(|t| t.to_lowercase());
         words.iter().all(|w| hay.iter().any(|h| h.contains(w.as_str())))
@@ -138,6 +139,8 @@ pub enum Sort {
     Genre,
     /// The newest in the library first.
     Added,
+    /// The most stars first.
+    Rating,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -145,11 +148,52 @@ pub struct Library {
     /// The folders the library is made of, as the user gave them.
     pub folders: Vec<String>,
     pub tracks: Vec<Track>,
+    /// How often the tracks were played and how they are rated; kept in
+    /// `stats.txt`, not in `library.txt`.
+    pub stats: Stats,
 }
 
 /// Whether `path` is in `folder`, at any depth.
 pub fn is_under(path: &str, folder: &str) -> bool {
     Path::new(path).starts_with(folder)
+}
+
+/// Which tracks `gone` from the library came back among those that
+/// `arrived`, renamed or moved: (old path, new path). A file of the same
+/// size and length is the same file; failing that, a track with the same
+/// artist and title and a length within a second is the same song with
+/// its tags edited or its file converted. Each arrival is taken once.
+pub fn moves(gone: &[Track], arrived: &[Track]) -> Vec<(String, String)> {
+    let mut taken = vec![false; arrived.len()];
+    let mut found: Vec<Option<usize>> = vec![None; gone.len()];
+    for test in [same_file as fn(&Track, &Track) -> bool, same_song] {
+        for (g, old) in gone.iter().enumerate() {
+            if found[g].is_none() {
+                found[g] = best_fit(old, arrived, &taken, test);
+                found[g].inspect(|&a| taken[a] = true);
+            }
+        }
+    }
+    let pairs = gone.iter().zip(found).filter_map(|(old, a)| Some((old.path.clone(), arrived[a?].path.clone())));
+    pairs.collect()
+}
+
+fn same_file(a: &Track, b: &Track) -> bool {
+    a.stamp.size > 0 && a.stamp.size == b.stamp.size && a.length_ms == b.length_ms
+}
+
+fn same_song(a: &Track, b: &Track) -> bool {
+    let near = matches!((a.length_ms, b.length_ms), (Some(x), Some(y)) if x.abs_diff(y) <= 1000);
+    near && !a.title.is_empty() && a.title.eq_ignore_ascii_case(&b.title) && a.artist.eq_ignore_ascii_case(&b.artist)
+}
+
+/// The arrival not yet `taken` that `test` takes for `old`; of several,
+/// the one that kept its file name.
+fn best_fit(old: &Track, arrived: &[Track], taken: &[bool], test: fn(&Track, &Track) -> bool) -> Option<usize> {
+    let name = |t: &Track| Path::new(&t.path).file_name().map(|n| n.to_os_string());
+    let mut fits = (0..arrived.len()).filter(|&a| !taken[a] && test(old, &arrived[a]));
+    let first = fits.next()?;
+    Some(std::iter::once(first).chain(fits).find(|&a| name(&arrived[a]) == name(old)).unwrap_or(first))
 }
 
 fn by_album(a: &Track, b: &Track) -> Ordering {
@@ -183,12 +227,7 @@ impl Library {
 
     /// Writes the whole library; a crash midway leaves the old file.
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
-        if let Some(dir) = path.parent() {
-            std::fs::create_dir_all(dir)?;
-        }
-        let tmp = path.with_extension("txt.tmp");
-        std::fs::write(&tmp, self.to_text())?;
-        std::fs::rename(&tmp, path)
+        crate::files::replace(path, &self.to_text())
     }
 
     /// Adds a folder; false when the library has it already, itself or as
@@ -242,6 +281,10 @@ impl Library {
             Sort::Year => natural_cmp(&a.year, &b.year).then_with(|| by_album(a, b)),
             Sort::Genre => natural_cmp(&a.genre, &b.genre).then_with(|| by_album(a, b)),
             Sort::Added => b.added.cmp(&a.added).then_with(|| natural_cmp(&a.path, &b.path)),
+            Sort::Rating => {
+                let stars = |t: &Track| self.stats.get(&t.path).rating;
+                stars(b).cmp(&stars(a)).then_with(|| natural_cmp(&a.artist, &b.artist)).then_with(|| by_album(a, b))
+            }
         };
         found.sort_by(|&a, &b| order(&self.tracks[a], &self.tracks[b]).then(a.cmp(&b)));
         if reverse {
@@ -304,6 +347,7 @@ mod tests {
                 track("/music/b/1.mp3", "Beta", "Second", 1, "One"),
                 track("/music/x.mp3", "", "", 0, "Loose"),
             ],
+            ..Library::default()
         }
     }
 
@@ -372,6 +416,40 @@ mod tests {
         (lib.tracks[3].year, lib.tracks[1].genre) = ("1980".into(), "Ambient".into());
         assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Year, true))[0], "One");
         assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Genre, true))[0], "Ten");
+    }
+
+    #[test]
+    fn tracks_sort_by_rating_the_most_stars_first() {
+        let mut lib = sample();
+        lib.stats = crate::stats::Stats::parse("R\t2\t/music/b/1.mp3\nR\t5\t/music/x.mp3\n");
+        assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Rating, false)), ["Loose", "One", "Nine", "Ten", "Two"]);
+    }
+
+    #[test]
+    fn a_renamed_or_moved_track_is_found_again() {
+        let file = |path: &str, size, length, artist: &str, title: &str| Track {
+            stamp: Stamp { size, modified: 1 },
+            length_ms: Some(length),
+            ..track(path, artist, "", 0, title)
+        };
+        let gone = [
+            file("/in/a.mp3", 100, 5000, "A", "One"),
+            file("/in/b.mp3", 200, 6000, "B", "Two"),
+            file("/in/c.mp3", 300, 7000, "C", "Three"),
+            file("/in/d.mp3", 400, 8000, "D", "Four"),
+        ];
+        let arrived = [
+            file("/out/x.mp3", 100, 5000, "", "x"),
+            file("/out/other.mp3", 200, 6000, "", "Two"),
+            file("/out/b.mp3", 200, 6000, "", "Two"),
+            file("/out/three.flac", 999, 7400, "c", "THREE"),
+            file("/out/four.mp3", 400, 9500, "D", "Four"),
+        ];
+        let found = moves(&gone, &arrived);
+        let pairs: Vec<(&str, &str)> = found.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+        assert_eq!(pairs, [("/in/a.mp3", "/out/x.mp3"), ("/in/b.mp3", "/out/b.mp3"), ("/in/c.mp3", "/out/three.flac")]);
+        let unknown = |path| file(path, 0, 5000, "", "");
+        assert!(moves(&[unknown("/a.mp3")], &[unknown("/b.mp3")]).is_empty(), "an unknown size proves nothing");
     }
 
     #[test]

@@ -7,7 +7,7 @@
 //! font and colours, so it fits any skin.
 //!
 //! Terms:
-//! - *view*: a row of the left list: all music, the newest tracks, or one
+//! - *view*: a row of the left list: all music, a smart playlist, or one
 //!   folder of the library.
 //! - *pane*: the list of artists or the list of albums; its first row is
 //!   all of them.
@@ -21,6 +21,8 @@ use crate::widgets::Key;
 use popamp_audio::source::{Context, Sources};
 use popamp_core::library::{Filter, Group, GroupRow, Library, Sort, Track};
 use popamp_core::replaygain::Stamp;
+use popamp_core::smart::SmartList;
+use popamp_core::stats::Rating;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
 use popamp_skin::bitmap::mix;
@@ -33,10 +35,11 @@ use std::sync::Arc;
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum View {
     All,
-    /// The newest tracks first, without the panes.
-    Recent,
-    /// An empty row above the folders.
-    Space,
+    /// A row naming the group under it; empty for a space. It is no view.
+    Heading(&'static str),
+    /// A smart playlist, by its place in the lists; in its own order and
+    /// without the panes.
+    Smart(usize),
     Folder(String),
 }
 
@@ -61,6 +64,7 @@ enum Column {
     Time,
     Genre,
     Year,
+    Rating,
 }
 
 impl Column {
@@ -72,6 +76,7 @@ impl Column {
             Column::Time => "Time",
             Column::Genre => "Genre",
             Column::Year => "Year",
+            Column::Rating => "Rating",
         }
     }
 
@@ -83,6 +88,7 @@ impl Column {
             Column::Time => Sort::Length,
             Column::Genre => Sort::Genre,
             Column::Year => Sort::Year,
+            Column::Rating => Sort::Rating,
         }
     }
 
@@ -102,13 +108,14 @@ enum Width {
 
 /// The table's columns, each with its width and the width of the table,
 /// in text heights, from which it is shown.
-const TABLE: [(Column, Width, i32); 6] = [
+const TABLE: [(Column, Width, i32); 7] = [
     (Column::Artist, Width::Share(2), 0),
     (Column::Title, Width::Share(3), 0),
     (Column::Album, Width::Share(2), 24),
     (Column::Time, Width::Px(4), 0),
     (Column::Genre, Width::Share(1), 44),
     (Column::Year, Width::Px(3), 34),
+    (Column::Rating, Width::Px(6), 40),
 ];
 
 /// Places `cols` across `area`, left to right.
@@ -252,6 +259,9 @@ pub struct Scan {
     done: usize,
     /// Set to stop it.
     cancel: Arc<AtomicBool>,
+    /// The tracks the library had when it began, to find the files that
+    /// were renamed or moved meanwhile.
+    before: Vec<Track>,
 }
 
 /// What a scan running on its own thread reports; the number names the scan.
@@ -290,6 +300,8 @@ impl Reaction {
 
 pub struct LibraryPane {
     pub lib: Library,
+    /// The smart playlists, from `smart.toml`.
+    pub smart: Vec<SmartList>,
     view: View,
     /// The artist and the album picked in the panes; all when none.
     artist: Option<String>,
@@ -329,6 +341,7 @@ impl LibraryPane {
     pub fn new(lib: Library) -> LibraryPane {
         let mut p = LibraryPane {
             lib,
+            smart: Vec::new(),
             view: View::All,
             artist: None,
             album: None,
@@ -353,21 +366,35 @@ impl LibraryPane {
     }
 
     fn views(&self) -> Vec<View> {
-        let folders = self.lib.folders.iter().map(|f| View::Folder(f.clone()));
-        [View::All, View::Recent].into_iter().chain((!self.lib.folders.is_empty()).then_some(View::Space)).chain(folders).collect()
+        let mut views = vec![View::All];
+        let mut group = |name, rows: Vec<View>| {
+            if !rows.is_empty() {
+                views.extend([View::Heading(""), View::Heading(name)].into_iter().chain(rows));
+            }
+        };
+        group("Playlists", (0..self.smart.len()).map(View::Smart).collect());
+        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect());
+        views
     }
 
-    fn view_label(v: &View) -> String {
+    fn view_label(&self, v: &View) -> String {
         match v {
             View::All => "All music".into(),
-            View::Recent => "Recently added".into(),
-            View::Space => String::new(),
+            View::Heading(name) => (*name).into(),
+            View::Smart(n) => self.smart[*n].name.clone(),
             View::Folder(f) => folder_label(f),
         }
     }
 
+    fn smart_view(&self) -> Option<&SmartList> {
+        match self.view {
+            View::Smart(n) => self.smart.get(n),
+            _ => None,
+        }
+    }
+
     fn has_panes(&self) -> bool {
-        self.view != View::Recent
+        self.smart_view().is_none()
     }
 
     fn parts(&self, at: Place) -> Parts {
@@ -392,20 +419,26 @@ impl LibraryPane {
                 *pick = None;
             }
         };
-        if self.view == View::Recent {
+        if let Some(shown) = self.smart_view().map(|l| l.tracks(&self.lib, &self.query, popamp_core::history::now())) {
+            self.shown = shown;
             (self.artists, self.albums, self.artist, self.album) = (Vec::new(), Vec::new(), None, None);
         } else {
             self.artists = self.lib.groups(Group::Artist, &within);
             keep(&mut self.artist, &self.artists);
             self.albums = self.lib.groups(Group::Album, &Filter { artist: self.artist.as_deref(), ..within.clone() });
             keep(&mut self.album, &self.albums);
+            let filter = Filter { artist: self.artist.as_deref(), album: self.album.as_deref(), ..within };
+            self.shown = self.lib.find(&filter, self.sort.0, self.sort.1);
         }
-        let (sort, reverse) = if self.view == View::Recent { (Sort::Added, false) } else { self.sort };
-        let filter = Filter { artist: self.artist.as_deref(), album: self.album.as_deref(), ..within };
-        self.shown = self.lib.find(&filter, sort, reverse);
         self.selected = vec![false; self.shown.len()];
         (self.cursor, self.anchor) = (0, 0);
         self.scroll[List::Tracks as usize] = 0;
+    }
+
+    /// The tracks selected in the table; none when no row is.
+    pub fn selected_paths(&self) -> Vec<String> {
+        let rows = self.shown.iter().zip(&self.selected).filter(|(_, &on)| on);
+        rows.map(|(&i, _)| self.lib.tracks[i].path.clone()).collect()
     }
 
     /// The paths of the picked tracks, in table order.
@@ -551,7 +584,7 @@ impl LibraryPane {
         lay(&fits, rows, px)
     }
 
-    fn cell(t: &Track, col: Column) -> String {
+    fn cell(&self, t: &Track, col: Column) -> String {
         match col {
             Column::Artist => t.artist.clone(),
             Column::Title => t.title.clone(),
@@ -559,6 +592,7 @@ impl LibraryPane {
             Column::Time => t.length_ms.map(format_duration_ms).unwrap_or_default(),
             Column::Genre => t.genre.clone(),
             Column::Year => t.year.clone(),
+            Column::Rating => stars(self.lib.stats.get(&t.path).rating),
         }
     }
 
@@ -609,7 +643,12 @@ impl LibraryPane {
             if *v == self.view {
                 pen.b.fill(row.x, row.y, row.w, row.h, c.selected_bg);
             }
-            pen.left(row, &Self::view_label(v), if *v == self.view { c.current } else { c.normal });
+            let color = match v {
+                View::Heading(_) => dim,
+                _ if *v == self.view => c.current,
+                _ => c.normal,
+            };
+            pen.left(row, &self.view_label(v), color);
         }
 
         self.draw_search(&mut pen, p.search, c, active);
@@ -716,7 +755,7 @@ impl LibraryPane {
         let t = p.table;
         let columns = Self::columns(t.rows, pen.px as i32);
         Self::draw_header(pen, t.header, &columns, |col| (col.label(), col.right()));
-        if self.view != View::Recent {
+        if self.has_panes() {
             if let Some(&(col, x, w)) = columns.iter().find(|c| c.0.sort() == self.sort.0) {
                 Self::draw_sort_arrow(pen, t.header, (col, x, w), self.sort.1);
             }
@@ -737,9 +776,9 @@ impl LibraryPane {
             for &(col, x, w) in &columns {
                 let cell = rect(x, row.y, w, row.h);
                 if col.right() {
-                    pen.right(cell, &Self::cell(track, col), color);
+                    pen.right(cell, &self.cell(track, col), color);
                 } else {
-                    pen.left(cell, &Self::cell(track, col), color);
+                    pen.left(cell, &self.cell(track, col), color);
                 }
             }
             if n == self.cursor && active && self.focus == List::Tracks {
@@ -789,7 +828,7 @@ impl LibraryPane {
         }
         if let Some(n) = self.row_at(&p, List::Views, x, y) {
             let v = self.views()[n].clone();
-            if v != View::Space && v != self.view {
+            if !matches!(v, View::Heading(_)) && v != self.view {
                 (self.view, self.artist, self.album) = (v, None, None);
                 self.scroll[List::Artists as usize] = 0;
                 self.scroll[List::Albums as usize] = 0;
@@ -850,7 +889,7 @@ impl LibraryPane {
 
     /// A press in the table: its header sorts, its rows select.
     fn press_table(&mut self, p: &Parts, px: i32, (x, y): (i32, i32), shift: bool, ctrl: bool, double: bool) -> Reaction {
-        if p.table.header.contains(x, y) && self.view != View::Recent {
+        if p.table.header.contains(x, y) && self.has_panes() {
             if let Some(&(col, ..)) = Self::columns(p.table.rows, px).iter().find(|&&(_, cx, cw)| x >= cx && x < cx + cw) {
                 self.sort = if self.sort.0 == col.sort() { (self.sort.0, !self.sort.1) } else { (col.sort(), false) };
                 self.refresh();
@@ -972,6 +1011,29 @@ impl LibraryPane {
     }
 }
 
+/// The commands that rate, by their stars.
+pub const RATE: [(u8, Command); 6] = [
+    (0, Command::LibraryRate0),
+    (1, Command::LibraryRate1),
+    (2, Command::LibraryRate2),
+    (3, Command::LibraryRate3),
+    (4, Command::LibraryRate4),
+    (5, Command::LibraryRate5),
+];
+
+fn rate_label(n: u8) -> String {
+    Rating::new(n).map(stars).filter(|s| !s.is_empty()).unwrap_or_else(|| "No rating".into())
+}
+
+/// A rating as filled and hollow stars out of five; nothing unrated.
+fn stars(r: Rating) -> String {
+    if r == Rating::NONE {
+        return String::new();
+    }
+    let n = r.stars() as usize;
+    "★".repeat(n) + &"☆".repeat(Rating::MAX as usize - n)
+}
+
 /// Text drawing for the pane: one font and size, fitted to its cell.
 struct Pen<'a, 'b> {
     b: &'a mut Canvas<'b>,
@@ -1089,7 +1151,7 @@ impl Model {
             .name("popamp-library".into())
             .spawn(move || scan(id, folders, known, &sources, &cx, &stop, &|ev| events.send(AppEvent::Library(ev))));
         match spawned {
-            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel }),
+            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel, before: self.library.lib.tracks.clone() }),
             Err(e) => log::warn!("cannot start a library scan: {e}"),
         }
     }
@@ -1111,10 +1173,40 @@ impl Model {
                 }
             }
             LibEvent::Done(_) => {
-                pane.scan = None;
+                let before = pane.scan.take().map(|s| s.before).unwrap_or_default();
                 self.save_library();
+                self.follow_moves(&before);
             }
         }
+    }
+
+    /// Hands the plays and ratings of the files gone since `before` to
+    /// the same files found under new names, and ages those of the rest.
+    fn follow_moves(&mut self, before: &[Track]) {
+        let now: std::collections::HashSet<&str> = self.library.lib.tracks.iter().map(|t| t.path.as_str()).collect();
+        let was: std::collections::HashSet<&str> = before.iter().map(|t| t.path.as_str()).collect();
+        let gone: Vec<Track> = before.iter().filter(|t| !now.contains(t.path.as_str())).cloned().collect();
+        let arrived: Vec<Track> = self.library.lib.tracks.iter().filter(|t| !was.contains(t.path.as_str())).cloned().collect();
+        let moved = popamp_core::library::moves(&gone, &arrived);
+        self.tidy_stats(&moved, popamp_core::stats::KEEP_MISSING);
+    }
+
+    /// Brings the plays and ratings up to date with the files on disk;
+    /// see [`popamp_core::stats::Stats::tidy`].
+    fn tidy_stats(&mut self, moved: &[(String, String)], keep: u64) {
+        let on_disk = |p: &str| std::path::Path::new(popamp_core::cue::split_location(p).map_or(p, |(file, _)| file)).exists();
+        let stats = &mut self.library.lib.stats;
+        stats.tidy(moved, on_disk, popamp_core::history::now(), keep);
+        if let Err(e) = stats.save(&self.paths.stats_file()) {
+            log::warn!("cannot save the play counts: {e}");
+        }
+    }
+
+    /// Forgets the plays and ratings of every file not there now; how many.
+    pub fn forget_missing_stats(&mut self) -> usize {
+        let before = self.library.lib.stats.len();
+        self.tidy_stats(&[], 0);
+        before - self.library.lib.stats.len()
     }
 
     fn save_library(&self) {
@@ -1176,7 +1268,20 @@ impl Model {
         if let Some(folder) = self.library.folder() {
             items.push(MenuItem::cmd(&format!("Remove “{}” from the library", folder_label(folder)), "", Command::LibraryRemoveFolder));
         }
+        if !self.library.selected_paths().is_empty() {
+            items.insert(2, MenuItem::sub("Rate", RATE.iter().rev().map(|&(n, c)| MenuItem::cmd(&rate_label(n), "", c)).collect()));
+        }
         items
+    }
+
+    /// Rates the tracks selected in the library. The rows stay where
+    /// they are, even in rating order, so the selection holds.
+    pub fn library_rate(&mut self, stars: u8) {
+        let Some(rating) = Rating::new(stars) else { return };
+        let file = self.paths.stats_file();
+        for path in self.library.selected_paths() {
+            self.library.lib.stats.rate(&file, &path, rating);
+        }
     }
 }
 
@@ -1202,6 +1307,7 @@ mod tests {
                 track("/music/3.mp3", "Beta", "Second", "Three"),
                 track("/more/4.mp3", "Gamma", "Third", "Four"),
             ],
+            ..Library::default()
         })
     }
 
@@ -1303,14 +1409,30 @@ mod tests {
         let mut p = pane();
         let parts = p.parts(AT);
         click(&mut p, parts.views, 2);
-        assert_eq!(p.view, View::All, "the empty row above the folders is no view");
+        assert_eq!(p.view, View::All, "the heading above the folders is no view");
         click(&mut p, parts.views, 4);
         assert_eq!((p.folder(), titles(&p), p.artists.len()), (Some("/more"), vec!["Four"], 1));
         p.lib.remove_folder("/more");
         p.refresh();
         assert_eq!(p.view, View::All, "the folder's view goes with it");
-        click(&mut p, parts.views, 1);
-        assert_eq!((p.view.clone(), p.parts(AT).panes), (View::Recent, None), "the newest come without the panes");
+    }
+
+    #[test]
+    fn a_smart_playlist_is_a_view_of_its_tracks_in_its_order() {
+        let mut p = pane();
+        let text = "[[smart]]\nname = \"Alpha\"\nsort = [{ by = \"title\", desc = true }]\nrule = [{ field = \"artist\", op = \"is\", value = \"alpha\" }]\n";
+        p.smart = popamp_core::smart::parse(text).0;
+        p.refresh();
+        let parts = p.parts(AT);
+        let labels: Vec<String> = p.views().iter().map(|v| p.view_label(v)).collect();
+        assert_eq!(labels, ["All music", "", "Playlists", "Alpha", "", "Folders", "music", "more"]);
+        click(&mut p, parts.views, 3);
+        assert_eq!((titles(&p), p.parts(AT).panes), (vec!["Two", "One"], None), "its own order, without the panes");
+        type_text(&mut p, "one");
+        assert_eq!(titles(&p), ["One"], "the search looks within the list");
+        p.smart.clear();
+        p.refresh();
+        assert_eq!(p.view, View::All, "a list that is gone takes its view with it");
     }
 
     #[test]
@@ -1488,7 +1610,7 @@ mod tests {
     fn a_scan_result_fills_the_library_and_is_saved() {
         let mut m = Model::for_tests();
         m.library.lib.add_folder("/music");
-        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)) });
+        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: Vec::new() });
         m.on_library(LibEvent::Folder(2, "/music".into(), vec![track("/music/x.mp3", "", "", "Stale")]));
         assert!(m.library.lib.tracks.is_empty(), "an older scan's news is dropped");
         m.on_library(LibEvent::Progress(3, 40));
@@ -1501,6 +1623,39 @@ mod tests {
         assert!(m.library_menu().len() > 5, "a folder's view offers to remove it");
         m.library_remove_folder();
         assert!(m.library.lib.folders.is_empty() && m.library.lib.tracks.is_empty());
+    }
+
+    #[test]
+    fn selected_tracks_are_rated_from_the_menu_and_keep_their_stars() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let has_rate = |m: &Model| m.library_menu().iter().any(|i| i.label == "Rate");
+        assert!(!has_rate(&m), "nothing selected, nothing to rate");
+        m.library.select_only(1);
+        let rate = m.library_menu().into_iter().find(|i| i.label == "Rate").expect("offered for a selection");
+        let labels: Vec<&str> = rate.sub.iter().map(|i| i.label.as_str()).collect();
+        assert_eq!(labels, ["★★★★★", "★★★★☆", "★★★☆☆", "★★☆☆☆", "★☆☆☆☆", "No rating"]);
+        let picked = m.library.selected_paths();
+        m.exec(Command::LibraryRate4);
+        assert_eq!(m.library.cell(&m.library.lib.tracks[m.library.shown[1]], Column::Rating), "★★★★☆");
+        let kept = popamp_core::stats::Stats::load(&m.paths.stats_file());
+        assert_eq!((picked.len(), kept.get(&picked[0]).rating.stars()), (1, 4));
+        m.exec(Command::LibraryRate0);
+        assert_eq!(m.library.cell(&m.library.lib.tracks[m.library.shown[1]], Column::Rating), "", "unrated shows nothing");
+    }
+
+    #[test]
+    fn a_rescan_hands_the_rating_to_the_file_under_its_new_name() {
+        let mut m = Model::for_tests();
+        let file = |path: &str| Track { stamp: Stamp { size: 1234, modified: 1 }, length_ms: Some(5000), ..track(path, "A", "", "Song") };
+        m.library.lib.add_folder("/music");
+        m.library.lib.tracks = vec![file("/music/a.mp3")];
+        m.library.lib.stats.rate(&m.paths.stats_file(), "/music/a.mp3", Rating::new(4).unwrap());
+        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: m.library.lib.tracks.clone() });
+        m.on_library(LibEvent::Folder(3, "/music".into(), vec![file("/music/sorted/01 Song.mp3")]));
+        m.on_library(LibEvent::Done(3));
+        let kept = popamp_core::stats::Stats::load(&m.paths.stats_file());
+        assert_eq!((kept.get("/music/a.mp3").rating.stars(), kept.get("/music/sorted/01 Song.mp3").rating.stars()), (0, 4));
     }
 
     #[test]

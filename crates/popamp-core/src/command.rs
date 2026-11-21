@@ -126,6 +126,12 @@ commands! {
     LibraryOpenOther = 50040,
     ToggleGroupMove = 50041,
     ToggleLibraryShade = 50042,
+    LibraryRate0 = 50043,
+    LibraryRate1 = 50044,
+    LibraryRate2 = 50045,
+    LibraryRate3 = 50046,
+    LibraryRate4 = 50047,
+    LibraryRate5 = 50048,
 }
 
 #[cfg(test)]
