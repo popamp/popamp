@@ -15,13 +15,15 @@
 //! - *picked*: the selected tracks, or all the shown ones when none is.
 
 use crate::canvas::Canvas;
+use crate::dialogs::DialogKind;
 use crate::font::Font;
-use crate::model::{AddMode, AppEvent, Model};
+use crate::model::{AddMode, AppEvent, Model, UiReq};
+use crate::panels::PanelKind;
 use crate::widgets::Key;
 use popamp_audio::source::{Context, Sources};
 use popamp_core::library::{Filter, Group, GroupRow, Library, Sort, Track};
 use popamp_core::replaygain::Stamp;
-use popamp_core::smart::SmartList;
+use popamp_core::smart::{Field, Op, Rule, SmartList, Test};
 use popamp_core::stats::Rating;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
@@ -298,10 +300,20 @@ impl Reaction {
     }
 }
 
+/// A smart playlist being edited: a copy of the one at `index`, or a
+/// new one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Editing {
+    pub index: Option<usize>,
+    pub list: SmartList,
+}
+
 pub struct LibraryPane {
     pub lib: Library,
     /// The smart playlists, from `smart.toml`.
     pub smart: Vec<SmartList>,
+    /// The list the smart playlist editor opens with.
+    pub editing: Option<Editing>,
     view: View,
     /// The artist and the album picked in the panes; all when none.
     artist: Option<String>,
@@ -342,6 +354,7 @@ impl LibraryPane {
         let mut p = LibraryPane {
             lib,
             smart: Vec::new(),
+            editing: None,
             view: View::All,
             artist: None,
             album: None,
@@ -387,8 +400,13 @@ impl LibraryPane {
     }
 
     fn smart_view(&self) -> Option<&SmartList> {
+        self.smart_index().and_then(|n| self.smart.get(n))
+    }
+
+    /// The smart playlist on screen, by its place in the lists.
+    pub fn smart_index(&self) -> Option<usize> {
         match self.view {
-            View::Smart(n) => self.smart.get(n),
+            View::Smart(n) => Some(n),
             _ => None,
         }
     }
@@ -795,9 +813,24 @@ impl LibraryPane {
     /// The right button went down: the menu is for the row under it.
     pub fn press_right(&mut self, at: Place, x: i32, y: i32) {
         let p = self.parts(at);
+        if let Some(n) = self.row_at(&p, List::Views, x, y) {
+            self.open_view(self.views()[n].clone());
+        }
         if let Some(n) = self.row_at(&p, List::Tracks, x, y).filter(|&n| !self.selected[n]) {
             self.select_only(n);
         }
+    }
+
+    /// Shows view `v`; a heading is no view.
+    fn open_view(&mut self, v: View) {
+        if matches!(v, View::Heading(_)) || v == self.view {
+            return;
+        }
+        (self.view, self.artist, self.album) = (v, None, None);
+        self.scroll[List::Artists as usize] = 0;
+        self.scroll[List::Albums as usize] = 0;
+        self.focus = if self.has_panes() { List::Artists } else { List::Tracks };
+        self.refresh();
     }
 
     fn select_only(&mut self, n: usize) {
@@ -827,14 +860,7 @@ impl LibraryPane {
             return self.press_bar(&p, list, y);
         }
         if let Some(n) = self.row_at(&p, List::Views, x, y) {
-            let v = self.views()[n].clone();
-            if !matches!(v, View::Heading(_)) && v != self.view {
-                (self.view, self.artist, self.album) = (v, None, None);
-                self.scroll[List::Artists as usize] = 0;
-                self.scroll[List::Albums as usize] = 0;
-                self.focus = if self.has_panes() { List::Artists } else { List::Tracks };
-                self.refresh();
-            }
+            self.open_view(self.views()[n].clone());
             return Reaction::default();
         }
         for list in [List::Artists, List::Albums] {
@@ -1008,6 +1034,18 @@ impl LibraryPane {
 
     pub fn select_all(&mut self) {
         self.selected.fill(true);
+    }
+
+    /// Shows the smart playlist at `n`.
+    #[cfg(test)]
+    pub fn open_view_for_tests(&mut self, n: usize) {
+        self.open_view(View::Smart(n));
+    }
+
+    #[cfg(test)]
+    pub fn set_query_for_tests(&mut self, query: &str) {
+        self.query = query.into();
+        self.refresh();
     }
 }
 
@@ -1268,10 +1306,83 @@ impl Model {
         if let Some(folder) = self.library.folder() {
             items.push(MenuItem::cmd(&format!("Remove “{}” from the library", folder_label(folder)), "", Command::LibraryRemoveFolder));
         }
+        items.extend([MenuItem::sep(), MenuItem::cmd("New smart playlist…", "", Command::LibrarySmartNew)]);
+        if !self.library.query.trim().is_empty() {
+            items.push(MenuItem::cmd("Save search as smart playlist…", "", Command::LibrarySmartFromSearch));
+        }
+        if let Some(list) = self.library.smart_view() {
+            items.push(MenuItem::cmd(&format!("Edit “{}”…", list.name), "", Command::LibrarySmartEdit));
+            items.push(MenuItem::cmd(&format!("Delete “{}”", list.name), "", Command::LibrarySmartDelete));
+        }
         if !self.library.selected_paths().is_empty() {
             items.insert(2, MenuItem::sub("Rate", RATE.iter().rev().map(|&(n, c)| MenuItem::cmd(&rate_label(n), "", c)).collect()));
         }
         items
+    }
+
+    /// Opens the smart playlist editor on `editing`.
+    fn edit_smart(&mut self, editing: Editing) {
+        self.library.editing = Some(editing);
+        self.ui.push(UiReq::Panel(PanelKind::SmartPlaylist));
+    }
+
+    pub fn library_smart_new(&mut self) {
+        self.edit_smart(Editing { index: None, list: SmartList { name: "New smart playlist".into(), ..SmartList::default() } });
+    }
+
+    /// A new smart playlist of the tracks the search finds.
+    pub fn library_smart_from_search(&mut self) {
+        let query = self.library.query.trim().to_string();
+        let Ok(test) = Test::from_text(Field::Any, Op::Has, &query) else { return };
+        let list = SmartList { name: query, rules: vec![Rule::Test(test)], ..SmartList::default() };
+        self.edit_smart(Editing { index: None, list });
+    }
+
+    pub fn library_smart_edit(&mut self) {
+        let Some(n) = self.library.smart_index() else { return };
+        self.edit_smart(Editing { index: Some(n), list: self.library.smart[n].clone() });
+    }
+
+    pub fn library_smart_delete(&mut self) {
+        if let Some(index) = self.library.smart_index() {
+            self.request_dialog(DialogKind::DeleteSmart { index });
+        }
+    }
+
+    /// Puts `list` in place of the smart playlist at `index`, or after the
+    /// others, writes them and shows it.
+    pub fn save_smart(&mut self, index: Option<usize>, list: SmartList) {
+        let smart = &mut self.library.smart;
+        let n = match index.filter(|&n| n < smart.len()) {
+            Some(n) => {
+                smart[n] = list;
+                n
+            }
+            None => {
+                smart.push(list);
+                smart.len() - 1
+            }
+        };
+        self.write_smart();
+        self.library.view = View::Smart(n);
+        self.library.refresh();
+    }
+
+    pub fn library_smart_remove(&mut self, index: usize) {
+        if index < self.library.smart.len() {
+            self.library.smart.remove(index);
+            self.write_smart();
+            // The lists after it moved up a place.
+            self.library.view = View::All;
+            self.library.refresh();
+        }
+    }
+
+    fn write_smart(&self) {
+        let file = self.paths.smart_file();
+        if let Err(e) = popamp_core::smart::save(&file, &self.library.smart) {
+            log::warn!("cannot write {}: {e}", file.display());
+        }
     }
 
     /// Rates the tracks selected in the library. The rows stay where

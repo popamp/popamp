@@ -132,6 +132,10 @@ commands! {
     LibraryRate3 = 50046,
     LibraryRate4 = 50047,
     LibraryRate5 = 50048,
+    LibrarySmartNew = 50049,
+    LibrarySmartEdit = 50050,
+    LibrarySmartDelete = 50051,
+    LibrarySmartFromSearch = 50052,
 }
 
 #[cfg(test)]

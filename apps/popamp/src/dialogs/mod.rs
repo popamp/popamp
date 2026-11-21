@@ -96,6 +96,10 @@ pub enum DialogKind {
     ConfirmPhysicalRemove {
         paths: Vec<String>,
     },
+    /// Asks before deleting the smart playlist at `index`.
+    DeleteSmart {
+        index: usize,
+    },
     /// Asks before deleting a plug-in's folder.
     #[cfg(feature = "plugins")]
     RemovePlugin {

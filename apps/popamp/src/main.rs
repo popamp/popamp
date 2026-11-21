@@ -41,6 +41,7 @@ mod scale;
 mod scan;
 mod shortcuts;
 mod skinwin;
+mod smart_edit;
 mod ui;
 mod update;
 mod vis;

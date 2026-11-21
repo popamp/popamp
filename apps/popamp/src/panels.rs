@@ -31,6 +31,7 @@ pub enum PanelKind {
     SkinBrowser,
     History,
     ReplayGainScan,
+    SmartPlaylist,
 }
 
 /// What a button or check box in a panel stands for.
@@ -62,6 +63,13 @@ pub enum Act {
     RemoveShortcut,
     /// Forgets the plays and ratings of the files that are gone.
     ForgetMissing,
+    /// Adds a rule to the smart playlist, in the group at this row or at
+    /// the end.
+    SmartAdd(Option<usize>),
+    /// Adds a group of rules to the smart playlist.
+    SmartGroup,
+    /// Takes the rule at this row out of the smart playlist.
+    SmartRemove(usize),
     /// The check box of the n-th plug-in.
     #[cfg(feature = "plugins")]
     Plugin(usize),
@@ -99,6 +107,7 @@ pub enum Panel {
     Skins(SkinBrowser),
     History(crate::history::HistoryPanel),
     Scan(crate::scan::ScanPanel),
+    Smart(crate::smart_edit::SmartEditor),
 }
 
 impl Panel {
@@ -119,6 +128,7 @@ impl Panel {
             PanelKind::SkinBrowser => Panel::Skins(SkinBrowser::new(model)),
             PanelKind::History => Panel::History(crate::history::HistoryPanel::new(model)),
             PanelKind::ReplayGainScan => Panel::Scan(crate::scan::ScanPanel::new(model)),
+            PanelKind::SmartPlaylist => Panel::Smart(crate::smart_edit::SmartEditor::new(model)),
         }
     }
 
@@ -133,6 +143,7 @@ impl Panel {
             Panel::Skins(_) => PanelKind::SkinBrowser,
             Panel::History(_) => PanelKind::History,
             Panel::Scan(_) => PanelKind::ReplayGainScan,
+            Panel::Smart(_) => PanelKind::SmartPlaylist,
         }
     }
 
@@ -147,6 +158,7 @@ impl Panel {
             Panel::Skins(_) => "Skin browser",
             Panel::History(_) => "History",
             Panel::Scan(_) => "ReplayGain scan",
+            Panel::Smart(_) => "Smart playlist",
         }
     }
 
@@ -161,6 +173,7 @@ impl Panel {
             Panel::Skins(p) => &p.form,
             Panel::History(p) => &p.form,
             Panel::Scan(p) => &p.form,
+            Panel::Smart(p) => &p.form,
         }
     }
 
@@ -175,6 +188,7 @@ impl Panel {
             Panel::Skins(p) => &mut p.form,
             Panel::History(p) => &mut p.form,
             Panel::Scan(p) => &mut p.form,
+            Panel::Smart(p) => &mut p.form,
         }
     }
 
@@ -191,6 +205,7 @@ impl Panel {
             Panel::Skins(p) => p.handle(ev, model),
             Panel::History(p) => p.handle(ev, model),
             Panel::Scan(p) => p.handle(ev, model),
+            Panel::Smart(p) => p.handle(ev, model),
         }
     }
 

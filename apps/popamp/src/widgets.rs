@@ -528,14 +528,17 @@ impl<A: Copy + PartialEq> Form<A> {
         }
     }
 
-    /// Where the options of the open drop-down `i` are drawn: under it.
+    /// Where the options of the open drop-down `i` are drawn: under it,
+    /// or over it when they would run past the form's bottom.
     fn dropdown(&self, i: usize) -> Rect {
         let r = self.screen_rect(i);
         let n = match &self.controls[i].1 {
             Widget::Choice { options, .. } => options.len() as i32,
             _ => 0,
         };
-        Rect::new(r.x, r.y + r.h, r.w, n * ROW_H + 4)
+        let h = n * ROW_H + 4;
+        let y = if r.y + r.h + h > self.h && r.y - h >= 0 { r.y - h } else { r.y + r.h };
+        Rect::new(r.x, y, r.w, h)
     }
 
     /// A press while a drop-down is open: it picks the option under the
@@ -1117,6 +1120,19 @@ mod tests {
         // Closed again: a press where the options were no longer picks.
         assert_eq!(f.mouse_down(20, 10 + 24 + 2 + 3, false), Event::None);
         assert_eq!(f.choice(c), 2);
+    }
+
+    #[test]
+    fn a_drop_down_near_the_bottom_opens_upwards() {
+        let mut f: Form<Act> = Form::new(300, 200);
+        let c = f.add(Rect::new(10, 150, 120, 24), Widget::Choice { options: rows(4), selected: 0 });
+        f.mouse_down(20, 160, false);
+        // Four options over the box: the first at 150 - (4 * ROW_H + 4) + 2.
+        assert_eq!(f.mouse_down(20, 150 - 4 * ROW_H - 4 + 2 + 3, false), Event::Selected);
+        assert_eq!(f.choice(c), 0);
+        f.mouse_down(20, 160, false);
+        assert_eq!(f.mouse_down(20, 150 - ROW_H - 4 + 2 + 3, false), Event::Selected);
+        assert_eq!(f.choice(c), 3, "the last option is just over the box");
     }
 
     #[test]

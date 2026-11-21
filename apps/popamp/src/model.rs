@@ -958,6 +958,10 @@ impl Model {
                 title: "Remove plug-in".into(),
                 text: format!("Remove the plug-in {name}?\n\nIts folder is deleted:\n{}", dir.display()),
             },
+            DialogKind::DeleteSmart { index } => Request::Question {
+                title: "Delete smart playlist".into(),
+                text: format!("Delete the smart playlist “{}”?", self.library.smart.get(*index).map_or("", |l| l.name.as_str())),
+            },
             DialogKind::ConfirmPhysicalRemove { paths } => Request::Question {
                 title: "Delete files".into(),
                 text: format!(
@@ -1140,6 +1144,11 @@ impl Model {
                     self.remove_plugin(&dir, id.as_deref());
                 }
             }
+            DialogKind::DeleteSmart { index } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_smart_remove(index);
+                }
+            }
             DialogKind::ConfirmPhysicalRemove { paths } => {
                 if first.as_deref() == Some("yes") {
                     for p in &paths {
@@ -1295,6 +1304,10 @@ impl Model {
             C::LibraryRate3 => self.library_rate(3),
             C::LibraryRate4 => self.library_rate(4),
             C::LibraryRate5 => self.library_rate(5),
+            C::LibrarySmartNew => self.library_smart_new(),
+            C::LibrarySmartFromSearch => self.library_smart_from_search(),
+            C::LibrarySmartEdit => self.library_smart_edit(),
+            C::LibrarySmartDelete => self.library_smart_delete(),
             #[cfg(feature = "plugins")]
             C::Plugins => self.ui.push(UiReq::Panel(PanelKind::Plugins)),
             #[cfg(not(feature = "plugins"))]
