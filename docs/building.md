@@ -130,7 +130,8 @@ Releases on the [Releases page](https://github.com/popamp/popamp/releases)
 come with Linux packages for x86_64 and ARM64 (built on Ubuntu 22.04, so
 they need glibc 2.35 or newer) and a Windows installer and portable zip;
 Debian and Ubuntu can take the debs from an [apt repository](#debian-and-ubuntu),
-openSUSE and Fedora get rpms from a [repository](#opensuse-and-fedora).
+openSUSE and Fedora get rpms from a [repository](#opensuse-and-fedora),
+Arch and its kin [a PKGBUILD](#arch-manjaro-endeavouros).
 All come in two builds:
 
 - **popamp:** the player.
@@ -144,6 +145,7 @@ the other.
 | System | Package |
 |---|---|
 | Debian / Ubuntu | `sudo apt install ./popamp-<version>-linux-amd64.deb`, or `./popamp-plus-…` (ARM64: `-arm64.deb`) |
+| Arch, Manjaro, EndeavourOS | `popamp-bin.PKGBUILD`, or `popamp-plus-bin.PKGBUILD`: [build it with makepkg](#arch-manjaro-endeavouros) |
 | Anything else | `Popamp-<version>-x86_64.AppImage`, or `Popamp-Plus-…`: `chmod +x` it and run it |
 | Windows | `Popamp-<version>-windows-x86_64-setup.exe`, or `Popamp-Plus-…`: run it |
 | Windows, portable | `Popamp-<version>-windows-x86_64-portable.zip`, or `Popamp-Plus-…`: unpack it anywhere and run `popamp.exe` |
@@ -206,6 +208,24 @@ The first install asks you to trust the repository's signing key.
 The skins and plug-ins with a release are in both repositories too, as
 `popamp-skin-<name>` and `popamp-plugin-<id>` (e.g. `popamp-skin-steel`,
 `popamp-plugin-youtube`); a plug-in needs popamp-plus.
+
+#### Arch, Manjaro, EndeavourOS
+
+Each release carries a PKGBUILD for each build, `popamp-bin.PKGBUILD`
+and `popamp-plus-bin.PKGBUILD`, for x86_64 and aarch64. They make an
+Arch package from the release's deb, so nothing is compiled. Save one as
+`PKGBUILD` in an empty folder and let makepkg build and install it:
+
+```sh
+mkdir popamp-bin && cd popamp-bin
+curl -fsSLo PKGBUILD https://github.com/popamp/popamp/releases/latest/download/popamp-bin.PKGBUILD
+makepkg -si                       # or popamp-plus-bin.PKGBUILD in its own folder
+```
+
+pacman then knows the package as `popamp-bin` (or `popamp-plus-bin`);
+the two replace each other. For a new release, do the same again. The
+packages are not in the AUR yet: its registration of new accounts is
+paused. The PKGBUILDs are written by `packaging/aur/pkgbuild.sh`.
 
 The AppImage carries xkbcommon, Xcursor, Xi, Opus and libopenmpt, and
 uses the system's ALSA and X11, which nearly every desktop has. To build the packages yourself after
