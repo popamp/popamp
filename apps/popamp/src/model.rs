@@ -151,6 +151,9 @@ pub struct Model {
     pub pl_dirty: u64,
     /// Goes up whenever Popamp changes a file's tags, so covers are read again.
     pub tags_generation: u64,
+    /// The library track File info is about; none when it is about the
+    /// playlist.
+    pub info_file: Option<Entry>,
     /// What a bar spans: the main window's monitor less the desktop's
     /// panels.
     pub screen: Option<crate::bar::Screen>,
@@ -265,6 +268,8 @@ impl Model {
         lib.stats = Stats::load(&paths.stats_file());
         let mut library = crate::library::LibraryPane::new(lib);
         library.smart = popamp_core::smart::load(&paths.smart_file());
+        library.plain = popamp_core::plain::load(&paths.playlists_dir());
+        library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));
         let mut m = Model {
             library,
@@ -303,6 +308,7 @@ impl Model {
             last_dir: None,
             pl_dirty: 0,
             tags_generation: 0,
+            info_file: None,
         };
         let skin = m.settings().skin.clone();
         if !skin.is_empty() {
@@ -709,6 +715,7 @@ impl Model {
         if !e.is_url() {
             let location = e.location.clone();
             self.library.lib.stats.record_play(&self.paths.stats_file(), &location, history::now());
+            self.library.recount();
         }
     }
 
@@ -958,6 +965,21 @@ impl Model {
                 title: "Remove plug-in".into(),
                 text: format!("Remove the plug-in {name}?\n\nIts folder is deleted:\n{}", dir.display()),
             },
+            DialogKind::NewPlaylist => {
+                Request::Entry { title: "New playlist".into(), text: "Playlist name:".into(), initial: String::new() }
+            }
+            DialogKind::RenamePlaylist { index } => Request::Entry {
+                title: "Rename playlist".into(),
+                text: "Playlist name:".into(),
+                initial: self.library.plain.get(*index).map_or(String::new(), |l| l.name.clone()),
+            },
+            DialogKind::DeletePlaylist { index } => Request::Question {
+                title: "Delete playlist".into(),
+                text: format!(
+                    "Delete the playlist “{}”?\n\nIts tracks stay in the library.",
+                    self.library.plain.get(*index).map_or("", |l| l.name.as_str())
+                ),
+            },
             DialogKind::DeleteSmart { index } => Request::Question {
                 title: "Delete smart playlist".into(),
                 text: format!("Delete the smart playlist “{}”?", self.library.smart.get(*index).map_or("", |l| l.name.as_str())),
@@ -975,9 +997,12 @@ impl Model {
     }
 
     /// Name/value rows describing the selected (or else the playing) entry.
-    /// The entry File info is about: the first selected one, else the
-    /// current one.
+    /// The entry File info is about: the library track it was opened on,
+    /// else the first selected one, else the current one.
     pub fn info_entry(&self) -> Option<&Entry> {
+        if let Some(e) = &self.info_file {
+            return Some(e);
+        }
         let idx = self.playlist.selected_indices().first().copied().or(self.playlist.current());
         idx.and_then(|i| self.playlist.entry(i))
     }
@@ -986,6 +1011,7 @@ impl Model {
     /// them again, and covers are read again.
     pub fn tags_changed(&mut self, location: &str) {
         self.tags_generation += 1;
+        self.library_retag(location);
         let fmt = self.format.clone();
         let ids: Vec<u64> = self.playlist.entries().iter().filter(|e| e.location == location).map(|e| e.id).collect();
         for id in ids {
@@ -1149,6 +1175,21 @@ impl Model {
                     self.library_smart_remove(index);
                 }
             }
+            DialogKind::NewPlaylist => {
+                if let Some(name) = first {
+                    self.library_playlist_new(&name);
+                }
+            }
+            DialogKind::RenamePlaylist { index } => {
+                if let Some(name) = first {
+                    self.library_playlist_rename(index, &name);
+                }
+            }
+            DialogKind::DeletePlaylist { index } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_playlist_remove(index);
+                }
+            }
             DialogKind::ConfirmPhysicalRemove { paths } => {
                 if first.as_deref() == Some("yes") {
                     for p in &paths {
@@ -1255,7 +1296,24 @@ impl Model {
             C::PlaylistSave => self.request_dialog(DialogKind::SavePlaylist),
             C::JumpToTime => self.request_dialog(DialogKind::JumpToTime),
             C::JumpToFile => self.ui.push(UiReq::Panel(PanelKind::JumpToFile)),
-            C::FileInfo => self.ui.push(UiReq::Panel(PanelKind::FileInfo)),
+            C::FileInfo => {
+                self.info_file = None;
+                self.ui.push(UiReq::Panel(PanelKind::FileInfo));
+            }
+            C::LibraryFileInfo => self.library_file_info(),
+            C::LibraryPlaylistNew => self.request_dialog(DialogKind::NewPlaylist),
+            C::LibraryPlaylistRename => {
+                if let Some(index) = self.library.plain_index() {
+                    self.request_dialog(DialogKind::RenamePlaylist { index });
+                }
+            }
+            C::LibraryPlaylistDelete => {
+                if let Some(index) = self.library.plain_index() {
+                    self.request_dialog(DialogKind::DeletePlaylist { index });
+                }
+            }
+            C::LibraryPlaylistRemoveTracks => self.library_playlist_remove_tracks(),
+            C::LibraryDropOnPlaylist => self.library_drop_on_playlist(),
             C::PlGenerateHtml => self.request_dialog(DialogKind::SaveHtml),
             C::EqLoadDefault => {
                 let p = self.settings().eq_default();

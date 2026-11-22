@@ -529,7 +529,8 @@ impl<A: Copy + PartialEq> Form<A> {
     }
 
     /// Where the options of the open drop-down `i` are drawn: under it,
-    /// or over it when they would run past the form's bottom.
+    /// or over it when they would run past the form's bottom, or, with
+    /// room on neither side, ending at the form's bottom.
     fn dropdown(&self, i: usize) -> Rect {
         let r = self.screen_rect(i);
         let n = match &self.controls[i].1 {
@@ -537,8 +538,21 @@ impl<A: Copy + PartialEq> Form<A> {
             _ => 0,
         };
         let h = n * ROW_H + 4;
-        let y = if r.y + r.h + h > self.h && r.y - h >= 0 { r.y - h } else { r.y + r.h };
+        let y = if r.y + r.h + h <= self.h {
+            r.y + r.h
+        } else if r.y - h >= 0 {
+            r.y - h
+        } else {
+            (self.h - h).max(0)
+        };
         Rect::new(r.x, y, r.w, h)
+    }
+
+    /// Where option `n` of drop-down `i` is shown once it is open.
+    #[cfg(test)]
+    pub fn option_rect(&self, i: usize, n: usize) -> Rect {
+        let list = self.dropdown(i);
+        Rect::new(list.x, list.y + 2 + n as i32 * ROW_H, list.w, ROW_H)
     }
 
     /// A press while a drop-down is open: it picks the option under the
@@ -1133,6 +1147,16 @@ mod tests {
         f.mouse_down(20, 160, false);
         assert_eq!(f.mouse_down(20, 150 - ROW_H - 4 + 2 + 3, false), Event::Selected);
         assert_eq!(f.choice(c), 3, "the last option is just over the box");
+    }
+
+    #[test]
+    fn a_drop_down_with_no_room_on_either_side_stays_in_the_form() {
+        let mut f: Form<Act> = Form::new(300, 200);
+        let c = f.add(Rect::new(10, 80, 120, 24), Widget::Choice { options: rows(10), selected: 0 });
+        f.mouse_down(20, 90, false);
+        // Ten options, 184 high, end at the form's bottom: the last at 200 - 4 + 2 - ROW_H.
+        assert_eq!(f.mouse_down(20, 200 - 2 - ROW_H + 3, false), Event::Selected);
+        assert_eq!(f.choice(c), 9, "the last option is in the form");
     }
 
     #[test]

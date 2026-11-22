@@ -13,6 +13,7 @@
 //! - *group*: rules that hold together (`all`) or one of them (`any`).
 
 use std::cmp::Ordering;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -26,7 +27,8 @@ const HEADER: &str = r#"# Smart playlists of Popamp's media library.
 #
 # Each [[smart]] is a list: a name, its rules, and optionally
 #   match = "all" (every rule holds, the default) or "any" (one does),
-#   sort  = [{ by = "field", desc = true }, ...]  (several levels),
+#   sort  = [{ by = "field", desc = true }, ...]  (several levels;
+#           by = "random" shuffles, anew each time the list is opened),
 #   limit = { tracks = 100 } or { minutes = 60 }.
 # A rule is field + op + value:
 #   any           (every word in some tag or the path) op: has
@@ -74,6 +76,11 @@ name = "Never played"
 field = "plays"
 op = "is"
 value = 0
+
+[[smart]]
+name = "Random 50"
+sort = [{ by = "random" }]
+limit = { tracks = 50 }
 
 [[smart]]
 name = "Favourites"
@@ -418,11 +425,48 @@ fn holds(matching: Match, rules: &[Rule], t: &Track, s: &TrackStats, now: u64) -
     }
 }
 
+/// What a list is ordered by.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SortBy {
+    Field(Field),
+    /// A shuffle, fixed by the seed the list is drawn with.
+    Random,
+}
+
+const RANDOM: &str = "random";
+
+impl<'de> Deserialize<'de> for SortBy {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<SortBy, D::Error> {
+        use serde::de::IntoDeserializer;
+        let word = String::deserialize(d)?;
+        if word == RANDOM {
+            return Ok(SortBy::Random);
+        }
+        Field::deserialize(word.as_str().into_deserializer()).map(SortBy::Field)
+    }
+}
+
+impl Serialize for SortBy {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        match self {
+            SortBy::Field(f) => f.serialize(s),
+            SortBy::Random => s.serialize_str(RANDOM),
+        }
+    }
+}
+
+/// Where a track falls in the shuffle of `seed`.
+fn shuffled(seed: u64, t: &Track) -> u64 {
+    let mut h = DefaultHasher::new();
+    (seed, &t.path).hash(&mut h);
+    h.finish()
+}
+
 /// One level of a list's order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SortKey {
-    pub by: Field,
+    pub by: SortBy,
     #[serde(default, skip_serializing_if = "is_false")]
     pub desc: bool,
 }
@@ -457,15 +501,16 @@ pub struct SmartList {
 impl SmartList {
     /// The list's tracks, as places in `lib.tracks`, at `now` (seconds
     /// since the Unix epoch). `query` searches within them, as the
-    /// library's search does, after the limit.
-    pub fn tracks(&self, lib: &Library, query: &str, now: u64) -> Vec<usize> {
+    /// library's search does, after the limit. `seed` fixes a random
+    /// order: the same seed, the same shuffle.
+    pub fn tracks(&self, lib: &Library, query: &str, now: u64, seed: u64) -> Vec<usize> {
         let all = lib.find(&Filter::default(), Sort::Artist, false);
         let mut found: Vec<(usize, TrackStats)> = all
             .into_iter()
             .map(|i| (i, lib.stats.get(&lib.tracks[i].path)))
             .filter(|(i, s)| holds(self.matching, &self.rules, &lib.tracks[*i], s, now))
             .collect();
-        found.sort_by(|(a, sa), (b, sb)| self.order((&lib.tracks[*a], sa), (&lib.tracks[*b], sb)));
+        found.sort_by(|(a, sa), (b, sb)| self.order(seed, (&lib.tracks[*a], sa), (&lib.tracks[*b], sb)));
         let mut found: Vec<usize> = found.into_iter().map(|(i, _)| i).collect();
         self.cut(lib, &mut found);
         let words = words(query);
@@ -473,9 +518,12 @@ impl SmartList {
         found
     }
 
-    fn order(&self, a: (&Track, &TrackStats), b: (&Track, &TrackStats)) -> Ordering {
+    fn order(&self, seed: u64, a: (&Track, &TrackStats), b: (&Track, &TrackStats)) -> Ordering {
         let level = |k: &SortKey| {
-            let o = k.by.compare(a, b);
+            let o = match k.by {
+                SortBy::Field(f) => f.compare(a, b),
+                SortBy::Random => shuffled(seed, a.0).cmp(&shuffled(seed, b.0)),
+            };
             if k.desc {
                 o.reverse()
             } else {
@@ -615,7 +663,7 @@ mod tests {
     }
 
     fn titles(lib: &Library, list: &SmartList, query: &str) -> Vec<String> {
-        list.tracks(lib, query, NOW).into_iter().map(|i| lib.tracks[i].title.clone()).collect()
+        list.tracks(lib, query, NOW, 0).into_iter().map(|i| lib.tracks[i].title.clone()).collect()
     }
 
     fn one(text: &str) -> SmartList {
@@ -633,7 +681,7 @@ mod tests {
         let dir = dir("the_built_in_lists_r");
         let lib = library(&dir);
         let (lists, errors) = parse(&new_file());
-        assert_eq!((lists.len(), errors), (5, vec![]));
+        assert_eq!((lists.len(), errors), (6, vec![]));
         assert_eq!(titles(&lib, &built_in("Recently added"), ""), ["Cherry", "Apple"]);
         assert_eq!(titles(&lib, &built_in("Last played"), ""), ["Cherry", "Banana", "Apple"]);
         assert_eq!(titles(&lib, &built_in("Most played"), ""), ["Banana", "Apple", "Cherry"]);
@@ -685,6 +733,20 @@ mod tests {
     }
 
     #[test]
+    fn a_random_order_holds_for_its_seed_and_changes_with_it() {
+        let dir = dir("a_random_order_holds");
+        let lib = library(&dir);
+        let list = built_in("Random 50");
+        let order = |seed| list.tracks(&lib, "", NOW, seed);
+        assert_eq!(order(1).len(), 4, "every track, up to 50");
+        assert_eq!(order(1), order(1), "the same seed, the same order");
+        assert!((2..20).any(|seed| order(seed) != order(1)), "another seed, another order");
+        let text = to_text(std::slice::from_ref(&list));
+        assert!(text.contains(r#"by = "random""#), "{text}");
+        assert_eq!(parse(&text).0, [list], "and it reads back");
+    }
+
+    #[test]
     fn a_wrong_list_is_left_out_with_the_reason_and_the_rest_read() {
         let text = r#"
             [[smart]]
@@ -713,7 +775,7 @@ mod tests {
     fn the_built_in_lists_are_written_once_and_then_are_the_users() {
         let dir = dir("the_built_in_lists_a");
         let file = dir.join("smart.toml");
-        assert_eq!(load(&file).len(), 5);
+        assert_eq!(load(&file).len(), 6);
         assert_eq!(std::fs::read_to_string(&file).unwrap(), new_file());
         std::fs::write(&file, "# all gone\n").unwrap();
         assert_eq!(load(&file), vec![], "removed lists do not come back");

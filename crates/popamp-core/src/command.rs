@@ -136,6 +136,12 @@ commands! {
     LibrarySmartEdit = 50050,
     LibrarySmartDelete = 50051,
     LibrarySmartFromSearch = 50052,
+    LibraryFileInfo = 50053,
+    LibraryPlaylistNew = 50054,
+    LibraryPlaylistRename = 50055,
+    LibraryPlaylistDelete = 50056,
+    LibraryPlaylistRemoveTracks = 50057,
+    LibraryDropOnPlaylist = 50058,
 }
 
 #[cfg(test)]

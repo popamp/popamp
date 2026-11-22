@@ -399,7 +399,7 @@ mod tests {
         assert!(resize(&mut m, WindowKey::Library, start, 30, 0));
         assert_eq!(window_size(&m, WindowKey::Library), (start.0 + 25, start.1), "in the frame's steps");
         assert_eq!(text(&m, Text::LibraryStatus).as_deref(), Some("0 TRACKS"));
-        assert!(menu(&m, MenuRef::Library).len() >= 4);
+        assert_eq!(menu(&m, MenuRef::Library)[0].label, "Play");
     }
 
     #[test]

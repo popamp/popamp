@@ -441,6 +441,10 @@ impl Paths {
     pub fn smart_file(&self) -> PathBuf {
         self.config_dir.join("smart.toml")
     }
+    /// The library's own playlists, a file each.
+    pub fn playlists_dir(&self) -> PathBuf {
+        self.config_dir.join("playlists")
+    }
     pub fn stats_file(&self) -> PathBuf {
         self.config_dir.join("stats.txt")
     }

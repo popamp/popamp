@@ -10,6 +10,7 @@ pub mod history;
 pub mod ini;
 pub mod library;
 pub mod meta;
+pub mod plain;
 pub mod playlist;
 pub mod plformats;
 pub mod replaygain;

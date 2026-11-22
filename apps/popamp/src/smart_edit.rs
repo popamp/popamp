@@ -10,13 +10,19 @@ use crate::library::Editing;
 use crate::model::Model;
 use crate::panels::{button, Act};
 use crate::widgets::{Event, Form, Rect, Widget, BUTTON};
-use popamp_core::smart::{Field, Limit, Match, Op, Rule, SmartList, SortKey, Test};
+use popamp_core::smart::{Field, Limit, Match, Op, Rule, SmartList, SortBy, SortKey, Test};
 
 const W: i32 = 660;
 /// The height of a rule row.
 const ROW: i32 = 30;
 const RULES_Y: i32 = 76;
-const RULES_H: i32 = 9 * ROW + 40;
+/// Rows shown before the rules scroll.
+const MAX_ROWS: usize = 9;
+
+/// The height of the rules area: its rows and the add buttons, no more.
+fn rules_h(rows: usize) -> i32 {
+    rows.min(MAX_ROWS) as i32 * ROW + 40
+}
 /// How far a group's rules are indented.
 const INDENT: i32 = 24;
 const MATCHES: [&str; 2] = ["all", "any"];
@@ -54,8 +60,16 @@ fn op_label(op: Op) -> &'static str {
 }
 
 /// The fields a list can be ordered by: all but the search over every tag.
-fn sort_fields() -> Vec<Field> {
-    Field::ALL.into_iter().filter(|&f| f != Field::Any).collect()
+/// What a list can be ordered by, in the order the form offers it.
+fn sort_choices() -> Vec<SortBy> {
+    Field::ALL.into_iter().filter(|&f| f != Field::Any).map(SortBy::Field).chain([SortBy::Random]).collect()
+}
+
+fn sort_label(by: SortBy) -> &'static str {
+    match by {
+        SortBy::Field(f) => field_label(f),
+        SortBy::Random => "Random",
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -213,9 +227,10 @@ impl SmartEditor {
 
     /// Lays the form out for the draft.
     fn build(&mut self) {
-        let below = RULES_Y + RULES_H + 10;
+        let rules_h = rules_h(self.draft.rows.len());
+        let below = RULES_Y + rules_h + 10;
         let mut form = Form::new(W, below + 3 * ROW + 10 + BUTTON.1 + 10);
-        form.set_view(Rect::new(10, RULES_Y, W - 20, RULES_H));
+        form.set_view(Rect::new(10, RULES_Y, W - 20, rules_h));
         form.add(Rect::new(10, 10, 60, 24), Widget::Label { text: "Name:".into(), dim: false });
         self.name = form.add(Rect::new(70, 10, W - 80, 24), Widget::Input { text: self.draft.name.clone(), cursor: 0 });
         form.add(Rect::new(10, 44, 120, 24), Widget::Label { text: "Tracks that match".into(), dim: false });
@@ -234,16 +249,17 @@ impl SmartEditor {
             Widget::Button { label: "Add group".into(), action: Act::SmartGroup, default: false },
         );
 
-        let fields = sort_fields();
+        let choices = sort_choices();
         for level in 0..LEVELS {
             let (x, y) = (10 + level as i32 * 320, below);
             let text = if level == 0 { "Order by" } else { "then by" };
             form.add(Rect::new(x, y, 64, 24), Widget::Label { text: text.into(), dim: false });
             let key = self.draft.sort.get(level);
-            let picked = key.and_then(|k| fields.iter().position(|&f| f == k.by)).map_or(0, |n| n + 1);
-            let options: Vec<&str> = std::iter::once("—").chain(fields.iter().map(|&f| field_label(f))).collect();
+            let picked = key.and_then(|k| choices.iter().position(|&b| b == k.by)).map_or(0, |n| n + 1);
+            let options: Vec<&str> = std::iter::once("—").chain(choices.iter().map(|&b| sort_label(b))).collect();
             let by = form.add(Rect::new(x + 64, y, 130, 24), choice(&options, picked));
             let dir = form.add(Rect::new(x + 200, y, 100, 24), choice(&["ascending", "descending"], key.is_some_and(|k| k.desc) as usize));
+            form.set_disabled(dir, key.is_some_and(|k| k.by == SortBy::Random));
             self.sort[level] = (by, dir);
         }
         let y = below + ROW + 4;
@@ -309,10 +325,10 @@ impl SmartEditor {
 
     fn read_order_and_limit(&mut self) {
         let f = &self.form;
-        let fields = sort_fields();
+        let choices = sort_choices();
         let levels = self.sort.iter().filter_map(|&(by, dir)| {
             let n = f.choice(by);
-            (n > 0).then(|| SortKey { by: fields[n - 1], desc: f.choice(dir) == 1 })
+            (n > 0).then(|| SortKey { by: choices[n - 1], desc: f.choice(dir) == 1 })
         });
         let kept = self.draft.sort.iter().skip(LEVELS).copied();
         self.draft.sort = levels.collect::<Vec<_>>().into_iter().chain(kept).collect();
@@ -406,7 +422,8 @@ mod tests {
     fn pick(p: &mut Panel, m: &mut Model, i: usize, n: usize) {
         let r = p.form().screen_rect(i);
         p.form_mut().mouse_down(r.x + 2, r.y + 2, false);
-        let ev = p.form_mut().mouse_down(r.x + 2, r.y + r.h + 2 + n as i32 * crate::widgets::ROW_H + 4, false);
+        let o = p.form().option_rect(i, n);
+        let ev = p.form_mut().mouse_down(o.x + 2, o.y + 4, false);
         p.handle(ev, m);
     }
 
@@ -460,6 +477,40 @@ mod tests {
     }
 
     #[test]
+    fn the_form_grows_with_its_rules_then_scrolls_them() {
+        let mut m = Model::for_tests();
+        m.exec(Command::LibrarySmartNew);
+        let mut p = Panel::open(PanelKind::SmartPlaylist, &m);
+        let mut heights = vec![p.form().h];
+        for _ in 1..MAX_ROWS + 2 {
+            assert!(click_button(&mut p, &mut m, Act::SmartAdd(None)));
+            heights.push(p.form().h);
+        }
+        assert!(heights[..MAX_ROWS].windows(2).all(|w| w[1] == w[0] + ROW), "a row each: {heights:?}");
+        assert_eq!(heights[MAX_ROWS - 1], heights[MAX_ROWS + 1], "no taller after {MAX_ROWS} rows");
+    }
+
+    #[test]
+    fn a_list_of_random_tracks_is_made_without_rules() {
+        let mut m = Model::for_tests();
+        m.exec(Command::LibrarySmartNew);
+        let mut p = Panel::open(PanelKind::SmartPlaylist, &m);
+        assert!(click_button(&mut p, &mut m, Act::SmartRemove(0)));
+        let by = editor(&mut p).sort[0].0;
+        pick(&mut p, &mut m, by, sort_choices().len());
+        let limit = editor(&mut p).limit;
+        pick(&mut p, &mut m, limit.0, 1);
+        retype(&mut p, &mut m, limit.1, "50");
+        assert!(!click_button(&mut p, &mut m, Act::Ok), "OK closes the editor");
+
+        let list = popamp_core::smart::load(&m.paths.smart_file()).pop().unwrap();
+        assert_eq!(
+            (list.rules, list.sort, list.limit),
+            (vec![], vec![SortKey { by: SortBy::Random, desc: false }], Some(Limit::Tracks(50)))
+        );
+    }
+
+    #[test]
     fn a_wrong_rule_keeps_the_editor_open_and_says_why() {
         let mut m = Model::for_tests();
         m.exec(Command::LibrarySmartNew);
@@ -505,12 +556,12 @@ mod tests {
         retype(&mut p, &mut m, name, "Lately");
         assert!(!click_button(&mut p, &mut m, Act::Ok));
         let names: Vec<_> = popamp_core::smart::load(&m.paths.smart_file()).into_iter().map(|l| l.name).collect();
-        assert_eq!(names, ["Recently added", "Lately", "Most played", "Never played", "Favourites"]);
+        assert_eq!(names, ["Recently added", "Lately", "Most played", "Never played", "Random 50", "Favourites"]);
 
         m.exec(Command::LibrarySmartDelete);
-        assert!(m.library.smart.len() == 5, "only asked so far");
+        assert!(m.library.smart.len() == names.len(), "only asked so far");
         m.library_smart_remove(1);
-        assert_eq!(popamp_core::smart::load(&m.paths.smart_file()).len(), 4);
+        assert_eq!(popamp_core::smart::load(&m.paths.smart_file()).len(), names.len() - 1);
     }
 
     #[test]
