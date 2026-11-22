@@ -2102,7 +2102,10 @@ mod tests {
         let run = m.library.release(AT, x, y).expect("drops");
         m.exec(run);
         assert!(!m.library.carrying());
-        assert_eq!(popamp_core::plain::load(&m.paths.playlists_dir())[0].tracks, ["/music/1.mp3", "/music/2.mp3"]);
+        // Read back, a path without a drive gets one on Windows: the names tell.
+        let kept = popamp_core::plain::load(&m.paths.playlists_dir()).remove(0).tracks;
+        let names: Vec<_> = kept.iter().filter_map(|t| std::path::Path::new(t).file_name()).collect();
+        assert_eq!(names, ["1.mp3", "2.mp3"]);
         let (x, y) = view_row(&m.library, "Road_trip (2)");
         m.library.press(AT, x, y, false, false, false);
         assert_eq!(titles(&m.library), ["One", "Two"], "in the order put");

@@ -103,13 +103,15 @@ mod tests {
     fn lists_are_kept_as_files_and_read_back_by_name() {
         let d = dir("keep");
         assert!(load(&d).is_empty(), "no folder, no lists");
+        // Whole paths on every system, as the library has them.
+        let at = |name: &str| d.join("music").join(name).to_string_lossy().into_owned();
         let mut b = PlainList { name: "beta".into(), ..PlainList::default() };
-        assert_eq!(b.add(["/m/2.mp3".to_string(), "/m/1.mp3".into(), "/m/2.mp3".into()]), 2, "each track once");
+        assert_eq!(b.add([at("2.mp3"), at("1.mp3"), at("2.mp3")]), 2, "each track once");
         b.save(&d).unwrap();
         PlainList { name: "Alpha".into(), ..PlainList::default() }.save(&d).unwrap();
         let lists = load(&d);
         assert_eq!(lists.iter().map(|l| l.name.as_str()).collect::<Vec<_>>(), ["Alpha", "beta"]);
-        assert_eq!(lists[1].tracks, ["/m/2.mp3", "/m/1.mp3"], "in the order they were put");
+        assert_eq!(lists[1].tracks, [at("2.mp3"), at("1.mp3")], "in the order they were put");
         std::fs::remove_dir_all(&d).unwrap();
     }
 
