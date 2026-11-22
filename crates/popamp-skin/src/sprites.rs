@@ -308,7 +308,8 @@ pub mod pl {
     pub const SCROLL_THUMB: Button = Button { normal: r(52, 53, 8, 18), pressed: r(61, 53, 8, 18) };
     pub const CLOSE_PRESSED: Rect = r(52, 42, 9, 9);
     pub const SHADE_PRESSED: Rect = r(62, 42, 9, 9);
-    pub const SHADE_LEFT: (Rect, Rect) = (r(72, 42, 25, 14), r(72, 57, 25, 14));
+    /// The shaded strip's left end, focused or not; 72, 57 under it is the tile.
+    pub const SHADE_LEFT: Rect = r(72, 42, 25, 14);
     pub const SHADE_RIGHT: (Rect, Rect) = (r(99, 42, 50, 14), r(99, 57, 50, 14));
     pub const SHADE_TILE: Rect = r(72, 57, 25, 14);
 
@@ -421,11 +422,12 @@ mod tests {
         {
             fits(Sheet::EqEx, rect);
         }
-        for (a, b) in [pl::TOP_LEFT, pl::TITLE, pl::TOP_TILE, pl::TOP_RIGHT, pl::SHADE_LEFT, pl::SHADE_RIGHT] {
+        for (a, b) in [pl::TOP_LEFT, pl::TITLE, pl::TOP_TILE, pl::TOP_RIGHT, pl::SHADE_RIGHT] {
             fits(Sheet::PlEdit, a);
             fits(Sheet::PlEdit, b);
         }
         for rect in [
+            pl::SHADE_LEFT,
             pl::LEFT_TILE,
             pl::RIGHT_TILE,
             pl::BOTTOM_LEFT,
