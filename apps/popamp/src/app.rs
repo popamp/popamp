@@ -817,6 +817,10 @@ impl App {
 
     fn open_panel(&mut self, el: &ActiveEventLoop, kind: PanelKind) {
         if let Some(i) = self.panels.iter().position(|p| p.panel.kind() == kind.window()) {
+            // File info opened again is about the track it is opened on now.
+            if kind == PanelKind::FileInfo {
+                self.panels[i].panel = Panel::open(kind, &self.model);
+            }
             self.panels[i].panel.show(kind);
             self.panels[i].window.focus_window();
             self.render_panel(i);
@@ -1006,7 +1010,8 @@ impl App {
     /// whether letting go puts them in the playlist. The library window
     /// holds the mouse, so its cursor shows over the others too.
     fn show_carry_cursor(&mut self) {
-        let icon = if self.playlist_row_under_mouse().is_some() { CursorIcon::Copy } else { CursorIcon::NoDrop };
+        let into = self.playlist_row_under_mouse().is_some() || self.model.library.dropping();
+        let icon = if into { CursorIcon::Copy } else { CursorIcon::NoDrop };
         let Some(w) = self.wins[WindowKey::Library.index()].as_mut() else { return };
         let Some(top) = w.window.top() else { return };
         if w.pointer != Some(Pointer::Carry(icon)) {
@@ -1506,7 +1511,10 @@ impl App {
             return;
         }
         let target = self.capture.take().unwrap_or(k);
-        if target == WindowKey::Library && self.model.library.take_carried() {
+        // Let go over the player's playlist; over one of its own, the
+        // library takes them.
+        let over = self.model.library.carrying() && self.playlist_row_under_mouse().is_some();
+        if target == WindowKey::Library && over && self.model.library.take_carried() {
             self.drop_on_playlist();
             self.update_cursor(target);
         }

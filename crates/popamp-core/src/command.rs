@@ -126,6 +126,22 @@ commands! {
     LibraryOpenOther = 50040,
     ToggleGroupMove = 50041,
     ToggleLibraryShade = 50042,
+    LibraryRate0 = 50043,
+    LibraryRate1 = 50044,
+    LibraryRate2 = 50045,
+    LibraryRate3 = 50046,
+    LibraryRate4 = 50047,
+    LibraryRate5 = 50048,
+    LibrarySmartNew = 50049,
+    LibrarySmartEdit = 50050,
+    LibrarySmartDelete = 50051,
+    LibrarySmartFromSearch = 50052,
+    LibraryFileInfo = 50053,
+    LibraryPlaylistNew = 50054,
+    LibraryPlaylistRename = 50055,
+    LibraryPlaylistDelete = 50056,
+    LibraryPlaylistRemoveTracks = 50057,
+    LibraryDropOnPlaylist = 50058,
 }
 
 #[cfg(test)]

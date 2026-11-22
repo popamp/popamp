@@ -31,6 +31,7 @@ pub enum PanelKind {
     SkinBrowser,
     History,
     ReplayGainScan,
+    SmartPlaylist,
 }
 
 /// What a button or check box in a panel stands for.
@@ -60,6 +61,15 @@ pub enum Act {
     AssignShortcut,
     /// Takes the title-bar shortcut picked in the table out.
     RemoveShortcut,
+    /// Forgets the plays and ratings of the files that are gone.
+    ForgetMissing,
+    /// Adds a rule to the smart playlist, in the group at this row or at
+    /// the end.
+    SmartAdd(Option<usize>),
+    /// Adds a group of rules to the smart playlist.
+    SmartGroup,
+    /// Takes the rule at this row out of the smart playlist.
+    SmartRemove(usize),
     /// The check box of the n-th plug-in.
     #[cfg(feature = "plugins")]
     Plugin(usize),
@@ -97,6 +107,7 @@ pub enum Panel {
     Skins(SkinBrowser),
     History(crate::history::HistoryPanel),
     Scan(crate::scan::ScanPanel),
+    Smart(crate::smart_edit::SmartEditor),
 }
 
 impl Panel {
@@ -117,6 +128,7 @@ impl Panel {
             PanelKind::SkinBrowser => Panel::Skins(SkinBrowser::new(model)),
             PanelKind::History => Panel::History(crate::history::HistoryPanel::new(model)),
             PanelKind::ReplayGainScan => Panel::Scan(crate::scan::ScanPanel::new(model)),
+            PanelKind::SmartPlaylist => Panel::Smart(crate::smart_edit::SmartEditor::new(model)),
         }
     }
 
@@ -131,6 +143,7 @@ impl Panel {
             Panel::Skins(_) => PanelKind::SkinBrowser,
             Panel::History(_) => PanelKind::History,
             Panel::Scan(_) => PanelKind::ReplayGainScan,
+            Panel::Smart(_) => PanelKind::SmartPlaylist,
         }
     }
 
@@ -145,6 +158,7 @@ impl Panel {
             Panel::Skins(_) => "Skin browser",
             Panel::History(_) => "History",
             Panel::Scan(_) => "ReplayGain scan",
+            Panel::Smart(_) => "Smart playlist",
         }
     }
 
@@ -159,6 +173,7 @@ impl Panel {
             Panel::Skins(p) => &p.form,
             Panel::History(p) => &p.form,
             Panel::Scan(p) => &p.form,
+            Panel::Smart(p) => &p.form,
         }
     }
 
@@ -173,6 +188,7 @@ impl Panel {
             Panel::Skins(p) => &mut p.form,
             Panel::History(p) => &mut p.form,
             Panel::Scan(p) => &mut p.form,
+            Panel::Smart(p) => &mut p.form,
         }
     }
 
@@ -189,6 +205,7 @@ impl Panel {
             Panel::Skins(p) => p.handle(ev, model),
             Panel::History(p) => p.handle(ev, model),
             Panel::Scan(p) => p.handle(ev, model),
+            Panel::Smart(p) => p.handle(ev, model),
         }
     }
 
@@ -460,6 +477,7 @@ pub enum Field {
     BufferMs,
     Proxy,
     SoundFont,
+    ListenPercent,
 }
 
 impl Field {
@@ -472,6 +490,7 @@ impl Field {
             Field::BufferMs => "Output buffer (ms)",
             Field::Proxy => "HTTP proxy",
             Field::SoundFont => "MIDI SoundFont",
+            Field::ListenPercent => "Count a play after hearing (%)",
         }
     }
 
@@ -484,6 +503,7 @@ impl Field {
             Field::BufferMs => s.buffer_ms.to_string(),
             Field::Proxy => s.proxy.clone(),
             Field::SoundFont => s.soundfont.clone(),
+            Field::ListenPercent => s.listen_percent.to_string(),
         }
     }
 
@@ -495,6 +515,10 @@ impl Field {
             Field::FadeMs => number("Fade-out"),
             Field::CrossfadeMs => number("Crossfade"),
             Field::BufferMs => number("Output buffer"),
+            Field::ListenPercent => match text.trim().parse::<u32>() {
+                Ok(n) if (50..=100).contains(&n) && n % 5 == 0 => Ok(()),
+                _ => Err("Count a play: 50 to 100, in steps of 5".into()),
+            },
             Field::TitleFormat if text.trim().is_empty() => Err("Title format: must not be empty".into()),
             Field::SoundFont if !text.trim().is_empty() && !std::path::Path::new(text.trim()).is_file() => {
                 Err("MIDI SoundFont: no such file (leave it empty for the system's)".into())
@@ -511,6 +535,7 @@ impl Field {
             Field::FadeMs => model.settings_mut().fade_ms = n(),
             Field::CrossfadeMs => model.settings_mut().crossfade_ms = n(),
             Field::BufferMs => model.settings_mut().buffer_ms = n(),
+            Field::ListenPercent => model.settings_mut().listen_percent = n(),
             Field::Proxy => model.settings_mut().proxy = text.trim().to_string(),
             Field::SoundFont => model.settings_mut().soundfont = text.trim().to_string(),
             Field::TitleFormat => {
@@ -519,6 +544,16 @@ impl Field {
                 }
             }
         }
+    }
+}
+
+/// What the Media Library page says of the plays and ratings kept for
+/// missing files.
+fn missing_text(model: &Model) -> String {
+    let days = popamp_core::stats::KEEP_MISSING / 86_400;
+    match model.library.lib.stats.missing() {
+        0 => format!("Plays and ratings of missing files are kept {days} days."),
+        n => format!("{n} missing files keep their plays and ratings {days} days."),
     }
 }
 
@@ -582,7 +617,8 @@ impl Section {
             Section::Playlist => &[Field::FontSize, Field::TitleFormat],
             Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::SoundFont],
             Section::Internet => &[Field::Proxy],
-            Section::Windows | Section::Library | Section::Desktop | Section::Shortcuts => &[],
+            Section::Library => &[Field::ListenPercent],
+            Section::Windows | Section::Desktop | Section::Shortcuts => &[],
         }
     }
 }
@@ -600,6 +636,8 @@ pub struct Preferences {
     devices: Vec<Device>,
     device_list: usize,
     status: usize,
+    /// Tells how many tracks' plays and ratings wait for their file.
+    missing_note: usize,
     shortcuts: ShortcutEditor,
     /// The list of pages on the left.
     #[cfg_attr(not(feature = "plugins"), allow(dead_code))]
@@ -722,6 +760,7 @@ impl Preferences {
         let mut type_checks = [0; 3];
         let mut device_list = 0;
         let mut shortcuts = None;
+        let mut missing_note = 0;
         for (page, section) in Section::ALL.into_iter().enumerate() {
             let flags = section.flags();
             let rows = flags.len() as i32;
@@ -787,6 +826,13 @@ impl Preferences {
                     }
                     y += 30 + 3 * 22;
                 }
+                Section::Library => {
+                    let r = Rect::new(x0 + 4, y, cw - 8, 24);
+                    missing_note = form.add_on(page, r, Widget::Label { text: missing_text(model), dim: false });
+                    let r = Rect::new(x0 + 4, y + 28, BUTTON.0 + 60, BUTTON.1);
+                    form.add_on(page, r, Widget::Button { label: "Forget them now".into(), action: Act::ForgetMissing, default: false });
+                    y += 28 + BUTTON.1 + 10;
+                }
                 _ => {}
             }
             bottom = bottom.max(y);
@@ -816,6 +862,7 @@ impl Preferences {
             devices,
             device_list,
             status,
+            missing_note,
             shortcuts: shortcuts.expect("Preferences has a Shortcuts page"),
             pages,
             #[cfg(feature = "plugins")]
@@ -840,6 +887,11 @@ impl Preferences {
             }
             Event::Clicked(Act::RemoveShortcut) => {
                 self.shortcuts.remove(&mut self.form);
+                true
+            }
+            Event::Clicked(Act::ForgetMissing) => {
+                let n = model.forget_missing_stats();
+                self.form.set_label(self.missing_note, format!("Forgot the plays and ratings of {n} missing files."));
                 true
             }
             Event::Selected => {
@@ -1319,6 +1371,27 @@ pub(crate) mod tests {
     pub(crate) fn click(p: &mut Panel, m: &mut Model, r: Rect) -> bool {
         let ev = p.form_mut().mouse_down(r.x + 2, r.y + 2, false);
         p.handle(ev, m)
+    }
+
+    #[test]
+    fn the_library_page_forgets_the_plays_of_missing_files_on_request() {
+        let mut m = songs(&[]);
+        let file = m.paths.stats_file();
+        let here = file.parent().unwrap().to_string_lossy().into_owned();
+        m.library.lib.stats.rate(&file, "/nowhere/gone.mp3", popamp_core::stats::Rating::new(3).unwrap());
+        m.library.lib.stats.rate(&file, &here, popamp_core::stats::Rating::new(5).unwrap());
+        let mut p = Panel::open(PanelKind::Preferences, &m);
+        let Panel::Prefs(pr) = &p else { unreachable!() };
+        let (note, button) =
+            (pr.missing_note, (0..).find(|&i| matches!(pr.form.widget(i), Widget::Button { action: Act::ForgetMissing, .. })).unwrap());
+        let r = reach(&mut p, &mut m, button);
+        p.form_mut().mouse_down(r.x + 2, r.y + 2, false);
+        let ev = p.form_mut().mouse_up(r.x + 2, r.y + 2);
+        assert!(p.handle(ev, &mut m), "the window stays open");
+        let Panel::Prefs(pr) = &p else { unreachable!() };
+        assert!(matches!(pr.form.widget(note), Widget::Label { text, .. } if text.contains(" 1 ")), "{:?}", pr.form.widget(note));
+        let kept = popamp_core::stats::Stats::load(&file);
+        assert_eq!((kept.get("/nowhere/gone.mp3").rating.stars(), kept.get(&here).rating.stars()), (0, 5));
     }
 
     #[test]

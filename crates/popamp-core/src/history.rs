@@ -5,7 +5,6 @@
 //! [`LIMIT`] plays and rewrites the file once it holds twice that many.
 
 use std::collections::VecDeque;
-use std::io::Write;
 use std::path::Path;
 
 use crate::text::{escape_field as escape, unescape_field as unescape};
@@ -66,7 +65,7 @@ impl History {
 
     /// Adds a play and appends it to `path`.
     pub fn record(&mut self, path: &Path, played: Played) {
-        if let Err(e) = append(path, &played.line()) {
+        if let Err(e) = crate::files::append(path, &played.line()) {
             log::warn!("cannot write {}: {e}", path.display());
         }
         self.push(played);
@@ -96,13 +95,6 @@ impl History {
 /// Seconds since the Unix epoch, now.
 pub fn now() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
-}
-
-fn append(path: &Path, line: &str) -> std::io::Result<()> {
-    if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir)?;
-    }
-    std::fs::OpenOptions::new().create(true).append(true).open(path)?.write_all(line.as_bytes())
 }
 
 #[cfg(test)]

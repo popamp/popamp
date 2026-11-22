@@ -16,6 +16,7 @@ use popamp_core::meta::TrackMeta;
 use popamp_core::playlist::{is_url, Entry, Playlist, SortKey};
 use popamp_core::plformats::{self, Item};
 use popamp_core::replaygain::Scanned;
+use popamp_core::stats::Stats;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
 use popamp_skin::layout::WindowKey;
@@ -150,6 +151,9 @@ pub struct Model {
     pub pl_dirty: u64,
     /// Goes up whenever Popamp changes a file's tags, so covers are read again.
     pub tags_generation: u64,
+    /// The library track File info is about; none when it is about the
+    /// playlist.
+    pub info_file: Option<Entry>,
     /// What a bar spans: the main window's monitor less the desktop's
     /// panels.
     pub screen: Option<crate::bar::Screen>,
@@ -260,7 +264,12 @@ impl Model {
         let history = History::load(&paths.history_file());
         let scanned = Arc::new(Scanned::load(&paths.replaygain_file()));
         let format = Format::cached(&config.settings.titlefmt);
-        let library = crate::library::LibraryPane::new(popamp_core::library::Library::load(&paths.library_file()));
+        let mut lib = popamp_core::library::Library::load(&paths.library_file());
+        lib.stats = Stats::load(&paths.stats_file());
+        let mut library = crate::library::LibraryPane::new(lib);
+        library.smart = popamp_core::smart::load(&paths.smart_file());
+        library.plain = popamp_core::plain::load(&paths.playlists_dir());
+        library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));
         let mut m = Model {
             library,
@@ -299,6 +308,7 @@ impl Model {
             last_dir: None,
             pl_dirty: 0,
             tags_generation: 0,
+            info_file: None,
         };
         let skin = m.settings().skin.clone();
         if !skin.is_empty() {
@@ -343,6 +353,7 @@ impl Model {
             crossfade_ms: s.crossfade_ms,
             cx: self.source_context(),
         });
+        self.engine.send(EngineCmd::ListenedAt(s.listen_percent as u8));
         self.engine.send(EngineCmd::ReplayGain(ReplayGainSettings {
             enabled: s.replaygain,
             album: s.replaygain_mode == 1,
@@ -661,6 +672,7 @@ impl Model {
             EngineEvent::StreamTitle { title, .. } => {
                 self.status.stream_title = Some(title);
             }
+            EngineEvent::Listened { id } => self.listened(id),
         }
     }
 
@@ -695,6 +707,16 @@ impl Model {
         }
         self.pl_dirty += 1;
         self.update_next();
+    }
+
+    /// Counts a play of a file heard long enough; streams have no stats.
+    fn listened(&mut self, id: u64) {
+        let Some(e) = self.playlist.entries().iter().find(|e| e.id == id) else { return };
+        if !e.is_url() {
+            let location = e.location.clone();
+            self.library.lib.stats.record_play(&self.paths.stats_file(), &location, history::now());
+            self.library.recount();
+        }
     }
 
     pub fn current_title(&self) -> String {
@@ -943,6 +965,25 @@ impl Model {
                 title: "Remove plug-in".into(),
                 text: format!("Remove the plug-in {name}?\n\nIts folder is deleted:\n{}", dir.display()),
             },
+            DialogKind::NewPlaylist => {
+                Request::Entry { title: "New playlist".into(), text: "Playlist name:".into(), initial: String::new() }
+            }
+            DialogKind::RenamePlaylist { index } => Request::Entry {
+                title: "Rename playlist".into(),
+                text: "Playlist name:".into(),
+                initial: self.library.plain.get(*index).map_or(String::new(), |l| l.name.clone()),
+            },
+            DialogKind::DeletePlaylist { index } => Request::Question {
+                title: "Delete playlist".into(),
+                text: format!(
+                    "Delete the playlist “{}”?\n\nIts tracks stay in the library.",
+                    self.library.plain.get(*index).map_or("", |l| l.name.as_str())
+                ),
+            },
+            DialogKind::DeleteSmart { index } => Request::Question {
+                title: "Delete smart playlist".into(),
+                text: format!("Delete the smart playlist “{}”?", self.library.smart.get(*index).map_or("", |l| l.name.as_str())),
+            },
             DialogKind::ConfirmPhysicalRemove { paths } => Request::Question {
                 title: "Delete files".into(),
                 text: format!(
@@ -956,9 +997,12 @@ impl Model {
     }
 
     /// Name/value rows describing the selected (or else the playing) entry.
-    /// The entry File info is about: the first selected one, else the
-    /// current one.
+    /// The entry File info is about: the library track it was opened on,
+    /// else the first selected one, else the current one.
     pub fn info_entry(&self) -> Option<&Entry> {
+        if let Some(e) = &self.info_file {
+            return Some(e);
+        }
         let idx = self.playlist.selected_indices().first().copied().or(self.playlist.current());
         idx.and_then(|i| self.playlist.entry(i))
     }
@@ -967,6 +1011,7 @@ impl Model {
     /// them again, and covers are read again.
     pub fn tags_changed(&mut self, location: &str) {
         self.tags_generation += 1;
+        self.library_retag(location);
         let fmt = self.format.clone();
         let ids: Vec<u64> = self.playlist.entries().iter().filter(|e| e.location == location).map(|e| e.id).collect();
         for id in ids {
@@ -1125,6 +1170,26 @@ impl Model {
                     self.remove_plugin(&dir, id.as_deref());
                 }
             }
+            DialogKind::DeleteSmart { index } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_smart_remove(index);
+                }
+            }
+            DialogKind::NewPlaylist => {
+                if let Some(name) = first {
+                    self.library_playlist_new(&name);
+                }
+            }
+            DialogKind::RenamePlaylist { index } => {
+                if let Some(name) = first {
+                    self.library_playlist_rename(index, &name);
+                }
+            }
+            DialogKind::DeletePlaylist { index } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_playlist_remove(index);
+                }
+            }
             DialogKind::ConfirmPhysicalRemove { paths } => {
                 if first.as_deref() == Some("yes") {
                     for p in &paths {
@@ -1231,7 +1296,24 @@ impl Model {
             C::PlaylistSave => self.request_dialog(DialogKind::SavePlaylist),
             C::JumpToTime => self.request_dialog(DialogKind::JumpToTime),
             C::JumpToFile => self.ui.push(UiReq::Panel(PanelKind::JumpToFile)),
-            C::FileInfo => self.ui.push(UiReq::Panel(PanelKind::FileInfo)),
+            C::FileInfo => {
+                self.info_file = None;
+                self.ui.push(UiReq::Panel(PanelKind::FileInfo));
+            }
+            C::LibraryFileInfo => self.library_file_info(),
+            C::LibraryPlaylistNew => self.request_dialog(DialogKind::NewPlaylist),
+            C::LibraryPlaylistRename => {
+                if let Some(index) = self.library.plain_index() {
+                    self.request_dialog(DialogKind::RenamePlaylist { index });
+                }
+            }
+            C::LibraryPlaylistDelete => {
+                if let Some(index) = self.library.plain_index() {
+                    self.request_dialog(DialogKind::DeletePlaylist { index });
+                }
+            }
+            C::LibraryPlaylistRemoveTracks => self.library_playlist_remove_tracks(),
+            C::LibraryDropOnPlaylist => self.library_drop_on_playlist(),
             C::PlGenerateHtml => self.request_dialog(DialogKind::SaveHtml),
             C::EqLoadDefault => {
                 let p = self.settings().eq_default();
@@ -1274,6 +1356,16 @@ impl Model {
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
             C::LibraryRescan => self.library_rescan(),
             C::LibraryRemoveFolder => self.library_remove_folder(),
+            C::LibraryRate0 => self.library_rate(0),
+            C::LibraryRate1 => self.library_rate(1),
+            C::LibraryRate2 => self.library_rate(2),
+            C::LibraryRate3 => self.library_rate(3),
+            C::LibraryRate4 => self.library_rate(4),
+            C::LibraryRate5 => self.library_rate(5),
+            C::LibrarySmartNew => self.library_smart_new(),
+            C::LibrarySmartFromSearch => self.library_smart_from_search(),
+            C::LibrarySmartEdit => self.library_smart_edit(),
+            C::LibrarySmartDelete => self.library_smart_delete(),
             #[cfg(feature = "plugins")]
             C::Plugins => self.ui.push(UiReq::Panel(PanelKind::Plugins)),
             #[cfg(not(feature = "plugins"))]
@@ -1979,6 +2071,30 @@ mod tests {
             (1..=n).map(|i| Item { location: format!("/music/{i}.mp3"), title: Some(format!("Song {i}")), length_ms: None }).collect();
         m.on_expanded(items, AddMode::Append);
         m
+    }
+
+    #[test]
+    fn a_file_heard_long_enough_counts_a_play_that_lasts_a_restart() {
+        let mut m = with_songs(1);
+        m.add_now(vec!["http://radio.example/live".into()], AddMode::Append);
+        let ids: Vec<u64> = m.playlist.entries().iter().map(|e| e.id).collect();
+        assert_eq!(ids.len(), 2, "a file and a stream");
+        for id in ids {
+            m.on_engine(EngineEvent::Listened { id });
+        }
+        m.on_engine(EngineEvent::Listened { id: 999 });
+        let again = Stats::load(&m.paths.stats_file());
+        assert_eq!((again.get("/music/1.mp3").plays, again.get("http://radio.example/live").plays), (1, 0));
+    }
+
+    #[test]
+    fn the_share_that_counts_as_a_play_is_kept_to_steps_of_five() {
+        let mut m = Model::for_tests();
+        for (given, kept) in [(7, 50), (77, 75), (100, 100), (400, 100)] {
+            m.settings_mut().listen_percent = given;
+            m.settings_mut().sanitize();
+            assert_eq!(m.settings().listen_percent, kept);
+        }
     }
 
     fn titles(m: &Model) -> Vec<String> {

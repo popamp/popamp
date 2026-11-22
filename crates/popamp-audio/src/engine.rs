@@ -52,6 +52,9 @@ pub enum EngineCmd {
     Stop,
     StopFade,
     Seek(u64),
+    /// Tell [`EngineEvent::Listened`] once this many percent of a track
+    /// was heard. Until it comes nothing is told.
+    ListenedAt(u8),
     Volume(u8),
     Balance(i8),
     Eq(EqSettings),
@@ -97,6 +100,11 @@ pub enum EngineEvent {
     StreamTitle {
         id: u64,
         title: String,
+    },
+    /// The track was heard as long as [`EngineCmd::ListenedAt`] asks;
+    /// told once each time it is played.
+    Listened {
+        id: u64,
     },
 }
 
@@ -193,6 +201,36 @@ impl Shared {
     /// Global count of audible frames (for vis alignment).
     pub fn played_frames(&self) -> u64 {
         self.played_frames.load(Ordering::Relaxed)
+    }
+}
+
+/// How much of the track at the speakers has been heard. Only frames
+/// that reach the device count: a pause adds nothing and a seek skips the
+/// part jumped over, without starting the count again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Listening {
+    id: u64,
+    frames: u64,
+    told: bool,
+}
+
+impl Listening {
+    fn new(id: u64) -> Listening {
+        Listening { id, frames: 0, told: false }
+    }
+
+    /// Adds `frames` heard at `rate`; the track's id the first time they
+    /// reach `percent` of `length_ms`. A track of unknown length never
+    /// counts.
+    fn hear(&mut self, frames: u64, rate: u64, length_ms: Option<u64>, percent: u8) -> Option<u64> {
+        self.frames += frames;
+        let length_ms = length_ms.filter(|&l| l > 0)?;
+        let heard_ms = self.frames * 1000 / rate.max(1);
+        if self.told || heard_ms * 100 < length_ms * percent as u64 {
+            return None;
+        }
+        self.told = true;
+        Some(self.id)
     }
 }
 
@@ -412,6 +450,11 @@ struct Worker {
     /// The last ticket given out, and the one the worker is waiting for.
     tickets: u64,
     opening: Option<u64>,
+    /// The track heard now, the frames played when last looked, and the
+    /// share of a track that counts as a listen.
+    listening: Option<Listening>,
+    last_played: u64,
+    listened_at: Option<u8>,
 }
 
 impl Worker {
@@ -457,6 +500,9 @@ impl Worker {
             opened_rx,
             tickets: 0,
             opening: None,
+            listening: None,
+            last_played: 0,
+            listened_at: None,
         }
     }
 
@@ -502,6 +548,18 @@ impl Worker {
         self.seek_base_ms + played * 1000 / self.rate()
     }
 
+    /// Adds what was played since last time to the track heard now; the
+    /// shared length is still that track's while a switch waits.
+    fn count_heard(&mut self, played: u64) {
+        let new = played.saturating_sub(self.last_played);
+        self.last_played = played;
+        let (rate, length_ms) = (self.rate(), self.shared.length_ms());
+        let (Some(l), Some(percent)) = (&mut self.listening, self.listened_at) else { return };
+        if let Some(id) = l.hear(new, rate, length_ms, percent) {
+            (self.emit)(EngineEvent::Listened { id });
+        }
+    }
+
     fn set_state(&mut self, s: PlayState) {
         self.state = s;
         self.shared.state.store(s as u8, Ordering::Relaxed);
@@ -510,9 +568,11 @@ impl Worker {
     fn publish(&mut self) {
         let played = self.played_frames();
         self.shared.played_frames.store(played, Ordering::Relaxed);
+        self.count_heard(played);
         if let Some(p) = &self.pending {
             if played >= p.at_frame {
                 let p = self.pending.take().expect("checked above");
+                self.listening = Some(Listening::new(p.id));
                 self.shared.length_ms.store(p.info.length_ms.unwrap_or(u64::MAX), Ordering::Relaxed);
                 self.shared.channels.store(p.info.channels as u32, Ordering::Relaxed);
                 (self.emit)(EngineEvent::TrackChanged { id: p.id, info: p.info, meta: p.meta });
@@ -551,6 +611,7 @@ impl Worker {
                     self.stop(true);
                 }
             }
+            EngineCmd::ListenedAt(percent) => self.listened_at = Some(percent),
             EngineCmd::Seek(ms) => {
                 self.seek(ms);
                 self.publish();
@@ -759,6 +820,7 @@ impl Worker {
                 self.shared.channels.store(info.channels as u32, Ordering::Relaxed);
                 self.track = Some(Track { id, dec, gain, title, last_title: None });
                 self.set_state(PlayState::Playing);
+                self.listening = Some(Listening::new(id));
                 (self.emit)(EngineEvent::Started { id, info, meta, stream: headers });
             }
             Err(e) => self.fail(id, e),
@@ -1161,6 +1223,40 @@ mod tests {
             }
         }
         seen
+    }
+
+    #[test]
+    fn a_listen_counts_once_when_enough_was_heard() {
+        let mut l = Listening::new(7);
+        assert_eq!(l.hear(22_050, 44_100, Some(1000), 50), Some(7), "half of a second at 44.1 kHz");
+        assert_eq!(l.hear(22_050, 44_100, Some(1000), 50), None, "once a play");
+        let mut l = Listening::new(7);
+        assert_eq!(l.hear(22_049, 44_100, Some(1000), 50), None);
+        assert_eq!(l.hear(1_000_000, 44_100, None, 50), None, "a stream has no length");
+    }
+
+    /// Plays a one-second file from `start_ms` with listens counted at
+    /// `percent`.
+    fn listened(percent: u8, start_ms: u64) -> Vec<String> {
+        let wav = level_wav(&format!("listen{percent}-{start_ms}"), 1000, 16_384);
+        let (_engine, events) = engine_given(
+            Sources::default(),
+            vec![EngineCmd::ListenedAt(percent), EngineCmd::Open { id: 1, location: wav.to_string_lossy().into(), start_ms }],
+        );
+        let seen = events_until_finished(&events);
+        let _ = std::fs::remove_file(wav);
+        seen
+    }
+
+    #[test]
+    fn a_track_heard_far_enough_is_told_as_listened() {
+        assert_eq!(listened(100, 0), ["started 1", "Listened { id: 1 }", "finished 1"]);
+    }
+
+    #[test]
+    fn the_part_skipped_by_a_seek_is_not_heard() {
+        assert_eq!(listened(70, 400), ["started 1", "finished 1"]);
+        assert_eq!(listened(50, 400), ["started 1", "Listened { id: 1 }", "finished 1"]);
     }
 
     fn silent_url(server: &std::net::TcpListener) -> String {
