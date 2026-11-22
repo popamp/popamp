@@ -403,14 +403,16 @@ impl LibraryPane {
 
     fn views(&self) -> Vec<View> {
         let mut views = vec![View::All];
-        let mut group = |name, rows: Vec<View>| {
-            if !rows.is_empty() {
+        // The user's own playlists have a place even before there are any,
+        // so it is plain where a new one goes.
+        let mut group = |name, rows: Vec<View>, always: bool| {
+            if always || !rows.is_empty() {
                 views.extend([View::Heading(""), View::Heading(name)].into_iter().chain(rows));
             }
         };
-        group("Playlists", (0..self.plain.len()).map(View::Plain).collect());
-        group("Smart playlists", (0..self.smart.len()).map(View::Smart).collect());
-        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect());
+        group("Playlists", (0..self.plain.len()).map(View::Plain).collect(), true);
+        group("Smart playlists", (0..self.smart.len()).map(View::Smart).collect(), false);
+        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect(), false);
         views
     }
 
@@ -1755,9 +1757,9 @@ mod tests {
     fn a_folder_is_a_view_of_its_tracks() {
         let mut p = pane();
         let parts = p.parts(AT);
-        click(&mut p, parts.views, 2);
-        assert_eq!(p.view, View::All, "the heading above the folders is no view");
         click(&mut p, parts.views, 4);
+        assert_eq!(p.view, View::All, "the heading above the folders is no view");
+        click(&mut p, parts.views, 6);
         assert_eq!((p.folder(), titles(&p), p.artists.len()), (Some("/more"), vec!["Four"], 1));
         p.lib.remove_folder("/more");
         p.refresh();
@@ -1772,8 +1774,8 @@ mod tests {
         p.changed();
         let parts = p.parts(AT);
         let labels: Vec<String> = p.views().iter().map(|v| p.view_label(v)).collect();
-        assert_eq!(labels, ["All music", "", "Smart playlists", "Alpha (2)", "", "Folders", "music", "more"]);
-        click(&mut p, parts.views, 3);
+        assert_eq!(labels, ["All music", "", "Playlists", "", "Smart playlists", "Alpha (2)", "", "Folders", "music", "more"]);
+        click(&mut p, parts.views, 5);
         assert_eq!((titles(&p), p.parts(AT).panes), (vec!["Two", "One"], None), "its own order, without the panes");
         type_text(&mut p, "one");
         assert_eq!(titles(&p), ["One"], "the search looks within the list");
@@ -2077,6 +2079,17 @@ mod tests {
         m.library.changed();
         let rows = view_rows(&m.library);
         assert_eq!(rows[..7], ["All music", "", "Playlists", "Mine (1)", "", "Smart playlists", "Everything (4)"], "{rows:?}");
+    }
+
+    #[test]
+    fn the_playlists_heading_is_there_before_the_first_playlist() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        m.library.smart = vec![SmartList { name: "Everything".into(), ..SmartList::default() }];
+        m.library.plain.clear();
+        m.library.changed();
+        let rows = view_rows(&m.library);
+        assert_eq!(rows[..5], ["All music", "", "Playlists", "", "Smart playlists"], "{rows:?}");
     }
 
     #[test]
