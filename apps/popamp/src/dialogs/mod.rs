@@ -67,7 +67,7 @@ pub enum DialogKind {
         play: bool,
     },
     LoadPlaylist,
-    /// A folder to take into the media library.
+    /// Folders to take into the media library.
     LibraryFolder,
     SavePlaylist,
     SaveHtml,
@@ -130,7 +130,7 @@ pub struct DialogResult {
 #[derive(Debug, Clone)]
 pub enum Request {
     Files { title: String, multiple: bool, filter: Vec<String>, start: Option<PathBuf> },
-    Folder { title: String, start: Option<PathBuf> },
+    Folder { title: String, multiple: bool, start: Option<PathBuf> },
     Save { title: String, name: String, start: Option<PathBuf> },
     Entry { title: String, text: String, initial: String },
     List { title: String, column: String, rows: Vec<String> },

@@ -74,9 +74,12 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
             }
             lines(run(&mut c))
         }
-        (Backend::Zenity, Request::Folder { title, start }) => {
+        (Backend::Zenity, Request::Folder { title, multiple, start }) => {
             let mut c = Command::new("zenity");
-            c.args(["--file-selection", "--directory", "--title", title]);
+            c.args(["--file-selection", "--directory", "--title", title, "--separator", "\n"]);
+            if *multiple {
+                c.arg("--multiple");
+            }
             if let Some(s) = start {
                 c.arg(format!("--filename={}/", s.display()));
             }
@@ -119,7 +122,8 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
             }
             lines(run(&mut c))
         }
-        (Backend::KDialog, Request::Folder { title, start }) => {
+        // kdialog picks one folder at a time.
+        (Backend::KDialog, Request::Folder { title, start, .. }) => {
             let start = start.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| ".".into());
             lines(run(Command::new("kdialog").args(["--title", title, "--getexistingdirectory", &start])))
         }

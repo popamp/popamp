@@ -37,12 +37,18 @@ end run"#;
 
 const FOLDER: &str = r#"on run argv
     activate
-    if item 2 of argv is "" then
-        set f to choose folder with prompt (item 1 of argv)
+    set {t, multi, startDir} to {item 1 of argv, (item 2 of argv is "1"), item 3 of argv}
+    if startDir is "" then
+        set picked to choose folder with prompt t multiple selections allowed multi
     else
-        set f to choose folder with prompt (item 1 of argv) default location (POSIX file (item 2 of argv))
+        set picked to choose folder with prompt t default location (POSIX file startDir) multiple selections allowed multi
     end if
-    return POSIX path of f
+    if class of picked is not list then set picked to {picked}
+    set out to ""
+    repeat with f in picked
+        set out to out & POSIX path of f & linefeed
+    end repeat
+    return out
 end run"#;
 
 const SAVE: &str = r#"on run argv
@@ -111,7 +117,7 @@ fn script(req: &Request) -> (&'static str, Vec<String>) {
             args.extend(filter.iter().filter_map(|f| f.strip_prefix("*.")).filter(|e| !e.contains('*')).map(str::to_lowercase));
             (FILES, args)
         }
-        Request::Folder { title, start } => (FOLDER, vec![title.clone(), dir(start)]),
+        Request::Folder { title, multiple, start } => (FOLDER, vec![title.clone(), if *multiple { "1" } else { "0" }.into(), dir(start)]),
         Request::Save { title, name, start } => (SAVE, vec![title.clone(), name.clone(), dir(start)]),
         Request::Entry { title, text, initial } => (ENTRY, vec![title.clone(), text.clone(), initial.clone()]),
         Request::List { title, column, rows } => (LIST, [title.clone(), column.clone()].into_iter().chain(rows.iter().cloned()).collect()),
@@ -128,7 +134,12 @@ fn answer(req: &Request, stdout: &str) -> Vec<String> {
     match req {
         Request::Files { .. } => text.lines().filter(|l| !l.is_empty()).map(str::to_string).collect(),
         // A folder's POSIX path ends with a slash; zenity's does not.
-        Request::Folder { .. } => one(text.strip_suffix('/').filter(|t| !t.is_empty()).unwrap_or(text)),
+        Request::Folder { .. } => text
+            .lines()
+            .map(|l| l.strip_suffix('/').filter(|l| !l.is_empty()).unwrap_or(l))
+            .filter(|l| !l.is_empty())
+            .map(str::to_string)
+            .collect(),
         Request::Save { .. } | Request::Entry { .. } => one(text),
         Request::List { rows, .. } => rows.iter().position(|r| r == text).map(|i| vec![i.to_string()]).unwrap_or_default(),
         Request::Info { .. } => Vec::new(),
@@ -168,6 +179,13 @@ mod tests {
     }
 
     #[test]
+    fn several_folders_come_back_without_their_slashes() {
+        let req = Request::Folder { title: "Add".into(), multiple: true, start: None };
+        assert_eq!(script(&req).1, ["Add", "1", ""]);
+        assert_eq!(answer(&req, "/Music/A/\n/Music/B/\n/\n"), ["/Music/A", "/Music/B", "/"]);
+    }
+
+    #[test]
     fn a_cancelled_dialog_gives_nothing() {
         for req in [
             Request::Question { title: "Remove".into(), text: "Delete from disk?".into() },
@@ -195,7 +213,7 @@ mod tests {
     // from opening at all.
     #[test]
     fn a_start_folder_that_is_gone_is_left_out() {
-        let req = Request::Folder { title: "Add folder".into(), start: Some("/Volumes/popamp-gone/Music".into()) };
-        assert_eq!(script(&req).1, ["Add folder", ""]);
+        let req = Request::Folder { title: "Add folder".into(), multiple: false, start: Some("/Volumes/popamp-gone/Music".into()) };
+        assert_eq!(script(&req).1, ["Add folder", "0", ""]);
     }
 }
