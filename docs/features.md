@@ -18,7 +18,13 @@
   Library, and Shift+Enter does the other. Tracks dragged onto the
   playlist go in where they are let go. The folders are read again in the
   background at start (and on Rescan); only changed files are read anew,
-  and the audio files themselves are never written.
+  and the audio files themselves are never written. Add folder takes
+  several folders picked together.
+- **Plays, ratings and playlists in the library:** it counts the plays
+  of each track and keeps its 0 to 5 stars, in its own `stats.txt`.
+  Smart playlists pick tracks by rules (tags, plays, rating, when added
+  or last played), made in an editor and kept in `smart.toml`; plain
+  playlists are made by hand and kept as M3U8 files.
 - **Own dialogs:** Jump to file (search as you type), File info, the Skin
   browser (`Alt+S`) and a Preferences window (`Ctrl+P`). They and the menus
   follow the display scaling (Windows' scaling setting, `Xft.dpi` on X11),
@@ -200,6 +206,6 @@ it works as on X11.
   listed down its left side; the rest are in the menus and `popamp.ini`.
 - Tags can be changed in MP3, FLAC, Ogg Vorbis, Opus and MP4 files only, one
   file at a time.
-- The media library has no playlists of its own yet; no Modern (`.wal`) skins yet. See
+- No Modern (`.wal`) skins yet. See
   [ROADMAP.md](ROADMAP.md).
 

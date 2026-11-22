@@ -31,6 +31,7 @@ use popamp_core::Command;
 use popamp_skin::bitmap::mix;
 use popamp_skin::{PlColors, Rect};
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -403,14 +404,16 @@ impl LibraryPane {
 
     fn views(&self) -> Vec<View> {
         let mut views = vec![View::All];
-        let mut group = |name, rows: Vec<View>| {
-            if !rows.is_empty() {
+        // The user's own playlists have a place even before there are any,
+        // so it is plain where a new one goes.
+        let mut group = |name, rows: Vec<View>, always: bool| {
+            if always || !rows.is_empty() {
                 views.extend([View::Heading(""), View::Heading(name)].into_iter().chain(rows));
             }
         };
-        group("Playlists", (0..self.plain.len()).map(View::Plain).collect());
-        group("Smart playlists", (0..self.smart.len()).map(View::Smart).collect());
-        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect());
+        group("Playlists", (0..self.plain.len()).map(View::Plain).collect(), true);
+        group("Smart playlists", (0..self.smart.len()).map(View::Smart).collect(), false);
+        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect(), false);
         views
     }
 
@@ -1342,10 +1345,29 @@ impl Model {
         }
     }
 
-    /// Takes a folder into the library and reads it.
-    pub fn library_add_folder(&mut self, folder: &str) {
-        if !self.library.lib.add_folder(folder) {
-            return self.flash("LIBRARY: THE FOLDER IS THERE ALREADY");
+    /// Where the folder dialog opens: in the folder that holds the one
+    /// added last, so its neighbours are a click away.
+    pub(crate) fn library_start(&self) -> Option<PathBuf> {
+        let last = Path::new(self.library.lib.folders.last()?);
+        last.parent().filter(|p| p.is_dir()).map(Path::to_path_buf)
+    }
+
+    /// Takes the picked folders into the library and reads them.
+    pub fn library_add_folders(&mut self, picked: &[String]) {
+        let picked: Vec<&str> = picked.iter().map(|f| f.trim()).filter(|f| !f.is_empty()).collect();
+        if picked.is_empty() {
+            return;
+        }
+        let mut added = false;
+        for folder in &picked {
+            added |= self.library.lib.add_folder(folder);
+        }
+        if !added {
+            return self.flash(if picked.len() == 1 {
+                "LIBRARY: THE FOLDER IS THERE ALREADY"
+            } else {
+                "LIBRARY: THE FOLDERS ARE THERE ALREADY"
+            });
         }
         self.library.changed();
         self.save_library();
@@ -1755,9 +1777,9 @@ mod tests {
     fn a_folder_is_a_view_of_its_tracks() {
         let mut p = pane();
         let parts = p.parts(AT);
-        click(&mut p, parts.views, 2);
-        assert_eq!(p.view, View::All, "the heading above the folders is no view");
         click(&mut p, parts.views, 4);
+        assert_eq!(p.view, View::All, "the heading above the folders is no view");
+        click(&mut p, parts.views, 6);
         assert_eq!((p.folder(), titles(&p), p.artists.len()), (Some("/more"), vec!["Four"], 1));
         p.lib.remove_folder("/more");
         p.refresh();
@@ -1772,8 +1794,8 @@ mod tests {
         p.changed();
         let parts = p.parts(AT);
         let labels: Vec<String> = p.views().iter().map(|v| p.view_label(v)).collect();
-        assert_eq!(labels, ["All music", "", "Smart playlists", "Alpha (2)", "", "Folders", "music", "more"]);
-        click(&mut p, parts.views, 3);
+        assert_eq!(labels, ["All music", "", "Playlists", "", "Smart playlists", "Alpha (2)", "", "Folders", "music", "more"]);
+        click(&mut p, parts.views, 5);
         assert_eq!((titles(&p), p.parts(AT).panes), (vec!["Two", "One"], None), "its own order, without the panes");
         type_text(&mut p, "one");
         assert_eq!(titles(&p), ["One"], "the search looks within the list");
@@ -2080,6 +2102,17 @@ mod tests {
     }
 
     #[test]
+    fn the_playlists_heading_is_there_before_the_first_playlist() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        m.library.smart = vec![SmartList { name: "Everything".into(), ..SmartList::default() }];
+        m.library.plain.clear();
+        m.library.changed();
+        let rows = view_rows(&m.library);
+        assert_eq!(rows[..5], ["All music", "", "Playlists", "", "Smart playlists"], "{rows:?}");
+    }
+
+    #[test]
     fn tracks_carried_onto_a_playlist_go_into_it_and_stay_there() {
         let mut m = Model::for_tests();
         m.library = pane();
@@ -2164,5 +2197,35 @@ mod tests {
         m.settings_mut().enqueuedef = false;
         assert_eq!((m.library_open(false), m.library_open(true)), (Command::LibraryPlay, Command::LibraryEnqueue));
         assert_eq!(keys(&m), pair("Enter", "Shift+Enter"));
+    }
+
+    #[test]
+    fn several_folders_go_in_at_once_and_the_next_pick_starts_beside_them() {
+        use crate::dialogs::{DialogResult, Request};
+        let music = std::env::temp_dir().join(format!("popamp-lib-folders-{}", std::process::id()));
+        let at = |name: &str| music.join(name).to_string_lossy().into_owned();
+        for name in ["A", "B", "C"] {
+            std::fs::create_dir_all(music.join(name)).unwrap();
+        }
+        let mut m = Model::for_tests();
+        let pick = |m: &mut Model| {
+            m.exec(Command::LibraryAddFolder);
+            let Some(UiReq::Dialog(DialogKind::LibraryFolder, Request::Folder { multiple, start, .. })) = m.ui.last() else {
+                panic!("asks for folders: {:?}", m.ui.last())
+            };
+            assert!(*multiple, "several at once");
+            start.clone()
+        };
+        pick(&mut m);
+        m.on_dialog(DialogResult { kind: DialogKind::LibraryFolder, values: vec![at("A"), at("B"), " ".into()] });
+        assert_eq!(m.library.lib.folders, [at("A"), at("B")]);
+        assert_eq!(pick(&mut m), Some(music.clone()), "where the last ones were picked");
+        m.on_dialog(DialogResult { kind: DialogKind::LibraryFolder, values: vec![at("B"), at("C")] });
+        assert_eq!(m.library.lib.folders, [at("A"), at("B"), at("C")], "one that is there already is left alone");
+        m.on_dialog(DialogResult { kind: DialogKind::LibraryFolder, values: vec![at("C")] });
+        assert!(m.transient.as_ref().is_some_and(|(t, _)| t.contains("THERE ALREADY")));
+        assert_eq!(Library::load(&m.paths.library_file()).folders, m.library.lib.folders, "kept");
+        std::fs::remove_dir_all(&music).unwrap();
+        assert_ne!(pick(&mut m), Some(music), "not a folder that is gone");
     }
 }

@@ -120,8 +120,18 @@ pub struct Changes {
 /// reads them. In WAV and AIFF they would go after the sound, unseen, and
 /// Symphonia 0.5 misjudges the length of a bare AAC file with a tag.
 pub fn editable(path: &Path) -> bool {
+    lofty::read_from_path(path).is_ok_and(|f| writes(f.file_type()))
+}
+
+/// Whether the name of the file at `path` says it is of a format Popamp
+/// can change the tags of, whatever is in it.
+pub fn named_editable(path: &Path) -> bool {
+    lofty::file::FileType::from_path(path).is_some_and(writes)
+}
+
+fn writes(kind: lofty::file::FileType) -> bool {
     use lofty::file::FileType as T;
-    lofty::read_from_path(path).is_ok_and(|f| matches!(f.file_type(), T::Mpeg | T::Flac | T::Vorbis | T::Opus | T::Mp4))
+    matches!(kind, T::Mpeg | T::Flac | T::Vorbis | T::Opus | T::Mp4)
 }
 
 /// The fields as lofty reads them from the file at `path`, which is what

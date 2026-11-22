@@ -400,8 +400,9 @@ impl Model {
             return;
         }
         if let Some(first) = locations.iter().find(|l| !is_url(l)) {
-            let p = PathBuf::from(first);
-            self.last_dir = if p.is_dir() { Some(p) } else { p.parent().map(Path::to_path_buf) };
+            // The folder that holds it: a file's neighbours, or the folder
+            // beside the one picked, are a click away next time.
+            self.last_dir = Path::new(first).parent().map(Path::to_path_buf);
         }
         let events = self.events.clone();
         let (sources, cx) = (self.sources.clone(), self.source_context());
@@ -892,8 +893,10 @@ impl Model {
         let start = self.start_dir();
         let req = match &kind {
             DialogKind::OpenFiles { .. } => Request::Files { title: "Open file(s)".into(), multiple: true, filter: media_filter, start },
-            DialogKind::OpenFolder { .. } => Request::Folder { title: "Open folder".into(), start },
-            DialogKind::LibraryFolder => Request::Folder { title: "Add a folder to the media library".into(), start },
+            DialogKind::OpenFolder { .. } => Request::Folder { title: "Open folder".into(), multiple: true, start },
+            DialogKind::LibraryFolder => {
+                Request::Folder { title: "Add folders to the media library".into(), multiple: true, start: self.library_start().or(start) }
+            }
             DialogKind::OpenUrl { .. } => Request::Entry {
                 title: "Open URL".into(),
                 text: "Enter a URL to open (a stream or a playlist):".into(),
@@ -1156,11 +1159,7 @@ impl Model {
                     self.install_skin(Path::new(&f));
                 }
             }
-            DialogKind::LibraryFolder => {
-                if let Some(f) = first.map(|f| f.trim().to_string()).filter(|f| !f.is_empty()) {
-                    self.library_add_folder(&f);
-                }
-            }
+            DialogKind::LibraryFolder => self.library_add_folders(&r.values),
             DialogKind::Info => {}
             // The File info window takes the picture (app.rs).
             DialogKind::PickCover { .. } => {}
@@ -2406,5 +2405,14 @@ mod tests {
         assert_eq!(titles(&m), ["Song 2"]);
         let menu = m.bookmarks_menu();
         assert!(menu.iter().any(|i| i.label == "Song 2"));
+    }
+
+    #[test]
+    fn the_next_dialog_opens_where_the_last_pick_was() {
+        let mut m = Model::for_tests();
+        m.add(vec!["/music/Album A".into()], AddMode::Append);
+        assert_eq!(m.start_dir(), Some(PathBuf::from("/music")), "beside a picked folder");
+        m.add(vec!["http://radio/".into(), "/music/Album B/1.flac".into()], AddMode::Append);
+        assert_eq!(m.start_dir(), Some(PathBuf::from("/music/Album B")), "with a picked file");
     }
 }

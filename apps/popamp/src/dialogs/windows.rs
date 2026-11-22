@@ -162,7 +162,10 @@ mod system {
                 let more = if *multiple { FOS_ALLOWMULTISELECT } else { FILEOPENDIALOGOPTIONS(0) };
                 open(title, more | FOS_FILEMUSTEXIST, filter, start.as_deref())
             }
-            Request::Folder { title, start } => open(title, FOS_PICKFOLDERS, &[], start.as_deref()),
+            Request::Folder { title, multiple, start } => {
+                let more = if *multiple { FOS_ALLOWMULTISELECT } else { FILEOPENDIALOGOPTIONS(0) };
+                open(title, more | FOS_PICKFOLDERS, &[], start.as_deref())
+            }
             Request::Save { title, name, start } => save(title, name, start.as_deref()),
             Request::Entry { title, text, initial } => Ok(ask(title, text, Field::Text, Form::Text(initial.clone()))),
             Request::List { title, column, rows } => Ok(ask(title, column, Field::List(176), Form::List(rows.clone()))),

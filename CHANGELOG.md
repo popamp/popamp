@@ -6,15 +6,56 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-22
+
 ### Added
 
+- **Play counts and ratings** ([#65](https://github.com/popamp/popamp/issues/65)):
+  the library counts a play once enough of the track was heard ("Count a
+  play after hearing" in Media Library preferences, 50 % by default;
+  pause adds nothing, a seek does not reset). Tracks get 0 to 5 stars
+  from a Rating column and a Rate menu. Both are kept in Popamp's own
+  `stats.txt`; audio files are never written to. A track that was renamed
+  or moved keeps its plays and stars after a rescan.
+- **Smart playlists** ([#65](https://github.com/popamp/popamp/issues/65)):
+  lists that pick tracks by rules (artist, genre, plays, rating, when it
+  was added or last played, …), with groups, all/any, two levels of order
+  or random order, and a limit in tracks or minutes. They are made and
+  changed in an editor (New smart playlist, Save search as smart
+  playlist, Edit, Delete) and kept in `smart.toml`. Built in: Recently
+  added, Last played, Most played, Never played, Favourites, Random 50.
+- **Own playlists in the library:** New playlist… makes a plain list;
+  tracks dragged onto it go in at the end. They are M3U8 files in the
+  config folder's `playlists/`. Every playlist shows how many tracks it
+  has, and the Playlists group is there before the first one is made.
+- **Several folders at once:** Add folder… in the library, and Open
+  folder for the playlist, take several folders picked together (with
+  KDE's kdialog it is still one at a time). The library's dialog opens in
+  the folder that holds the one added last, so the next one is a click
+  away; the playlist's opens beside the last file or folder picked.
 - **macOS downloads (experimental):** a release also builds
   `Popamp-<version>-macos-universal.dmg` and its Popamp Plus twin, one
   disk image for Apple Silicon and Intel Macs on macOS 12 and newer, with
   libopus, libopenmpt and the MIDI SoundFont inside. If the macOS build
   fails, the release goes out without it. Until the app is signed with a
   Developer ID, macOS asks once at the first start
-  ([how to open it](docs/building.md#macos)).
+  ([how to open it](docs/building.md#macos)). Made by Martin Kovachev
+  ([miraclebg](https://github.com/miraclebg)).
+
+### Changed
+
+- **Menus in the library:** a right click on a track gives what is done
+  with tracks (Play, Enqueue, Rate, File info…); one on the left pane
+  gives the folders' and the playlists'. File info opens on the library
+  track without adding it to the playlist.
+- **File info says why tags cannot be changed:** for a track of a CUE
+  sheet (its tags are in the sheet), a stream, a file that is gone, or a
+  file Popamp cannot read (damaged, or still downloading).
+
+### Fixed
+
+- **The shaded playlist's left end:** a skin with a full outline kept its
+  left border only while the playlist was focused.
 
 ## [1.0.4] - 2026-11-20
 
@@ -679,7 +720,8 @@ First release.
 - **Packaging:** desktop entry, `.wsz` MIME type, icons and a per-user
   install script.
 
-[Unreleased]: https://github.com/popamp/popamp/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/popamp/popamp/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/popamp/popamp/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/popamp/popamp/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/popamp/popamp/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/popamp/popamp/compare/v1.0.1...v1.0.2

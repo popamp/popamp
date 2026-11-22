@@ -364,6 +364,23 @@ pub fn available() -> Result<(), String> {
     default_output().map(|_| ()).ok_or_else(|| "no sound output device".into())
 }
 
+/// Whether this Mac has speakers that play in real time, for the tests
+/// that time them (the player's and the engine's). GitHub's hosted macOS
+/// runners have a sound device that plays far slower than real time, so
+/// their jobs set POPAMP_NO_DEVICE_TIMING.
+#[cfg(test)]
+pub(crate) fn plays_in_real_time() -> bool {
+    if std::env::var_os("POPAMP_NO_DEVICE_TIMING").is_some() {
+        eprintln!("POPAMP_NO_DEVICE_TIMING: the device is not timed, skipped");
+        return false;
+    }
+    let there = available().is_ok();
+    if !there {
+        eprintln!("no sound output device: skipped");
+    }
+    there
+}
+
 /// The devices that can play, by name, each kept by its UID.
 pub fn devices() -> Vec<Device> {
     output_devices().into_iter().map(|(_, uid, name)| Device { name: uid, label: name }).collect()
@@ -499,15 +516,8 @@ mod tests {
         there
     }
 
-    /// Speakers that play in real time, for the tests that time them.
-    /// GitHub's hosted macOS runners have a sound device that plays far
-    /// slower than real time, so their jobs set POPAMP_NO_DEVICE_TIMING.
     fn speakers_in_real_time() -> bool {
-        if std::env::var_os("POPAMP_NO_DEVICE_TIMING").is_some() {
-            eprintln!("POPAMP_NO_DEVICE_TIMING: the device is not timed, skipped");
-            return false;
-        }
-        speakers()
+        super::plays_in_real_time()
     }
 
     #[test]
