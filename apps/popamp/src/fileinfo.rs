@@ -8,6 +8,7 @@ use crate::pen::largest;
 use crate::widgets::{fit, Event, Form, Rect, Widget, BUTTON, ROW_H};
 use popamp_audio::cover::{self, Cover};
 use popamp_audio::tags::{self, Changes, CoverChange, Field};
+use popamp_core::cue;
 use popamp_core::playlist::{is_url, Entry};
 use popamp_skin::Bitmap;
 use std::path::{Path, PathBuf};
@@ -85,11 +86,7 @@ impl FileInfo {
         if let Some(path) = &local {
             form.add(Rect::new(COVER_X, 10, COVER, COVER), Widget::Image { image: shown(path), note: "No cover".into() });
         }
-        let why = match entry {
-            Some(e) if is_url(&e.location) => "A stream's tags cannot be changed.",
-            Some(_) => "Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.",
-            None => "",
-        };
+        let why = entry.map_or("", |e| why_shown(&e.location));
         let y = y.max(if local.is_some() { 10 + COVER } else { 0 }) + 8;
         form.add(Rect::new(10, y, W - 20, ROW_H), Widget::Label { text: why.into(), dim: true });
         let by = y + ROW_H + 8;
@@ -186,6 +183,22 @@ fn editable(e: &Entry) -> Option<Writable> {
     // A file Popamp edits is of a format of its own, not a plug-in's.
     let rows = popamp_audio::read_meta(&path, &Default::default()).map(|m| crate::model::meta_rows(&m)).unwrap_or_default();
     Some(Writable { path, values, rows })
+}
+
+/// Why the tags of what is at `location` are shown but cannot be changed.
+fn why_shown(location: &str) -> &'static str {
+    let path = Path::new(location);
+    if is_url(location) {
+        "A stream's tags cannot be changed."
+    } else if cue::split_location(location).is_some() {
+        "This track is part of a whole-disc image; its tags are in the CUE sheet."
+    } else if !path.exists() {
+        "The file is not there."
+    } else if tags::named_editable(path) {
+        "Popamp cannot read this file: it may be damaged or still downloading."
+    } else {
+        "Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files."
+    }
 }
 
 fn is_field(key: &str) -> bool {
@@ -394,6 +407,23 @@ mod tests {
         assert!(matches!(p.form().widget(editor(&p).cover), Widget::Image { image: None, .. }));
         assert!(!click(&mut p, &mut m, Act::Ok));
         assert_eq!(cover::tagged(&path), None);
+    }
+
+    #[test]
+    fn it_says_why_the_tags_cannot_be_changed() {
+        let (mut m, path) = track("flac", "why");
+        let says = |m: &mut Model, location: &str, words: &str| {
+            m.info_file = Some(Entry::new(location.to_string()));
+            let shown = texts(&Panel::open(PanelKind::FileInfo, m));
+            assert!(shown.iter().any(|t| t.contains(words)), "{location}: {shown:?}");
+        };
+        says(&mut m, &path.with_file_name("disc.cue#4").to_string_lossy(), "CUE sheet");
+        // Of a size, but nothing written yet: a download still going.
+        std::fs::write(&path, vec![0u8; 4096]).unwrap();
+        let file = path.to_string_lossy().into_owned();
+        says(&mut m, &file, "damaged or still downloading");
+        std::fs::remove_file(&path).unwrap();
+        says(&mut m, &file, "not there");
     }
 
     #[test]
