@@ -1481,8 +1481,7 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn the_default_device_plays_a_track_at_its_own_speed() {
-        if crate::output::available().is_err() {
-            eprintln!("no sound output device: skipped");
+        if !crate::output::plays_in_real_time() {
             return;
         }
         let wav = silent_wav("macos-speed", 1000);
@@ -1501,8 +1500,7 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn a_track_opened_while_paused_plays() {
-        if crate::output::available().is_err() {
-            eprintln!("no sound output device: skipped");
+        if !crate::output::plays_in_real_time() {
             return;
         }
         let (first, second) = (silent_wav("macos-paused-1", 2000), silent_wav("macos-paused-2", 300));

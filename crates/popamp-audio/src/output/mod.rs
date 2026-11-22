@@ -12,6 +12,8 @@ pub use alsa::{available, AlsaPcm as Pcm};
 mod coreaudio;
 #[cfg(target_os = "macos")]
 use coreaudio as system;
+#[cfg(all(test, target_os = "macos"))]
+pub(crate) use coreaudio::plays_in_real_time;
 #[cfg(target_os = "macos")]
 pub use coreaudio::{available, CoreAudioPcm as Pcm};
 #[cfg(windows)]
