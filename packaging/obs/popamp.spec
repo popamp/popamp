@@ -18,7 +18,7 @@
 
 Name:           %{pkgname}
 # publish.sh sets it from Cargo.toml.
-Version:        1.0.4
+Version:        1.1.0
 Release:        0
 %if "%{flavor}" == "plus"
 Summary:        Winamp-style skinnable audio player, with plug-ins
