@@ -230,6 +230,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: packaging/aur
       - uses: actions/download-artifact@v8
         with:
           path: dist
@@ -243,6 +246,17 @@ jobs:
           cat SHA256SUMS.txt
           gh release create "$GITHUB_REF_NAME" * --repo "$GITHUB_REPOSITORY" \
             --title "Popamp $GITHUB_REF_NAME" --generate-notes
+      # Arch: a PKGBUILD for each edition, made from this release's .debs.
+      # Until the AUR has the packages, people build them with makepkg -si.
+      - name: Add the Arch PKGBUILDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir aur
+          for deb in popamp popamp-plus; do
+            packaging/aur/pkgbuild.sh "$deb" "${GITHUB_REF_NAME#v}" dist/SHA256SUMS.txt > "aur/$deb-bin.PKGBUILD"
+          done
+          gh release upload "$GITHUB_REF_NAME" aur/*.PKGBUILD --clobber --repo "$GITHUB_REPOSITORY"
       - name: Rebuild the apt index
         env:
           GH_TOKEN: ${{ secrets.APT_INDEX_TOKEN }}

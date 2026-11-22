@@ -95,6 +95,7 @@ with [plug-ins](docs/plugins.md) such as YouTube and visualizers.
 |---|---|
 | Debian, Ubuntu | add the [apt repository](docs/building.md#debian-and-ubuntu), then `sudo apt install popamp`; or download `popamp-<version>-linux-amd64.deb` (ARM64: `-arm64.deb`) and `sudo apt install ./popamp-…deb` |
 | openSUSE, Fedora | add the [repository](docs/building.md#opensuse-and-fedora), then `sudo zypper install popamp` or `sudo dnf install popamp` |
+| Arch, Manjaro, EndeavourOS | `popamp-bin.PKGBUILD` from the release: save it as `PKGBUILD` in an empty folder and run `makepkg -si` ([how](docs/building.md#arch-manjaro-endeavouros)) |
 | Any other Linux | `Popamp-<version>-x86_64.AppImage`: `chmod +x` it and run it |
 | Windows 10 or 11 | `Popamp-<version>-windows-x86_64-setup.exe`, or the portable `…-portable.zip`: unpack it anywhere and run `popamp.exe` |
 | macOS 12 or newer (experimental) | `Popamp-<version>-macos-universal.dmg`, for Apple Silicon and Intel: open it and drag Popamp to Applications; the first start needs [a click in System Settings](docs/building.md#macos) |
