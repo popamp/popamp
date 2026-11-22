@@ -1,7 +1,7 @@
 //! Dialogs through `zenity`, or `kdialog` where only that is installed.
 
 use super::{DialogError, Request};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -74,17 +74,7 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
             }
             lines(run(&mut c))
         }
-        (Backend::Zenity, Request::Folder { title, multiple, start }) => {
-            let mut c = Command::new("zenity");
-            c.args(["--file-selection", "--directory", "--title", title, "--separator", "\n"]);
-            if *multiple {
-                c.arg("--multiple");
-            }
-            if let Some(s) = start {
-                c.arg(format!("--filename={}/", s.display()));
-            }
-            lines(run(&mut c))
-        }
+        (Backend::Zenity, Request::Folder { title, multiple, start }) => lines(run(&mut zenity_folder(title, *multiple, start.as_deref()))),
         (Backend::Zenity, Request::Save { title, name, start }) => {
             let mut c = Command::new("zenity");
             c.args(["--file-selection", "--save", "--confirm-overwrite", "--title", title]);
@@ -153,6 +143,23 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
     }
 }
 
+/// zenity's folder dialog, open inside `start`. Given a folder as
+/// `--filename`, GTK opens the folder above it with it selected; started
+/// in the folder instead, it opens there, and OK with nothing selected
+/// gives that folder.
+fn zenity_folder(title: &str, multiple: bool, start: Option<&Path>) -> Command {
+    let mut c = Command::new("zenity");
+    c.args(["--file-selection", "--directory", "--title", title, "--separator", "\n"]);
+    if multiple {
+        c.arg("--multiple");
+    }
+    // A folder that is gone would keep zenity from starting at all.
+    if let Some(s) = start.filter(|s| s.is_dir()) {
+        c.current_dir(s);
+    }
+    c
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,5 +191,15 @@ mod tests {
     #[test]
     fn a_kill_is_a_failure() {
         assert!(outcome("kdialog", &Output { status: ExitStatus::from_raw(9), stdout: vec![], stderr: vec![] }).is_err());
+    }
+
+    #[test]
+    fn the_folder_dialog_opens_inside_its_start_folder() {
+        let here = std::env::temp_dir();
+        let c = zenity_folder("Add", true, Some(&here));
+        assert_eq!(c.get_current_dir(), Some(here.as_path()));
+        assert!(c.get_args().all(|a| !a.to_string_lossy().starts_with("--filename")), "a --filename opens the folder above");
+        assert!(c.get_args().any(|a| a == "--multiple"));
+        assert_eq!(zenity_folder("Add", false, Some(Path::new("/popamp-gone"))).get_current_dir(), None);
     }
 }
