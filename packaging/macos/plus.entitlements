@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Popamp Plus runs plug-ins through wasmtime, which writes machine code
+     into ordinary memory and then makes it executable: the hardened runtime
+     allows that only with allow-unsigned-executable-memory (allow-jit covers
+     MAP_JIT memory, which wasmtime does not use). -->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+</dict>
+</plist>

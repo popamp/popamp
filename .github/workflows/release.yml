@@ -1,12 +1,17 @@
 name: Release
 
-# A tag v<version> builds the Linux packages and the Windows installers
-# and portable zips, publishes them as a GitHub release and asks
+# A tag v<version> builds the Linux packages, the Windows installers and
+# portable zips and the macOS disk images, publishes them as a GitHub
+# release and asks
 # popamp/apt to put the debs in https://apt.popamp.app; a manual run only
 # builds them (download from the run's page). Two of each: popamp, the
 # player, and popamp-plus, built with every function.
 # Asking popamp/apt needs the secret APT_INDEX_TOKEN (see popamp/apt's
 # README); without it, popamp/apt's daily run picks the release up.
+# The macOS app is signed with a Developer ID and notarised when the
+# secrets MACOS_CERTIFICATE (a base64 .p12), MACOS_CERTIFICATE_PASSWORD,
+# NOTARY_KEY (a base64 App Store Connect .p8), NOTARY_KEY_ID and
+# NOTARY_ISSUER are set; without them it is signed ad hoc.
 on:
   push:
     tags: ["v*"]
@@ -121,9 +126,107 @@ jobs:
             dist/*.zip
             dist/*.exe
 
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 60
+    # The signing keys are on this runner for a while: no write access.
+    permissions:
+      contents: read
+    env:
+      # Every binary in Popamp.app starts on macOS 12 and newer.
+      MACOSX_DEPLOYMENT_TARGET: "12.0"
+      # The runner's sound device plays slower than real time: the
+      # CoreAudio tests that time it are skipped (the others still run).
+      POPAMP_NO_DEVICE_TIMING: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # One app for Apple Silicon and Intel Macs.
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - name: Check the tag against Cargo.toml
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match Cargo.toml version $version" >&2
+            exit 1
+          fi
+      # The tests load these from Homebrew; the app carries its own, built
+      # for macOS 12 by fetch-libs.sh.
+      - run: brew install opus libopenmpt
+      - run: cargo test --release --locked --workspace
+      - run: cargo test --release --locked --workspace --features popamp/plus
+      - run: ARCH=universal sh packaging/macos/fetch-libs.sh dist/libs
+      # Both editions are built before any signing key is on the runner, so
+      # no crate's build script or macro runs with one. Each is built for
+      # both kinds of Mac and joined into one binary.
+      - name: Build both editions
+        run: |
+          for edition in player plus; do
+            features=$([ "$edition" = plus ] && echo "--features plus" || true)
+            for target in aarch64-apple-darwin x86_64-apple-darwin; do
+              cargo build --release --locked -p popamp $features --target "$target"
+              cp "target/$target/release/popamp" "target/popamp-$edition-$target"
+            done
+            lipo -create "target/popamp-$edition-aarch64-apple-darwin" "target/popamp-$edition-x86_64-apple-darwin" \
+              -output "target/popamp-$edition"
+          done
+      - name: Signing keys, when the repository has them
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
+        run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "::notice::no MACOS_CERTIFICATE secret: the app is signed ad hoc"
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(openssl rand -hex 16)
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity=$(security find-identity -v -p codesigning "$keychain" | awk -F'"' '/Developer ID Application/ { print $2; exit }')
+          if [ -z "$identity" ]; then
+            echo "::error::MACOS_CERTIFICATE holds no Developer ID Application identity"
+            exit 1
+          fi
+          echo "MACOS_SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          if [ -n "$NOTARY_KEY" ]; then
+            printf '%s' "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+            {
+              echo "NOTARY_KEY_PATH=$RUNNER_TEMP/notary.p8"
+              echo "NOTARY_KEY_ID=$NOTARY_KEY_ID"
+              echo "NOTARY_ISSUER=$NOTARY_ISSUER"
+            } >> "$GITHUB_ENV"
+          fi
+      - name: Package both editions
+        run: |
+          ARCH=universal sh packaging/build-macos.sh target/popamp-player dist
+          ARCH=universal sh packaging/build-macos.sh target/popamp-plus dist
+          ls -lh dist
+      - name: Remove the signing keys
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/certificate.p12" "$RUNNER_TEMP/notary.p8"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos-universal
+          path: dist/*.dmg
+
+  # macOS is a community-maintained platform: a failing macOS job does not
+  # hold the release back, which then ships without the disk images.
   release:
-    if: github.ref_type == 'tag'
-    needs: [linux, windows]
+    if: ${{ !cancelled() && github.ref_type == 'tag' && needs.linux.result == 'success' && needs.windows.result == 'success' }}
+    needs: [linux, windows, macos]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:

@@ -64,6 +64,10 @@ jobs:
     if: github.event_name == 'push'
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      # The runner's sound device plays slower than real time: the
+      # CoreAudio tests that time it are skipped (the others still run).
+      POPAMP_NO_DEVICE_TIMING: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable

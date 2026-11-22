@@ -8,6 +8,8 @@
 	<string>Popamp</string>
 	<key>CFBundleDisplayName</key>
 	<string>Popamp</string>
+	<key>CFBundleIconFile</key>
+	<string>popamp</string>
 	<key>CFBundleExecutable</key>
 	<string>popamp</string>
 	<key>CFBundlePackageType</key>
@@ -30,6 +32,60 @@
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>public.audio</string>
+			</array>
+		</dict>
+		<dict>
+			<!-- By name too: tracker modules and some others have no system type. -->
+			<key>CFBundleTypeName</key>
+			<string>Audio file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>mp3</string>
+				<string>mp2</string>
+				<string>mp1</string>
+				<string>aac</string>
+				<string>m4a</string>
+				<string>m4b</string>
+				<string>alac</string>
+				<string>flac</string>
+				<string>ogg</string>
+				<string>oga</string>
+				<string>opus</string>
+				<string>wav</string>
+				<string>wave</string>
+				<string>aif</string>
+				<string>aiff</string>
+				<string>aifc</string>
+				<string>caf</string>
+				<string>mka</string>
+				<string>mid</string>
+				<string>midi</string>
+				<string>kar</string>
+				<string>rmi</string>
+				<string>mod</string>
+				<string>xm</string>
+				<string>s3m</string>
+				<string>it</string>
+				<string>mptm</string>
+				<string>stm</string>
+				<string>669</string>
+				<string>mtm</string>
+				<string>med</string>
+				<string>okt</string>
+				<string>far</string>
+				<string>ult</string>
+				<string>amf</string>
+				<string>dsm</string>
+				<string>psm</string>
+				<string>umx</string>
+				<string>dmf</string>
+				<string>mdl</string>
+				<string>ptm</string>
+				<string>gdm</string>
+				<string>imf</string>
+				<string>j2b</string>
 			</array>
 		</dict>
 		<dict>

@@ -31,11 +31,12 @@ const SYSTEM_SOUNDFONTS: &[&str] = &[
     "/usr/share/sounds/sf2/TimGM6mb.sf2",
 ];
 
-/// The SoundFont the Windows downloads carry beside popamp.exe.
+/// The SoundFont the downloads carry: beside popamp.exe on Windows, in
+/// `Contents/Resources` of Popamp.app on macOS.
 const BUNDLED_SOUNDFONT: &str = "GeneralUser-GS.sf2";
 
-/// The SoundFont to use: `setting` when given, else the one beside the
-/// program, else the system's.
+/// The SoundFont to use: `setting` when given, else the one the download
+/// carries, else the system's.
 pub fn soundfont_path(setting: &str) -> Result<PathBuf, String> {
     let exe = std::env::current_exe().ok();
     find_soundfont(setting, exe.as_deref().and_then(Path::parent))
@@ -45,9 +46,17 @@ fn find_soundfont(setting: &str, program_dir: Option<&Path>) -> Result<PathBuf, 
     if !setting.is_empty() {
         return Ok(PathBuf::from(setting));
     }
-    let bundled = program_dir.map(|d| d.join(BUNDLED_SOUNDFONT));
-    bundled
+    let beside = program_dir.map(|d| d.join(BUNDLED_SOUNDFONT));
+    // In Popamp.app the program is in Contents/MacOS, its files in Resources.
+    let named = |p: &Path, n: &str| p.file_name().is_some_and(|f| f == n);
+    let in_app = program_dir
+        .filter(|d| named(d, "MacOS"))
+        .and_then(Path::parent)
+        .filter(|d| named(d, "Contents"))
+        .map(|contents| contents.join("Resources").join(BUNDLED_SOUNDFONT));
+    beside
         .into_iter()
+        .chain(in_app)
         .chain(SYSTEM_SOUNDFONTS.iter().map(PathBuf::from))
         .find(|p| p.is_file())
         .ok_or_else(|| "MIDI needs a SoundFont: set one in Preferences, or install a General MIDI one (fluid-soundfont-gm)".to_string())
@@ -368,6 +377,16 @@ mod tests {
         let song = parse(&smf).unwrap();
         assert_eq!(song.events.iter().map(|e| e.frame).collect::<Vec<_>>(), [0, 66_150]);
         assert_eq!(song.length_ms(), 1_500);
+    }
+
+    #[test]
+    fn the_soundfont_in_an_app_bundle_is_found() {
+        let app = std::env::temp_dir().join(format!("popamp-sf-app-{}", std::process::id())).join("Popamp.app/Contents");
+        std::fs::create_dir_all(app.join("MacOS")).unwrap();
+        std::fs::create_dir_all(app.join("Resources")).unwrap();
+        std::fs::write(app.join("Resources").join(BUNDLED_SOUNDFONT), b"x").unwrap();
+        assert_eq!(find_soundfont("", Some(&app.join("MacOS"))), Ok(app.join("Resources").join(BUNDLED_SOUNDFONT)));
+        let _ = std::fs::remove_dir_all(app.parent().unwrap().parent().unwrap());
     }
 
     #[test]

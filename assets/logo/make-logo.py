@@ -2,7 +2,8 @@
 
 Writes popamp.svg and popamp-small.svg (a plain yellow knob for 16 and 24 px)
 next to this script, then renders png/popamp-N.png with inkscape and packs
-them into popamp.ico for Windows (the program, its shortcuts and installer).
+them into popamp.ico for Windows (the program, its shortcuts and installer)
+and popamp.icns for macOS (Popamp.app in the Dock and Finder).
 
 Usage: python3 assets/logo/make-logo.py
 """
@@ -20,7 +21,8 @@ SCALE = 1.1  # knob size in the 256 tile
 # Bolt outline, clockwise from the top-left corner (units of the reference drawing).
 BOLT = [(487, 316), (578, 316), (515, 422), (598, 422), (462, 635), (505, 485), (432, 485)]
 
-BIG_SIZES = (32, 48, 64, 128, 256)
+BIG_SIZES = (32, 48, 64, 128, 256, 512, 1024)
+ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 SMALL_SIZES = (16, 24)
 
 TILE = """<linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#343842"/><stop offset="1" stop-color="#1d2027"/></linearGradient>"""
@@ -101,8 +103,11 @@ def main() -> None:
         for n in sizes:
             subprocess.run(["inkscape", str(here / name), "-w", str(n), "-h", str(n), "-o", str(here / "png" / f"popamp-{n}.png")],
                            check=True, capture_output=True)
-    sizes = sorted(SMALL_SIZES + BIG_SIZES)
-    write_ico(here / "popamp.ico", [(n, (here / "png" / f"popamp-{n}.png").read_bytes()) for n in sizes])
+    png = lambda n: (here / "png" / f"popamp-{n}.png").read_bytes()
+    write_ico(here / "popamp.ico", [(n, png(n)) for n in ICO_SIZES])
+    # macOS's icon slots: each type stands for one size (the @2x ones twice).
+    slots = [("icp4", 16), ("icp5", 32), ("ic11", 32), ("ic12", 64), ("ic07", 128), ("ic13", 256), ("ic08", 256), ("ic14", 512), ("ic09", 512), ("ic10", 1024)]
+    write_icns(here / "popamp.icns", [(kind, png(n)) for kind, n in slots])
 
 
 def write_ico(path: Path, images: list[tuple[int, bytes]]) -> None:
@@ -115,6 +120,12 @@ def write_ico(path: Path, images: list[tuple[int, bytes]]) -> None:
         entries += struct.pack("<BBBBHHII", side, side, 0, 0, 1, 32, len(png), offset + len(data))
         data += png
     path.write_bytes(head + entries + data)
+
+
+def write_icns(path: Path, images: list[tuple[str, bytes]]) -> None:
+    """An .icns of PNG images, each (type, data): the header, then each image with its type and length."""
+    body = b"".join(kind.encode() + struct.pack(">I", 8 + len(png)) + png for kind, png in images)
+    path.write_bytes(b"icns" + struct.pack(">I", 8 + len(body)) + body)
 
 
 if __name__ == "__main__":

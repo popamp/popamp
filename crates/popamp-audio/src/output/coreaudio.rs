@@ -499,6 +499,17 @@ mod tests {
         there
     }
 
+    /// Speakers that play in real time, for the tests that time them.
+    /// GitHub's hosted macOS runners have a sound device that plays far
+    /// slower than real time, so their jobs set POPAMP_NO_DEVICE_TIMING.
+    fn speakers_in_real_time() -> bool {
+        if std::env::var_os("POPAMP_NO_DEVICE_TIMING").is_some() {
+            eprintln!("POPAMP_NO_DEVICE_TIMING: the device is not timed, skipped");
+            return false;
+        }
+        speakers()
+    }
+
     #[test]
     fn device_frames_count_at_the_streams_rate() {
         assert_eq!(to_stream_frames(480, 48_000.0, 44_100), 441);
@@ -547,7 +558,7 @@ mod tests {
 
     #[test]
     fn the_default_device_plays_in_real_time() {
-        if !speakers() {
+        if !speakers_in_real_time() {
             return;
         }
         // 44.1 kHz on what is usually a 48 kHz device: the unit converts.
@@ -585,7 +596,7 @@ mod tests {
 
     #[test]
     fn drain_waits_until_everything_is_heard() {
-        if !speakers() {
+        if !speakers_in_real_time() {
             return;
         }
         let mut pcm = CoreAudioPcm::open(super::super::DEFAULT, 48_000, 2, 150).unwrap();

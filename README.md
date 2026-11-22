@@ -97,6 +97,7 @@ with [plug-ins](docs/plugins.md) such as YouTube and visualizers.
 | openSUSE, Fedora | add the [repository](docs/building.md#opensuse-and-fedora), then `sudo zypper install popamp` or `sudo dnf install popamp` |
 | Any other Linux | `Popamp-<version>-x86_64.AppImage`: `chmod +x` it and run it |
 | Windows 10 or 11 | `Popamp-<version>-windows-x86_64-setup.exe`, or the portable `…-portable.zip`: unpack it anywhere and run `popamp.exe` |
+| macOS 12 or newer (experimental) | `Popamp-<version>-macos-universal.dmg`, for Apple Silicon and Intel: open it and drag Popamp to Applications; the first start needs [a click in System Settings](docs/building.md#macos) |
 
 Or build it yourself with Rust 1.96 or newer:
 

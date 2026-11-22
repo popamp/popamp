@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **macOS downloads (experimental):** a release also builds
+  `Popamp-<version>-macos-universal.dmg` and its Popamp Plus twin, one
+  disk image for Apple Silicon and Intel Macs on macOS 12 and newer, with
+  libopus, libopenmpt and the MIDI SoundFont inside. If the macOS build
+  fails, the release goes out without it. Until the app is signed with a
+  Developer ID, macOS asks once at the first start
+  ([how to open it](docs/building.md#macos)).
+
 ## [1.0.4] - 2026-11-20
 
 ### Added

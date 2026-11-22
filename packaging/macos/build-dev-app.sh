@@ -1,7 +1,7 @@
 #!/bin/sh
 # Wraps a built popamp in Popamp.app, so macOS offers it in Finder's
 # "Open With" and hands it the files opened there. For development: the
-# release bundle (icon, libraries, disk image) is made elsewhere.
+# release bundle (icon, libraries, disk image) is packaging/build-macos.sh.
 #
 #   packaging/macos/build-dev-app.sh [binary] [out]
 #

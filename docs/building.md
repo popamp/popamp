@@ -2,7 +2,7 @@
 
 ## Requirements
 
-The tables below are for Linux; Windows is [further down](#windows).
+The tables below are for Linux; [Windows](#windows) and [macOS](#macos) are further down.
 
 ### Build
 
@@ -63,6 +63,65 @@ through WASAPI, fonts and dialogs are the system's. Building needs Rust
 the Visual Studio Build Tools it needs). So far Popamp runs on Windows in
 CI and under Proton; reports from real machines are welcome.
 
+### macOS
+
+macOS 12 or newer, on Apple Silicon and Intel Macs: one disk image holds
+both. The macOS version is experimental and
+maintained by the community: a release whose macOS build fails ships
+without it. The disk images need nothing else:
+sound goes through CoreAudio, fonts are found through CoreText, dialogs are
+the Mac's own, and Popamp.app carries libopus, libopenmpt and the MIDI
+SoundFont. Settings and skins live in `~/Library/Application Support/popamp`.
+
+Until the downloads are signed with a Developer ID, macOS refuses the
+first start. Open Popamp once; when macOS says it cannot check it, open
+System Settings > Privacy & Security and click Open Anyway (the button is
+there for a while after that first try), then confirm. On macOS 12 to 14,
+Control-clicking Popamp in Applications and choosing Open also works.
+Later starts do not ask.
+
+Building needs Rust 1.96 or newer and the Xcode Command Line Tools
+(`xcode-select --install`). To run from the source tree with Opus and
+tracker modules, install the libraries with Homebrew first:
+
+```sh
+brew install opus libopenmpt
+cargo build --release
+./target/release/popamp ~/Music
+```
+
+To make a disk image for this Mac's kind only:
+
+```sh
+sh packaging/macos/fetch-libs.sh dist/libs     # libopus, libopenmpt for macOS 12, the SoundFont
+MACOSX_DEPLOYMENT_TARGET=12.0 cargo build --release -p popamp
+sh packaging/build-macos.sh                    # dist/Popamp-<version>-macos-arm64.dmg (x86_64 on Intel)
+MACOSX_DEPLOYMENT_TARGET=12.0 cargo build --release -p popamp --features plus
+sh packaging/build-macos.sh                    # dist/Popamp-Plus-<version>-macos-arm64.dmg
+```
+
+The releases' universal disk images, for Apple Silicon and Intel, are
+built for both targets and joined with `lipo` (add `--features plus` to
+the builds for Popamp Plus):
+
+```sh
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+ARCH=universal sh packaging/macos/fetch-libs.sh dist/libs
+export MACOSX_DEPLOYMENT_TARGET=12.0
+cargo build --release -p popamp --target aarch64-apple-darwin
+cargo build --release -p popamp --target x86_64-apple-darwin
+lipo -create target/aarch64-apple-darwin/release/popamp target/x86_64-apple-darwin/release/popamp \
+    -output target/popamp-universal
+ARCH=universal sh packaging/build-macos.sh target/popamp-universal   # dist/Popamp-<version>-macos-universal.dmg
+```
+
+`build-macos.sh` signs ad hoc unless `MACOS_SIGN_IDENTITY` names a
+"Developer ID Application" certificate in the keychain; with
+`NOTARY_KEY_PATH`, `NOTARY_KEY_ID` and `NOTARY_ISSUER` (an App Store
+Connect API key) it also notarises the disk image. For quick trials,
+`packaging/macos/build-dev-app.sh` wraps a build in an ad-hoc-signed
+`target/Popamp.app` that Finder can open files with.
+
 ## Installation
 
 ### Packages
@@ -88,6 +147,7 @@ the other.
 | Anything else | `Popamp-<version>-x86_64.AppImage`, or `Popamp-Plus-…`: `chmod +x` it and run it |
 | Windows | `Popamp-<version>-windows-x86_64-setup.exe`, or `Popamp-Plus-…`: run it |
 | Windows, portable | `Popamp-<version>-windows-x86_64-portable.zip`, or `Popamp-Plus-…`: unpack it anywhere and run `popamp.exe` |
+| macOS | `Popamp-<version>-macos-universal.dmg`, or `Popamp-Plus-…`: open it and drag Popamp to Applications |
 
 The installer asks whether to install for you alone or for all users,
 adds Popamp to the Start menu, opens `.wsz` and `.psz` skins with it and
@@ -187,7 +247,7 @@ cargo build --release --features plugins
 ```
 
 Visualizer plug-ins draw with their own shaders on the GPU, through wgpu
-(Vulkan on Linux, Direct3D 12 on Windows). They are a separate choice and
+(Vulkan on Linux, Direct3D 12 on Windows, Metal on macOS). They are a separate choice and
 turn plug-ins on as well; without this feature the program has no GPU code:
 
 ```sh
