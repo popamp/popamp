@@ -157,6 +157,7 @@ commands! {
     LibraryColumnLastPlayed = 50071,
     LibraryColumnAdded = 50072,
     LibraryColumnsReset = 50073,
+    ToggleLibraryMaximize = 50074,
 }
 
 #[cfg(test)]

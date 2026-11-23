@@ -2085,6 +2085,8 @@ impl Model {
         if let Some(folder) = self.library.folder() {
             items.push(MenuItem::cmd(&format!("Remove “{}” from the library", folder_label(folder)), "", Command::LibraryRemoveFolder));
         }
+        let maximized = MenuItem::cmd("Maximized", "", Command::ToggleLibraryMaximize).checked(self.settings().ml_max);
+        items.extend([MenuItem::sep(), maximized]);
         items
     }
 
@@ -2927,6 +2929,16 @@ mod tests {
         for want in ["New smart playlist…", "Add folder…", "Rescan folders", "Remove “music” from the library"] {
             assert!(lists.iter().any(|l| l == want), "{want} in {lists:?}");
         }
+    }
+
+    #[test]
+    fn the_lists_menu_maximizes_the_window() {
+        let mut m = Model::for_tests();
+        m.library.menu_for = Menu::Lists;
+        let maximized = |m: &Model| m.library_menu().into_iter().find(|i| i.label == "Maximized").map(|i| i.checked);
+        assert_eq!(maximized(&m), Some(false));
+        m.exec(Command::ToggleLibraryMaximize);
+        assert_eq!(maximized(&m), Some(true));
     }
 
     #[test]

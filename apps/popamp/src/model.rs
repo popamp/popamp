@@ -157,6 +157,9 @@ pub struct Model {
     /// What a bar spans: the main window's monitor less the desktop's
     /// panels.
     pub screen: Option<crate::bar::Screen>,
+    /// Where the maximized library goes: its monitor less the desktop's
+    /// panels, in screen pixels; the player finds it.
+    pub library_area: Option<crate::bar::Screen>,
     /// The window system has no place for a bar (Wayland): the main
     /// window is always a window.
     pub no_bar: bool,
@@ -286,6 +289,7 @@ impl Model {
             status: Status::default(),
             stop_after_current: false,
             screen: None,
+            library_area: None,
             no_bar: false,
             bar_width_given: false,
             transient: None,
@@ -1542,6 +1546,14 @@ impl Model {
                 self.settings_mut().pe_ws = v;
                 self.ui.push(UiReq::Layout);
             }
+            C::ToggleLibraryMaximize => {
+                let s = self.settings_mut();
+                s.ml_max = !s.ml_max;
+                if s.ml_max {
+                    (s.ml_open, s.ml_ws) = (true, false);
+                }
+                self.ui.push(UiReq::Layout);
+            }
             C::ToggleLibraryShade => {
                 let v = !self.settings().ml_ws;
                 self.settings_mut().ml_ws = v;
@@ -2286,6 +2298,18 @@ mod tests {
     fn toolbar(m: &Model, label: &str) -> Option<MenuItem> {
         let mode = m.main_menu().into_iter().find(|i| i.label == "Toolbar mode")?;
         mode.sub.into_iter().find(|i| i.label == label)
+    }
+
+    #[test]
+    fn maximizing_the_library_opens_it_whole() {
+        let mut m = Model::for_tests();
+        m.settings_mut().ml_ws = true;
+        m.exec(Command::ToggleLibraryMaximize);
+        let s = m.settings();
+        assert!(s.ml_max && s.ml_open && !s.ml_ws, "shown, and not shaded");
+        assert!(matches!(m.ui.last(), Some(UiReq::Layout)));
+        m.exec(Command::ToggleLibraryMaximize);
+        assert!(!m.settings().ml_max && m.settings().ml_open, "back to its own size, still open");
     }
 
     #[test]

@@ -132,6 +132,8 @@ pub struct App {
     /// Windows the user moved away from the bar while it is on, by `idx`:
     /// they stay where they were put until the bar goes.
     off_bar: [bool; 4],
+    /// The library is on screen maximized: it neither moves nor docks.
+    library_maxed: bool,
     capture: Option<WindowKey>,
     mods: ModifiersState,
     last_click: Option<(WindowKey, Instant, (i32, i32))>,
@@ -186,6 +188,7 @@ impl App {
             cursors: HashMap::new(),
             drag: None,
             off_bar: [false; 4],
+            library_maxed: false,
             capture: None,
             mods: ModifiersState::empty(),
             last_click: None,
@@ -520,23 +523,55 @@ impl App {
         }
     }
 
+    /// The shown windows' rectangles, of those that dock: a maximized
+    /// library, or one coming back from it, takes no part in docking.
+    fn docking_rects(&self, maxed: bool) -> Vec<Option<Rect>> {
+        let docking = |k: WindowKey| k != WindowKey::Library || (!maxed && !self.library_maxed);
+        WindowKey::ALL
+            .iter()
+            .map(|&k| {
+                let w = self.win(k).filter(|w| w.visible && docking(k))?;
+                Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
+            })
+            .collect()
+    }
+
+    /// Where the library goes instead of `planned`: the corner of its area
+    /// when maximized, back to its own place when it stops being.
+    fn library_place(&mut self, maxed: Option<Screen>, planned: (i32, i32)) -> (i32, i32) {
+        let was = std::mem::replace(&mut self.library_maxed, maxed.is_some());
+        match maxed {
+            Some(a) => (a.x, a.y),
+            None if was => self.saved_pos(WindowKey::Library),
+            None => planned,
+        }
+    }
+
+    /// Finds where the library goes when it is maximized.
+    fn update_library_area(&mut self) {
+        let (x, y) = self.saved_pos(WindowKey::Library);
+        let (w, h) = crate::bind::stored_size(&self.model, WindowKey::Library);
+        let scale = self.scale(WindowKey::Library);
+        let monitors: Vec<Screen> = self.screens().into_iter().map(|(m, _)| m).collect();
+        let area =
+            self.model.settings().ml_max.then(|| library_area(&monitors, &self.platform.work_areas(), (x, y, scale.px(w), scale.px(h))));
+        self.model.library_area = area.flatten();
+    }
+
     /// Applies sizes, scale and visibility; keeps docked windows attached
     /// when windows change size; `anchor` stays where it is.
     fn apply_layout(&mut self, anchor: WindowKey) {
-        let old: Vec<Option<Rect>> = WindowKey::ALL
-            .iter()
-            .map(|&k| {
-                let w = self.win(k).filter(|w| w.visible)?;
-                Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
-            })
-            .collect();
+        self.update_library_area();
+        let maxed = crate::bind::maximized_area(&self.model, WindowKey::Library);
+        let old = self.docking_rects(maxed.is_some());
         let bar = bar::edge(&self.model).zip(self.model.screen);
         let mut plan = self.plan(&old, anchor, bar);
         let pl = WindowKey::Playlist.index();
         if bar.is_none() && !self.platform.on_wayland() && self.keep_playlist_grip_on_screen(old[pl], plan.pos[pl]) {
             plan = self.plan(&old, anchor, bar);
         }
-        let Plan { sizes, pos: new_pos } = plan;
+        let Plan { sizes, pos: mut new_pos } = plan;
+        new_pos[WindowKey::Library.index()] = self.library_place(maxed, new_pos[WindowKey::Library.index()]);
         let wayland = self.platform.on_wayland();
         for (i, &k) in WindowKey::ALL.iter().enumerate() {
             let visible = self.wanted_visible(k);
@@ -572,7 +607,9 @@ impl App {
                 }
                 w.window.request_redraw();
             }
-            self.store_pos(k, pos);
+            if !(k == WindowKey::Library && self.library_maxed) {
+                self.store_pos(k, pos);
+            }
         }
         if let Some((edge, screen)) = bar {
             self.reserve_bar_strip(edge, screen, sizes[0].1);
@@ -1143,7 +1180,7 @@ impl App {
 
     fn rect(&self, k: WindowKey) -> Option<(i32, i32, i32, i32)> {
         let w = self.win(k)?;
-        if !w.visible {
+        if !w.visible || (k == WindowKey::Library && self.library_maxed) {
             return None;
         }
         Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
@@ -1413,6 +1450,8 @@ impl App {
                 self.capture = Some(k);
                 self.render(k);
             }
+            // A maximized library stays as it is.
+            Out::BeginMove | Out::BeginResize if k == WindowKey::Library && self.library_maxed => {}
             Out::BeginMove => self.begin_move(k),
             Out::BeginResize => {
                 let start = self.cursor_screen(k);
@@ -2434,6 +2473,15 @@ fn shape_mask(model: &Model, mode: &Mode, shape: &Shape, size: (i32, i32), scale
 /// Screen rectangle of a shown window: x, y, width, height.
 type Rect = (i32, i32, i32, i32);
 
+/// Where the maximized library goes: the usable part of the monitor with
+/// the middle of its own rectangle `normal`, else of the first monitor.
+fn library_area(monitors: &[Screen], work_areas: &[Screen], normal: Rect) -> Option<Screen> {
+    let (cx, cy) = (normal.0 + normal.2 / 2, normal.1 + normal.3 / 2);
+    let on = |m: &&Screen| cx >= m.x && cx < m.x + m.w && cy >= m.y && cy < m.y + m.h;
+    let monitor = monitors.iter().find(on).or(monitors.first())?;
+    Some(bar::usable(*monitor, work_areas, None))
+}
+
 /// The screen a menu opened at `at` is kept on: the one under it where the
 /// desktop counts in points (screens of other densities side by side on a
 /// Mac), else the main window's, as Popamp does elsewhere (under Wayland
@@ -2597,6 +2645,17 @@ mod tests {
 
     const MONITOR: [Screen; 1] = [Screen { x: 0, y: 0, w: 1920, h: 1080 }];
     const BELOW_PANEL: [Screen; 1] = [Screen { x: 0, y: 32, w: 1920, h: 1048 }];
+
+    #[test]
+    fn the_maximized_library_fills_its_own_monitor_less_the_panels() {
+        let two = [Screen { x: 0, y: 0, w: 1920, h: 1080 }, Screen { x: 1920, y: 0, w: 1280, h: 1024 }];
+        let work = [Screen { x: 0, y: 32, w: 1920, h: 1048 }, Screen { x: 1920, y: 0, w: 1280, h: 1024 }];
+        assert_eq!(library_area(&two, &work, (100, 100, 550, 348)), Some(work[0]));
+        assert_eq!(library_area(&two, &work, (1800, 100, 550, 348)), Some(work[1]), "where most of it is: its middle");
+        assert_eq!(library_area(&two, &work, (-900, 100, 550, 348)), Some(work[0]), "off every monitor: the first");
+        assert_eq!(library_area(&two, &[], (100, 100, 550, 348)), Some(two[0]), "no work areas known: the monitor");
+        assert_eq!(library_area(&[], &work, (100, 100, 550, 348)), None);
+    }
 
     #[test]
     fn a_docked_group_stops_where_the_window_manager_holds_one_of_it() {
