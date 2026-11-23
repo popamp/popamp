@@ -336,6 +336,15 @@ impl SkinWin {
         model.library.cover_drop_targets(at, x, y)
     }
 
+    /// The middle button on the library: the track under it goes to the
+    /// playlist. False when it is over no track.
+    pub fn library_middle(&mut self, model: &mut Model, x: i32, y: i32) -> bool {
+        let Some(at) = self.library_place(model) else { return false };
+        let Some(c) = model.library.press_middle(at, x, y) else { return false };
+        model.exec(c);
+        true
+    }
+
     /// A key for the library; false when it has no use for it.
     pub fn library_key(&mut self, model: &mut Model, key: crate::widgets::Key, shift: bool) -> bool {
         let Some(at) = self.library_place(model) else { return false };
@@ -447,7 +456,7 @@ impl SkinWin {
                 Kind::EqGraph => draw_eq_graph(model, b, r),
                 Kind::List => self.draw_list(model, &mut fonts.list, b, r, active),
                 Kind::Library { thumb } => {
-                    let playing = model.playlist.current_entry().map(|e| e.location.as_str());
+                    let playing = model.playing_entry().map(|e| e.location.as_str());
                     let at = place(model, r, thumb);
                     model.library.draw(b, &mut fonts.list, at, &skin.pl, active, playing);
                     for (t, held) in model.library.thumbs(at) {

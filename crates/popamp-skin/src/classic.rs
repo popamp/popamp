@@ -500,7 +500,7 @@ fn playlist_normal() -> Mode {
         Element::new(span(End(-222), End(-28), End(-150), End(-10)), Kind::Vis).show(Cond::MinWidth(350)),
         Element::new(span(End(-20), End(-20), End(0), End(0)), Kind::Resize).cursor(C::PSize),
     ];
-    v.extend(mini_transport());
+    v.extend(mini_transport(Command::Play));
     v.extend(playlist_menus());
     Mode {
         width: Dim::Free { min: p::MIN_SIZE.0, step: p::STEP.0 },
@@ -551,7 +551,7 @@ fn library_window() -> WindowDef {
         hot_spot(span(End(-44), End(-30), End(-22), End(-12)), Action::MenuOnRelease(MenuRef::Library)),
         Element::new(span(End(-20), End(-20), End(0), End(0)), Kind::Resize).cursor(C::PSize),
     ];
-    v.extend(mini_transport());
+    v.extend(mini_transport(Command::LibraryPlay));
     WindowDef {
         key: WindowKey::Library,
         placement: Placement::Docked,
@@ -569,10 +569,11 @@ fn library_window() -> WindowDef {
     }
 }
 
-/// The small transport buttons drawn in the playlist frame's bottom right.
-fn mini_transport() -> impl Iterator<Item = Element> {
+/// The small transport buttons drawn in the playlist frame's bottom right;
+/// `play` is what its Play runs.
+fn mini_transport(play: Command) -> impl Iterator<Item = Element> {
     use Command as K;
-    let mini = [(6, 8, K::Previous), (14, 8, K::Play), (22, 9, K::Pause), (31, 8, K::Stop), (39, 8, K::Next), (48, 9, K::OpenFile)];
+    let mini = [(6, 8, K::Previous), (14, 8, play), (22, 9, K::Pause), (31, 8, K::Stop), (39, 8, K::Next), (48, 9, K::OpenFile)];
     mini.into_iter().map(|(x, w, cmd)| hot_spot(span(End(-150 + x), End(-16), End(-150 + x + w), End(-7)), Action::click(cmd)))
 }
 
@@ -732,5 +733,10 @@ mod tests {
         let list = hit(lib, w, h, w - 30, h - 20).unwrap();
         assert!(matches!(list.kind, Kind::Button { action: Action::MenuOnRelease(MenuRef::Library), .. }), "LIST opens its menu");
         assert!(matches!(hit(lib, w, h, 100, 100).unwrap().kind, Kind::Library { .. }));
+        let play = hit(lib, w, h, w - 150 + 17, h - 12).unwrap();
+        assert!(
+            matches!(play.kind, Kind::Button { action: Action::Click { plain: Command::LibraryPlay, .. }, .. }),
+            "Play plays the library's pick"
+        );
     }
 }

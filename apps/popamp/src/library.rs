@@ -17,12 +17,14 @@
 use crate::canvas::Canvas;
 use crate::dialogs::DialogKind;
 use crate::font::Font;
-use crate::model::{AddMode, AppEvent, Model, UiReq};
+use crate::model::{AddMode, AppEvent, Model, Source, UiReq};
 use crate::panels::PanelKind;
 use crate::widgets::Key;
 use popamp_audio::source::{Context, Sources};
+use popamp_audio::PlayState;
 use popamp_core::library::{is_under, Filter, Group, GroupRow, Library, Sort, Track};
 use popamp_core::plain::{self, PlainList};
+use popamp_core::playlist::Entry;
 use popamp_core::replaygain::Stamp;
 use popamp_core::smart::{Field, Op, Rule, SmartList, Test};
 use popamp_core::stats::Rating;
@@ -1413,7 +1415,7 @@ impl LibraryPane {
         for list in [List::Artists, List::Albums] {
             if let Some(n) = self.row_at(&p, list, x, y) {
                 self.pick(list, n);
-                return if double { Reaction::run(Command::LibraryOpen) } else { Reaction::default() };
+                return if double { Reaction::run(Command::LibraryPlay) } else { Reaction::default() };
             }
         }
         self.press_table(&p, at.px, (x, y), shift, ctrl, double)
@@ -1547,7 +1549,7 @@ impl LibraryPane {
         match (double, shift, ctrl) {
             (true, ..) => {
                 self.select_only(n);
-                return Reaction::run(Command::LibraryOpen);
+                return Reaction::run(Command::LibraryPlay);
             }
             (_, true, _) => self.select_range(n),
             (_, _, true) => {
@@ -1567,12 +1569,37 @@ impl LibraryPane {
         Reaction::default()
     }
 
+    /// The middle button went down at `x`, `y`: the track under it, or the
+    /// picked ones when it is one of them, go to the playlist.
+    pub fn press_middle(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
+        let n = self.row_at(&self.parts(at), List::Tracks, x, y)?;
+        if !self.selected[n] {
+            self.select_only(n);
+        }
+        Some(Command::LibraryEnqueue)
+    }
+
+    /// What Play plays: the picked tracks from the first when there are
+    /// several, else all the shown ones from the picked one; as indices
+    /// into the library, with where to start.
+    pub fn to_play(&self) -> (Vec<usize>, usize) {
+        let picked: Vec<usize> = self.shown.iter().zip(&self.selected).filter(|(_, &on)| on).map(|(&i, _)| i).collect();
+        if picked.len() > 1 {
+            return (picked, 0);
+        }
+        let at = self.selected.iter().position(|&on| on).unwrap_or(self.cursor);
+        (self.shown.clone(), at.min(self.shown.len().saturating_sub(1)))
+    }
+
     /// The left button went up: a button pressed and let go over itself
     /// runs; a row clicked without carrying is the only one picked.
     pub fn release(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
         (self.dragging, self.resizing) = (None, None);
         match self.carry.take() {
-            Some(Carry::Pressed { row, .. }) => self.select_only(row),
+            Some(Carry::Pressed { row, .. }) => {
+                self.select_only(row);
+                return Some(Command::LibraryAudition);
+            }
             Some(Carry::Moving) => {
                 self.drop_on = self.plain_at(at, x, y);
                 return self.drop_on.map(|_| Command::LibraryDropOnPlaylist);
@@ -1616,7 +1643,7 @@ impl LibraryPane {
                 self.query.clear();
                 self.refresh();
             }
-            Key::Enter => return (true, Some(if shift { Command::LibraryOpenOther } else { Command::LibraryOpen })),
+            Key::Enter => return (true, Some(if shift { Command::LibraryEnqueue } else { Command::LibraryPlay })),
             Key::Tab if self.has_panes() => {
                 let order = [List::Artists, List::Albums, List::Tracks];
                 let at = order.iter().position(|&l| l == self.focus).unwrap_or(2);
@@ -1733,6 +1760,17 @@ impl Pen<'_, '_> {
         let w = self.width(&t);
         self.at(cell, cell.x + (cell.w - w) / 2, &t, color);
     }
+}
+
+/// A library track as an entry of the library's queue: its tags' name and
+/// length until the player reads them again as it plays.
+fn queue_entry(t: &Track) -> Entry {
+    let mut e = Entry::new(t.path.clone());
+    let name = if t.artist.is_empty() { t.title.clone() } else { format!("{} - {}", t.artist, t.title) };
+    e.file_title = Some(name.clone());
+    e.display = name;
+    e.length_ms = t.length_ms;
+    e
 }
 
 /// Writes `picture` into each of `paths` as its front cover, in place of
@@ -1980,20 +2018,38 @@ impl Model {
     }
 
     /// Plays the picked tracks in place of the playlist, or adds them to it.
-    pub fn library_play(&mut self, mode: AddMode) {
+    /// Adds the picked tracks to the playlist.
+    pub fn library_add(&mut self, mode: AddMode) {
         let picked = self.library.picked();
-        if !picked.is_empty() {
+        let n = picked.len();
+        if n > 0 {
             self.add(picked, mode);
+            self.flash(if n == 1 { "LIBRARY: 1 TRACK TO THE PLAYLIST".into() } else { format!("LIBRARY: {n} TRACKS TO THE PLAYLIST") });
         }
     }
 
-    /// What Enter and a double click run (`other`: Shift+Enter): Play, or
-    /// Enqueue when that is the default.
-    pub fn library_open(&self, other: bool) -> Command {
-        if self.settings().enqueuedef != other {
-            Command::LibraryEnqueue
-        } else {
-            Command::LibraryPlay
+    /// Plays in the library itself, apart from the playlist: the picked
+    /// tracks, or the shown ones from the picked one on. The track that is
+    /// paused goes on instead.
+    pub fn library_play(&mut self) {
+        let (tracks, at) = self.library.to_play();
+        let Some(&first) = tracks.get(at) else { return };
+        let path = &self.library.lib.tracks[first].path;
+        let paused_here = self.state() == PlayState::Paused && self.source == Source::Library;
+        if paused_here && self.playing_entry().is_some_and(|e| &e.location == path) {
+            self.play();
+            return;
+        }
+        let entries = tracks.iter().map(|&i| queue_entry(&self.library.lib.tracks[i]));
+        self.lib_queue.clear();
+        self.lib_queue.extend(entries);
+        self.play_in(Source::Library, at);
+    }
+
+    /// A click on a track while the library plays plays that track.
+    pub fn library_audition(&mut self) {
+        if self.source == Source::Library && self.state() == PlayState::Playing {
+            self.library_play();
         }
     }
 
@@ -2041,11 +2097,8 @@ impl Model {
     /// What is done with the picked tracks.
     fn tracks_menu(&self) -> Vec<crate::menu::MenuItem> {
         use crate::menu::MenuItem;
-        let key = |c| if self.library_open(false) == c { "Enter" } else { "Shift+Enter" };
-        let mut items = vec![
-            MenuItem::cmd("Play", key(Command::LibraryPlay), Command::LibraryPlay),
-            MenuItem::cmd("Enqueue", key(Command::LibraryEnqueue), Command::LibraryEnqueue),
-        ];
+        let mut items =
+            vec![MenuItem::cmd("Play", "Enter", Command::LibraryPlay), MenuItem::cmd("Enqueue", "Shift+Enter", Command::LibraryEnqueue)];
         if !self.library.selected_paths().is_empty() {
             items.extend([
                 MenuItem::sep(),
@@ -2532,7 +2585,7 @@ mod tests {
         click(&mut p, artists.rows, 0);
         assert_eq!(titles(&p).len(), 5, "the first row is all of them");
         let play = p.press(AT, albums.rows.x + 5, albums.rows.y + 2 * (PX + 3) + 2, false, false, true);
-        assert_eq!((play.run, p.picked().len()), (Some(Command::LibraryOpen), 1), "a double click opens the album");
+        assert_eq!((play.run, p.picked().len()), (Some(Command::LibraryPlay), 1), "a double click plays the album");
     }
 
     #[test]
@@ -2701,9 +2754,9 @@ mod tests {
         p.press(AT, at(1).0, at(1).1, false, true, false);
         assert_eq!(p.picked().len(), 2, "Ctrl takes one out");
         let double = p.press(AT, at(3).0, at(3).1, false, false, true);
-        assert_eq!((double.run, p.picked()), (Some(Command::LibraryOpen), vec!["/more/4.mp3".to_string()]));
-        assert_eq!(p.key(AT, Key::Enter, false), (true, Some(Command::LibraryOpen)));
-        assert_eq!(p.key(AT, Key::Enter, true), (true, Some(Command::LibraryOpenOther)));
+        assert_eq!((double.run, p.picked()), (Some(Command::LibraryPlay), vec!["/more/4.mp3".to_string()]));
+        assert_eq!(p.key(AT, Key::Enter, false), (true, Some(Command::LibraryPlay)));
+        assert_eq!(p.key(AT, Key::Enter, true), (true, Some(Command::LibraryEnqueue)));
     }
 
     #[test]
@@ -3176,17 +3229,103 @@ mod tests {
     }
 
     #[test]
-    fn enter_enqueues_by_default_and_shift_enter_plays() {
-        let mut m = Model::for_tests();
+    fn enter_plays_and_shift_enter_enqueues() {
+        let m = Model::for_tests();
         let keys = |m: &Model| m.library_menu().into_iter().take(2).map(|i| (i.label, i.accel)).collect::<Vec<_>>();
         // As the menu shows the keys: ⇧Enter on a Mac.
         let shown = |k: &str| if cfg!(target_os = "macos") { crate::mac_keys::label(k) } else { k.to_string() };
-        let pair = |a: &str, b: &str| vec![("Play".to_string(), shown(a)), ("Enqueue".to_string(), shown(b))];
-        assert_eq!((m.library_open(false), m.library_open(true)), (Command::LibraryEnqueue, Command::LibraryPlay));
-        assert_eq!(keys(&m), pair("Shift+Enter", "Enter"), "the menu tells which key does what");
-        m.settings_mut().enqueuedef = false;
-        assert_eq!((m.library_open(false), m.library_open(true)), (Command::LibraryPlay, Command::LibraryEnqueue));
-        assert_eq!(keys(&m), pair("Enter", "Shift+Enter"));
+        assert_eq!(keys(&m), vec![("Play".to_string(), shown("Enter")), ("Enqueue".to_string(), shown("Shift+Enter"))]);
+    }
+
+    /// A model with the test library on screen and one file in its playlist.
+    fn library_model() -> Model {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        m.playlist.extend([popamp_core::playlist::Entry::new("/elsewhere.mp3")]);
+        m
+    }
+
+    fn playing(m: &Model) -> Option<&str> {
+        m.playing_entry().map(|e| e.location.as_str())
+    }
+
+    fn pretend_playing(m: &Model) {
+        let info = popamp_audio::StreamInfo {
+            sample_rate: 44_100,
+            channels: 2,
+            length_ms: Some(1000),
+            bitrate_kbps: None,
+            codec: "mp3".into(),
+            seekable: true,
+        };
+        m.engine.simulate(popamp_audio::PlayState::Playing, 0, &info);
+    }
+
+    /// A plain click on row `row` of the table: down, then up.
+    fn tap(m: &mut Model, row: i32) {
+        let rows = m.library.parts(AT).table.rows;
+        let (x, y) = (rows.x + 5, rows.y + row * (PX + 3) + 2);
+        m.library.press(AT, x, y, false, false, false);
+        if let Some(c) = m.library.release(AT, x, y) {
+            m.exec(c);
+        }
+    }
+
+    #[test]
+    fn a_double_click_plays_from_the_library_and_leaves_the_playlist_alone() {
+        let mut m = library_model();
+        let rows = m.library.parts(AT).table.rows;
+        let r = m.library.press(AT, rows.x + 5, rows.y + 2 * (PX + 3) + 2, false, false, true);
+        m.exec(r.run.unwrap());
+        assert_eq!((m.source, playing(&m)), (Source::Library, Some("/music/3.mp3")));
+        assert_eq!(m.lib_queue.len(), 4, "the library goes on through the tracks it shows");
+        assert_eq!(m.playlist.len(), 1, "the playlist is as it was");
+        m.next();
+        assert_eq!(playing(&m), Some("/more/4.mp3"), "Next goes on in the library");
+    }
+
+    #[test]
+    fn play_takes_the_track_picked_or_only_the_tracks_picked() {
+        let mut m = library_model();
+        tap(&mut m, 1);
+        m.exec(Command::LibraryPlay);
+        assert_eq!((playing(&m), m.lib_queue.len()), (Some("/music/2.mp3"), 4));
+        let rows = m.library.parts(AT).table.rows;
+        m.library.press(AT, rows.x + 5, rows.y + 3 * (PX + 3) + 2, false, true, false);
+        m.exec(Command::LibraryPlay);
+        let queue: Vec<&str> = m.lib_queue.entries().iter().map(|e| e.location.as_str()).collect();
+        assert_eq!((playing(&m), queue), (Some("/music/2.mp3"), vec!["/music/2.mp3", "/more/4.mp3"]), "two picked: those two");
+    }
+
+    #[test]
+    fn while_the_library_plays_a_click_on_a_track_plays_it() {
+        let mut m = library_model();
+        tap(&mut m, 0);
+        assert_eq!((m.source, m.lib_queue.len()), (Source::Playlist, 0), "nothing plays: a click only picks");
+        m.exec(Command::LibraryPlay);
+        pretend_playing(&m);
+        tap(&mut m, 2);
+        assert_eq!(playing(&m), Some("/music/3.mp3"));
+        m.play_index(0);
+        tap(&mut m, 3);
+        assert_eq!(playing(&m), Some("/elsewhere.mp3"), "the playlist plays: a click does not take it over");
+    }
+
+    #[test]
+    fn enqueued_tracks_are_told() {
+        let mut m = library_model();
+        tap(&mut m, 1);
+        m.exec(Command::LibraryEnqueue);
+        assert_eq!(m.transient.as_ref().map(|t| t.0.as_str()), Some("LIBRARY: 1 TRACK TO THE PLAYLIST"));
+    }
+
+    #[test]
+    fn the_middle_button_enqueues_the_track_under_it() {
+        let mut p = pane();
+        let rows = p.parts(AT).table.rows;
+        assert_eq!(p.press_middle(AT, rows.x + 5, rows.y + 3 * (PX + 3) + 2), Some(Command::LibraryEnqueue));
+        assert_eq!(p.picked(), ["/more/4.mp3"]);
+        assert_eq!(p.press_middle(AT, rows.x + 5, rows.y + 30 * (PX + 3)), None, "below the rows");
     }
 
     #[test]

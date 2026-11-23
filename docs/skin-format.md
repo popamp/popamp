@@ -394,6 +394,7 @@ A wrong word is reported with the list of right ones.
   example `play`, `pause`, `stop`, `next`, `previous`, `open-file`,
   `toggle-shuffle`, `toggle-repeat`, `toggle-eq-window`,
   `toggle-playlist-window`, `toggle-library-window`, `toggle-library-maximize`,
+  `library-play` (the track picked in the library),
   `toggle-windowshade`,
   `minimize`, `exit`.
 - **Player states** (`flag`, `lit`, `show`, `hide`): `playing`, `paused`,

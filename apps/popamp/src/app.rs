@@ -1467,6 +1467,16 @@ impl App {
         self.after_model(el);
     }
 
+    /// The middle button on the library sends the track under it to the playlist.
+    fn library_middle(&mut self, el: &ActiveEventLoop) {
+        let k = WindowKey::Library;
+        let input = self.input(k, false, false);
+        if self.skins[k.index()].library_middle(&mut self.model, input.x, input.y) {
+            self.render(k);
+            self.after_model(el);
+        }
+    }
+
     fn mouse_down(&mut self, el: &ActiveEventLoop, k: WindowKey, button: MouseButton) {
         self.tip = None;
         if !self.popups.is_empty() {
@@ -1481,6 +1491,9 @@ impl App {
             if self.title_shortcut(el, k, click) {
                 return;
             }
+        }
+        if button == MouseButton::Middle && k == WindowKey::Library {
+            return self.library_middle(el);
         }
         if button != MouseButton::Left && button != MouseButton::Right {
             return;
@@ -1566,7 +1579,7 @@ impl App {
     /// they are let go over; anywhere else, nowhere.
     fn drop_on_playlist(&mut self) {
         let Some(row) = self.playlist_row_under_mouse() else { return };
-        self.model.library_play(AddMode::Insert(row));
+        self.model.library_add(AddMode::Insert(row));
         self.render(WindowKey::Playlist);
     }
 
@@ -2236,6 +2249,7 @@ impl ApplicationHandler<AppEvent> for App {
                 }
                 self.render(WindowKey::Main);
                 self.render(WindowKey::Playlist);
+                self.render(WindowKey::Library);
             }
             AppEvent::Meta(id, m) => self.model.on_meta(id, m),
             AppEvent::Expanded { items, mode } => self.model.on_expanded(items, mode),

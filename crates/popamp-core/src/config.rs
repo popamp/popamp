@@ -212,7 +212,6 @@ settings! {
     crossfade_ms: u32 = 0,
     /// Enter and a double click in the library add to the playlist
     /// instead of replacing it.
-    enqueuedef: bool = true,
     // Window behaviour.
     snap: bool = true,
     snaplen: i32 = 10,

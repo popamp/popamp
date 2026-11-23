@@ -381,7 +381,6 @@ pub enum Flag {
     GlobalHotkeys,
     KeepScanOpen,
     CheckUpdates,
-    EnqueueDefault,
 }
 
 impl Flag {
@@ -404,7 +403,6 @@ impl Flag {
             Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
             Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
-            Flag::EnqueueDefault => "Enter and double-click enqueue instead of playing",
         }
     }
 
@@ -440,7 +438,6 @@ impl Flag {
             Flag::CheckUpdates => &mut s.update_check,
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
-            Flag::EnqueueDefault => &mut s.enqueuedef,
         }
     }
 
@@ -605,7 +602,7 @@ impl Section {
             }
             Section::Playlist => &[Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad],
             Section::Playback => &[Flag::AutoAdvance, Flag::KeepScanOpen],
-            Section::Library => &[Flag::EnqueueDefault],
+            Section::Library => &[],
             Section::Desktop => &[Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys],
             Section::Internet => &[Flag::CheckUpdates],
             Section::Shortcuts => &[],
@@ -1456,13 +1453,13 @@ pub(crate) mod tests {
         let mut m = songs(&[]);
         let mut p = Panel::open(PanelKind::Preferences, &m);
         let snap = check_box(&mut p, &mut m, Flag::Snap);
-        let enqueue = check_box(&mut p, &mut m, Flag::EnqueueDefault);
-        assert_eq!(snap, enqueue, "both are the first box of their section");
+        let dim = check_box(&mut p, &mut m, Flag::DimInactive);
+        assert_eq!(snap, dim, "both are the first box of their section");
         let Panel::Prefs(pr) = &p else { unreachable!() };
-        assert_eq!(pr.form.shown_page(), Section::ALL.iter().position(|&s| s == Section::Library).unwrap());
-        assert!(m.settings().enqueuedef && m.settings().snap);
-        click(&mut p, &mut m, enqueue);
-        assert!(!m.settings().enqueuedef && m.settings().snap, "the box shown is the one ticked");
+        assert_eq!(pr.form.shown_page(), Section::ALL.iter().position(|&s| s == Section::Playlist).unwrap());
+        let before = (m.settings().dim_inactive, m.settings().snap);
+        click(&mut p, &mut m, dim);
+        assert_eq!((m.settings().dim_inactive, m.settings().snap), (!before.0, before.1), "the box shown is the one ticked");
         for section in Section::ALL {
             for &f in section.flags() {
                 let Panel::Prefs(pr) = &p else { unreachable!() };
