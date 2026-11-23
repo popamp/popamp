@@ -991,7 +991,7 @@ impl LibraryPane {
     /// The cover in its frame and what is known of the track under it.
     fn draw_cover(&self, pen: &mut Pen, p: &Parts, c: &PlColors) {
         let (Some(cover), Some(about)) = (p.cover, p.about) else { return };
-        pen.b.fill(about.x, cover.y - 2, about.w, 1, pen.line);
+        pen.b.fill(about.x, cover.y - 2, about.w + 1, 1, pen.line);
         let frame = rect(cover.x + 2, cover.y + 2, cover.w - 4, cover.h - 4);
         match self.cover_sized(pen.b.screen_size(frame)) {
             Some(art) => pen.b.picture(&art, frame),
@@ -1178,7 +1178,9 @@ impl LibraryPane {
         let (dim, line) = (mix(c.normal, c.normal_bg, 0.45), mix(c.normal, c.normal_bg, 0.7));
         let mut pen = Pen { b, font, px: px as u32, dim, line };
         pen.b.fill(r.x, r.y, r.w, r.h, c.normal_bg);
-        pen.b.fill(p.views.x + p.views.w + p.bar_w + 1, p.views.y, 1, p.views.h, line);
+        // The left panel's right edge, past the views' scroll bar and down
+        // by the cover, which makes one block of the two.
+        pen.b.fill(p.views.x + p.views.w + p.bar_w + 1, p.views.y, 1, r.h.max(0), line);
 
         self.draw_tree(&mut pen, &p, c);
 
@@ -1523,6 +1525,18 @@ impl LibraryPane {
             (self.carry, self.drop_on) = (None, None);
         }
         moving
+    }
+
+    /// Whether a press at `x`, `y` takes hold of something that resizes:
+    /// the splitter right of the left panel or a border of the header; or
+    /// one is held now.
+    pub fn resizes_at(&self, at: Place, x: i32, y: i32) -> bool {
+        if self.splitting.is_some() || self.resizing.is_some() {
+            return true;
+        }
+        let p = self.parts(at);
+        p.splitter.is_some_and(|s| s.contains(x, y))
+            || (p.table.header.contains(x, y) && Self::border_at(&self.columns.lay(p.table.rows, at.px), x).is_some())
     }
 
     /// The border of the header at `x`: the column left of it, by its
@@ -2574,7 +2588,9 @@ mod tests {
         let p = m.library.parts(AT);
         let (s, table_x) = (p.splitter.unwrap(), p.search.x);
         assert_eq!(s.x + s.w, table_x, "the splitter is the gap left of the table");
+        assert!(m.library.resizes_at(AT, s.x + 1, 100) && !m.library.resizes_at(AT, s.x - 5, 100), "the cursor tells");
         m.library.press(AT, s.x + 1, 100, false, false, false);
+        assert!(m.library.resizes_at(AT, 300, 100), "held, wherever the mouse is");
         m.library.drag(AT, s.x + 61, 100);
         m.library.release(AT, s.x + 61, 100);
         m.keep_library_layout();

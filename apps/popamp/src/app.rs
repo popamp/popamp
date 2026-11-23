@@ -60,8 +60,9 @@ struct SkinWindow {
 enum Pointer {
     /// The skin's, for the control under it.
     Skin(CursorKind),
-    /// Tracks carried out of the library: whether they can be let go here.
-    Carry(CursorIcon),
+    /// The system's: tracks carried out of the library, whether they can be
+    /// let go here; a border in the library that drags.
+    System(CursorIcon),
 }
 
 struct Popup {
@@ -1054,6 +1055,9 @@ impl App {
             return;
         }
         let input = self.input(k, false, false);
+        if k == WindowKey::Library && self.show_resize_cursor((input.x, input.y)) {
+            return;
+        }
         let kind = self.skins[k.index()].cursor(&self.model, input.x, input.y);
         let custom = self.cursors.get(&kind).or_else(|| self.cursors.get(&CursorKind::Normal)).cloned();
         let Some(w) = self.wins[k.index()].as_mut() else { return };
@@ -1084,10 +1088,27 @@ impl App {
         let icon = if into { CursorIcon::Copy } else { CursorIcon::NoDrop };
         let Some(w) = self.wins[WindowKey::Library.index()].as_mut() else { return };
         let Some(top) = w.window.top() else { return };
-        if w.pointer != Some(Pointer::Carry(icon)) {
-            w.pointer = Some(Pointer::Carry(icon));
+        if w.pointer != Some(Pointer::System(icon)) {
+            w.pointer = Some(Pointer::System(icon));
             top.set_cursor(icon);
         }
+    }
+
+    /// Over a border of the library that drags, the cursor shows it; true
+    /// when it does.
+    fn show_resize_cursor(&mut self, input: (i32, i32)) -> bool {
+        let k = WindowKey::Library;
+        if !self.skins[k.index()].library_resizes(&self.model, input.0, input.1) {
+            return false;
+        }
+        let Some(w) = self.wins[k.index()].as_mut() else { return false };
+        let Some(top) = w.window.top() else { return false };
+        let icon = CursorIcon::EwResize;
+        if w.pointer != Some(Pointer::System(icon)) {
+            w.pointer = Some(Pointer::System(icon));
+            top.set_cursor(icon);
+        }
+        true
     }
 
     /// Starts the tooltip timer when the mouse rests on a new control.

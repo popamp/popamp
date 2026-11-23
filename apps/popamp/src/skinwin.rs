@@ -134,6 +134,16 @@ impl SkinWin {
             .unwrap_or(c.mode.cursor)
     }
 
+    /// Whether the library element under `x`, `y`, or the one held, resizes
+    /// something there: the cursor shows it.
+    pub fn library_resizes(&self, model: &Model, x: i32, y: i32) -> bool {
+        let Some(i) = self.pressed_index(model).or_else(|| self.hit(model, x, y)) else { return false };
+        match self.element(model, i) {
+            Some((Element { kind: Kind::Library { thumb }, .. }, r)) => model.library.resizes_at(place(model, r, &thumb), x, y),
+            _ => false,
+        }
+    }
+
     pub fn tooltip(&self, model: &Model, x: i32, y: i32) -> Option<String> {
         let c = self.current(model)?;
         self.hit(model, x, y).and_then(|i| c.mode.elements[i].tip.clone())
