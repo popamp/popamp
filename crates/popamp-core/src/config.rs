@@ -182,6 +182,9 @@ settings! {
     ml_ws: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,
+    /// The library table's columns, left to right, with their widths:
+    /// `artist:70,title:90`; empty for the first ones.
+    ml_columns: String = String::new(),
     /// A play counts once this many percent of the track was heard:
     /// 50..=100 in steps of 5.
     listen_percent: u32 = 50,

@@ -60,6 +60,13 @@ impl<'a> Canvas<'a> {
         self.bitmap.overlay(src, x, y, self.screen(clip.x, clip.y, clip.w, clip.h));
     }
 
+    /// Puts `img`, already at screen size, in the middle of skin
+    /// rectangle `r`, pixel for pixel.
+    pub fn picture(&mut self, img: &Bitmap, r: Rect) {
+        let (x, y, w, h) = self.screen(r.x, r.y, r.w, r.h);
+        self.bitmap.blit(img, 0, 0, img.w.min(w), img.h.min(h), x + (w - img.w).max(0) / 2, y + (h - img.h).max(0) / 2);
+    }
+
     /// The screen size of skin rectangle `r`.
     pub fn screen_size(&self, r: Rect) -> (i32, i32) {
         let (_, _, w, h) = self.screen(r.x, r.y, r.w, r.h);

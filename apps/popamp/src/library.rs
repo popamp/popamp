@@ -29,7 +29,9 @@ use popamp_core::stats::Rating;
 use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
 use popamp_skin::bitmap::mix;
+use popamp_skin::Bitmap;
 use popamp_skin::{PlColors, Rect};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -62,6 +64,21 @@ enum List {
 
 const LISTS: [List; 4] = [List::Views, List::Artists, List::Albums, List::Tracks];
 
+/// Whose menu the right button opens.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Menu {
+    /// The playlists' and the folders', over the views.
+    Lists,
+    /// The picked tracks'.
+    Tracks,
+    /// Which columns the table shows, over its header.
+    Columns,
+}
+
+/// How near a border between two columns of the header a press takes
+/// hold of it.
+const BORDER_SLACK: i32 = 2;
+
 /// A column of the track table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Column {
@@ -72,36 +89,93 @@ enum Column {
     Genre,
     Year,
     Rating,
+    Number,
+    File,
+    Comment,
+    Bitrate,
+    Plays,
+    LastPlayed,
+    Added,
 }
 
+/// What sets a column apart.
+struct About {
+    /// Its name in the settings.
+    key: &'static str,
+    /// Its name over the table and in the menu of columns.
+    header: &'static str,
+    menu: &'static str,
+    sort: Sort,
+    /// Numbers sit at the right of their cell.
+    right: bool,
+    /// How wide it starts, in tenths of the text height.
+    width: u16,
+    /// How long it stays in a table too narrow for all: the lowest goes
+    /// first.
+    keep: u8,
+    /// The menu command that shows or hides it.
+    toggle: Command,
+}
+
+const fn about(key: &'static str, header: &'static str, menu: &'static str, sort: Sort, right: bool) -> About {
+    About { key, header, menu, sort, right, width: 60, keep: 0, toggle: Command::LibraryColumnsReset }
+}
+
+/// By `Column`, in its order.
+const ABOUT: [About; 14] = [
+    About { width: 70, keep: 8, toggle: Command::LibraryColumnArtist, ..about("artist", "Artist", "Artist", Sort::Artist, false) },
+    About { width: 90, keep: 9, toggle: Command::LibraryColumnTitle, ..about("title", "Title", "Title", Sort::Title, false) },
+    About { width: 70, keep: 5, toggle: Command::LibraryColumnAlbum, ..about("album", "Album", "Album", Sort::Album, false) },
+    About { width: 40, keep: 7, toggle: Command::LibraryColumnTime, ..about("time", "Time", "Time", Sort::Length, true) },
+    About { width: 60, keep: 1, toggle: Command::LibraryColumnGenre, ..about("genre", "Genre", "Genre", Sort::Genre, false) },
+    About { width: 40, keep: 3, toggle: Command::LibraryColumnYear, ..about("year", "Year", "Year", Sort::Year, true) },
+    About { width: 60, keep: 2, toggle: Command::LibraryColumnRating, ..about("rating", "Rating", "Rating", Sort::Rating, false) },
+    About { width: 30, keep: 4, toggle: Command::LibraryColumnNumber, ..about("track", "#", "Track number", Sort::Number, true) },
+    About { width: 100, keep: 1, toggle: Command::LibraryColumnFile, ..about("file", "File name", "File name", Sort::File, false) },
+    About { width: 90, toggle: Command::LibraryColumnComment, ..about("comment", "Comment", "Comment", Sort::Comment, false) },
+    About { width: 50, toggle: Command::LibraryColumnBitrate, ..about("bitrate", "Kbps", "Bit rate", Sort::Bitrate, true) },
+    About { width: 40, toggle: Command::LibraryColumnPlays, ..about("plays", "Plays", "Plays", Sort::Plays, true) },
+    About { width: 80, toggle: Command::LibraryColumnLastPlayed, ..about("played", "Last played", "Last played", Sort::LastPlayed, false) },
+    About { width: 80, toggle: Command::LibraryColumnAdded, ..about("added", "Added", "Added", Sort::Added, false) },
+];
+
 impl Column {
+    const ALL: [Column; 14] = [
+        Column::Artist,
+        Column::Title,
+        Column::Album,
+        Column::Time,
+        Column::Genre,
+        Column::Year,
+        Column::Rating,
+        Column::Number,
+        Column::File,
+        Column::Comment,
+        Column::Bitrate,
+        Column::Plays,
+        Column::LastPlayed,
+        Column::Added,
+    ];
+
+    fn about(self) -> &'static About {
+        &ABOUT[self as usize]
+    }
+
     fn label(self) -> &'static str {
-        match self {
-            Column::Artist => "Artist",
-            Column::Title => "Title",
-            Column::Album => "Album",
-            Column::Time => "Time",
-            Column::Genre => "Genre",
-            Column::Year => "Year",
-            Column::Rating => "Rating",
-        }
+        self.about().header
     }
 
     fn sort(self) -> Sort {
-        match self {
-            Column::Artist => Sort::Artist,
-            Column::Title => Sort::Title,
-            Column::Album => Sort::Album,
-            Column::Time => Sort::Length,
-            Column::Genre => Sort::Genre,
-            Column::Year => Sort::Year,
-            Column::Rating => Sort::Rating,
-        }
+        self.about().sort
     }
 
-    /// Numbers sit at the right of their cell.
     fn right(self) -> bool {
-        matches!(self, Column::Time | Column::Year)
+        self.about().right
+    }
+
+    /// The column a menu command shows or hides.
+    fn toggled_by(c: Command) -> Option<Column> {
+        Column::ALL.into_iter().find(|col| col.about().toggle == c)
     }
 }
 
@@ -113,17 +187,86 @@ enum Width {
     Px(i32),
 }
 
-/// The table's columns, each with its width and the width of the table,
-/// in text heights, from which it is shown.
-const TABLE: [(Column, Width, i32); 7] = [
-    (Column::Artist, Width::Share(2), 0),
-    (Column::Title, Width::Share(3), 0),
-    (Column::Album, Width::Share(2), 24),
-    (Column::Time, Width::Px(4), 0),
-    (Column::Genre, Width::Share(1), 44),
-    (Column::Year, Width::Px(3), 34),
-    (Column::Rating, Width::Px(6), 40),
-];
+/// The track table's columns as the user set them: which show, left to
+/// right, each with its width in tenths of the text height. Never empty.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Columns(Vec<(Column, u16)>);
+
+/// The columns a new library has.
+const FIRST: [Column; 7] = [Column::Artist, Column::Title, Column::Album, Column::Time, Column::Genre, Column::Year, Column::Rating];
+
+impl Default for Columns {
+    fn default() -> Self {
+        Columns(FIRST.iter().map(|&c| (c, c.about().width)).collect())
+    }
+}
+
+impl Columns {
+    /// The columns of the setting `artist:70,title:90`; a column it does
+    /// not name, names twice or gives no width keeps out. None that is
+    /// good is the first columns.
+    pub fn parse(text: &str) -> Columns {
+        let mut cols: Vec<(Column, u16)> = Vec::new();
+        for (key, width) in text.split(',').filter_map(|part| part.trim().split_once(':')) {
+            let col = Column::ALL.into_iter().find(|c| c.about().key == key.trim());
+            if let (Some(col), Ok(w @ 1..)) = (col, width.trim().parse::<u16>()) {
+                if !cols.iter().any(|c| c.0 == col) {
+                    cols.push((col, w));
+                }
+            }
+        }
+        if cols.is_empty() {
+            Columns::default()
+        } else {
+            Columns(cols)
+        }
+    }
+
+    pub fn to_setting(&self) -> String {
+        self.0.iter().map(|(c, w)| format!("{}:{w}", c.about().key)).collect::<Vec<_>>().join(",")
+    }
+
+    fn has(&self, col: Column) -> bool {
+        self.0.iter().any(|c| c.0 == col)
+    }
+
+    /// Hides a shown column, the last one aside; shows a hidden one at the
+    /// right.
+    fn toggle(&mut self, col: Column) {
+        match self.0.iter().position(|c| c.0 == col) {
+            Some(i) if self.0.len() > 1 => _ = self.0.remove(i),
+            Some(_) => {}
+            None => self.0.push((col, col.about().width)),
+        }
+    }
+
+    /// The columns across `rows`, edge to edge, each as wide as its share
+    /// of the widths. A table too narrow for all of them at their widths
+    /// leaves out the ones least kept, rightmost first.
+    fn lay(&self, rows: Rect, px: i32) -> Vec<(Column, i32, i32)> {
+        let mut kept = self.0.clone();
+        while kept.len() > 1 && kept.iter().map(|c| c.1 as i32).sum::<i32>() * px > rows.w * 10 {
+            let least = (0..kept.len()).rev().min_by_key(|&i| kept[i].0.about().keep).unwrap_or(0);
+            kept.remove(least);
+        }
+        let shares: Vec<(Column, Width)> = kept.iter().map(|&(c, w)| (c, Width::Share(w as i32))).collect();
+        lay(&shares, rows, px)
+    }
+
+    /// Moves the border right of the column `left` of `shown` (as `lay`
+    /// put them) to `x`. Only it and the column right of it change; each
+    /// stays at least twice the text height when there is room for that.
+    fn resize(&mut self, shown: &[(Column, i32, i32)], left: usize, x: i32, px: i32) {
+        let (Some(&(a, ax, aw)), Some(&(b, _, bw))) = (shown.get(left), shown.get(left + 1)) else { return };
+        let (Some(ia), Some(ib)) = (self.0.iter().position(|c| c.0 == a), self.0.iter().position(|c| c.0 == b)) else { return };
+        let room = aw + bw;
+        let least = (2 * px).min(room / 2);
+        let to = (x - ax).clamp(least, room - least);
+        let pair = (self.0[ia].1 + self.0[ib].1) as i64;
+        let wa = (pair * to as i64 / room.max(1) as i64).clamp(1, pair - 1);
+        (self.0[ia].1, self.0[ib].1) = (wa as u16, (pair - wa) as u16);
+    }
+}
 
 /// Places `cols` across `area`, left to right.
 fn lay<T: Copy>(cols: &[(T, Width)], area: Rect, px: i32) -> Vec<(T, i32, i32)> {
@@ -177,6 +320,10 @@ struct Table {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Parts {
     views: Rect,
+    /// The cover of the track at the cursor and what is known of it,
+    /// under the views, when the window is tall enough.
+    cover: Option<Rect>,
+    about: Option<Rect>,
     search: Rect,
     /// The artists and the albums, when the view has them.
     panes: Option<[Table; 2]>,
@@ -205,6 +352,11 @@ impl Parts {
         let bar_h = row_h + 4;
         let body_h = (r.h - bar_h - 2).max(0);
         let views_w = (r.w * 3 / 10).clamp(60, 120).min(r.w);
+        let about_h = ABOUT_LINES as i32 * row_h;
+        let panel_h = 3 + views_w + 1 + about_h;
+        let panel = body_h - panel_h >= 6 * row_h;
+        let views_h = if panel { body_h - panel_h } else { body_h };
+        let cover_y = r.y + views_h + 3;
         let (x, w) = (r.x + views_w + 3, (r.w - views_w - 3).max(0));
         let search_h = row_h + 3;
         let (list_y, list_h) = (r.y + search_h + 2, (body_h - search_h - 2).max(0));
@@ -220,7 +372,9 @@ impl Parts {
         let buttons = [0, 1, 2, 3].map(|i| rect(r.x + i * (button_w + 3), by, button_w, bar_h));
         let after = 4 * (button_w + 3);
         Parts {
-            views: rect(r.x, r.y, (views_w - bar_w).max(0), body_h),
+            views: rect(r.x, r.y, (views_w - bar_w).max(0), views_h),
+            cover: panel.then(|| rect(r.x, cover_y, views_w, views_w)),
+            about: panel.then(|| rect(r.x, cover_y + views_w + 1, views_w, about_h)),
             search: rect(x, r.y, w, search_h),
             panes: panes.then(|| [table(x, list_y, half, panes_h), table(x + half + 3, list_y, (w - half - 3).max(0), panes_h)]),
             table: table(x, ty, w, list_y + list_h - ty),
@@ -256,6 +410,17 @@ impl Parts {
     fn row(&self, list: Rect, y: i32) -> usize {
         ((y - list.y).max(0) / self.row_h) as usize
     }
+}
+
+/// How many lines tell of the track under its cover.
+const ABOUT_LINES: usize = 4;
+
+/// The cover on show: the track's, as large as the panel can show it at
+/// any zoom, and that shrunk to the size it was last drawn at.
+struct Shown {
+    path: String,
+    art: Option<Bitmap>,
+    sized: Option<((i32, i32), Bitmap)>,
 }
 
 /// A scan of the folders under way.
@@ -349,9 +514,16 @@ pub struct LibraryPane {
     scroll: [usize; 4],
     /// The list the arrow keys move in.
     focus: List,
-    /// Where the right button last went down, which picks the menu: the
-    /// views have the folders' and the playlists', the rest the tracks'.
-    menu_for: List,
+    /// Where the right button last went down, which picks the menu.
+    menu_for: Menu,
+    pub columns: Columns,
+    /// The border of the header the mouse holds: the column left of it,
+    /// by its place among the shown ones.
+    resizing: Option<usize>,
+    /// The time zone the dates show in.
+    tz: jiff::tz::TimeZone,
+    /// Read when first drawn, kept while the same track is at the cursor.
+    shown_cover: RefCell<Option<Shown>>,
     /// The button held down by the mouse.
     pressed: Option<usize>,
     /// The list whose thumb the mouse holds, and how far below the
@@ -391,7 +563,11 @@ impl LibraryPane {
             anchor: 0,
             scroll: [0; 4],
             focus: List::Tracks,
-            menu_for: List::Tracks,
+            menu_for: Menu::Tracks,
+            columns: Columns::default(),
+            resizing: None,
+            tz: jiff::tz::TimeZone::system(),
+            shown_cover: RefCell::new(None),
             pressed: None,
             dragging: None,
             carry: None,
@@ -546,6 +722,76 @@ impl LibraryPane {
         }
     }
 
+    // --- the cover ------------------------------------------------------------
+
+    /// The track at the cursor, when it is picked.
+    fn focused(&self) -> Option<&Track> {
+        self.selected.get(self.cursor).filter(|&&on| on).map(|_| &self.lib.tracks[self.shown[self.cursor]])
+    }
+
+    /// What the cover panel says of the track at the cursor: its title,
+    /// artist, album and year, and its format and bit rate.
+    fn about_lines(&self) -> Option<[String; ABOUT_LINES]> {
+        let t = self.focused()?;
+        let album = match (t.album.as_str(), t.year.as_str()) {
+            (album, "") => album.to_string(),
+            ("", year) => year.to_string(),
+            (album, year) => format!("{album} ({year})"),
+        };
+        let file = popamp_core::cue::split_location(&t.path).map_or(t.path.as_str(), |(sheet, _)| sheet);
+        let kind = Path::new(file).extension().map(|e| e.to_string_lossy().to_uppercase()).unwrap_or_default();
+        let format = if t.bitrate_kbps == 0 { kind } else { format!("{kind}, {} kbps", t.bitrate_kbps) };
+        Some([t.title.clone(), t.artist.clone(), album, format])
+    }
+
+    /// The cover of the track at the cursor, shrunk to fit `size` screen
+    /// pixels; read from the file once per track.
+    fn cover_sized(&self, size: (i32, i32)) -> Option<Bitmap> {
+        let path = self.focused()?.path.clone();
+        let mut held = self.shown_cover.borrow_mut();
+        let shown = match &mut *held {
+            Some(s) if s.path == path => s,
+            slot => {
+                let file = popamp_core::cue::split_location(&path).map_or(path.as_str(), |(sheet, _)| sheet);
+                let most = crate::pen::largest(120);
+                let art = crate::fileinfo::cover_of(Path::new(file)).map(|a| crate::widgets::fit(&a, most, most));
+                slot.insert(Shown { path, art, sized: None })
+            }
+        };
+        let art = shown.art.as_ref()?;
+        match &shown.sized {
+            Some((at, b)) if *at == size => Some(b.clone()),
+            _ => {
+                let b = crate::widgets::fit(art, size.0, size.1);
+                shown.sized = Some((size, b.clone()));
+                Some(b)
+            }
+        }
+    }
+
+    /// The cover in its frame and what is known of the track under it.
+    fn draw_cover(&self, pen: &mut Pen, p: &Parts, c: &PlColors) {
+        let (Some(cover), Some(about)) = (p.cover, p.about) else { return };
+        pen.b.fill(cover.x, cover.y - 2, cover.w, 1, pen.line);
+        let frame = rect(cover.x + 2, cover.y + 2, cover.w - 4, cover.h - 4);
+        match self.cover_sized(pen.b.screen_size(frame)) {
+            Some(art) => pen.b.picture(&art, frame),
+            None => {
+                let (x, y, w, h) = (frame.x, frame.y, frame.w, frame.h);
+                for (lx, ly, lw, lh) in [(x, y, w, 1), (x, y + h - 1, w, 1), (x, y, 1, h), (x + w - 1, y, 1, h)] {
+                    pen.b.fill(lx, ly, lw, lh, pen.line);
+                }
+                let note = if self.focused().is_some() { "No cover" } else { "" };
+                pen.centre(frame, note, pen.dim);
+            }
+        }
+        let Some(lines) = self.about_lines() else { return };
+        for (i, text) in lines.iter().enumerate() {
+            let row = rect(about.x, about.y + i as i32 * p.row_h, about.w, p.row_h);
+            pen.left(row, text, if i == 0 { c.normal } else { pen.dim });
+        }
+    }
+
     // --- the panes ------------------------------------------------------------
 
     fn pane(&self, list: List) -> (&[GroupRow], Option<&String>) {
@@ -651,14 +897,12 @@ impl LibraryPane {
 
     // --- columns --------------------------------------------------------------
 
-    /// The table's columns with their place across `rows`; the narrow
-    /// table leaves some out.
-    fn columns(rows: Rect, px: i32) -> Vec<(Column, i32, i32)> {
-        let fits: Vec<(Column, Width)> = TABLE.iter().filter(|c| rows.w >= c.2 * px).map(|c| (c.0, c.1)).collect();
-        lay(&fits, rows, px)
-    }
-
     fn cell(&self, t: &Track, col: Column) -> String {
+        let known = |n: u64| if n == 0 { String::new() } else { n.to_string() };
+        let date = |secs: u64| match jiff::Timestamp::from_second(secs as i64) {
+            Ok(at) if secs > 0 => at.to_zoned(self.tz.clone()).strftime("%Y-%m-%d").to_string(),
+            _ => String::new(),
+        };
         match col {
             Column::Artist => t.artist.clone(),
             Column::Title => t.title.clone(),
@@ -667,6 +911,13 @@ impl LibraryPane {
             Column::Genre => t.genre.clone(),
             Column::Year => t.year.clone(),
             Column::Rating => stars(self.lib.stats.get(&t.path).rating),
+            Column::Number => known(t.number.into()),
+            Column::File => popamp_core::library::file_name(&t.path).to_string(),
+            Column::Comment => t.comment.clone(),
+            Column::Bitrate => known(t.bitrate_kbps.into()),
+            Column::Plays => known(self.lib.stats.get(&t.path).plays.into()),
+            Column::LastPlayed => date(self.lib.stats.get(&t.path).last_played),
+            Column::Added => date(t.added),
         }
     }
 
@@ -726,6 +977,7 @@ impl LibraryPane {
             pen.left(row, &self.view_label(v), color);
         }
 
+        self.draw_cover(&mut pen, &p, c);
         self.draw_search(&mut pen, p.search, c, active);
         if let Some(panes) = p.panes {
             for (list, t) in [(List::Artists, panes[0]), (List::Albums, panes[1])] {
@@ -828,7 +1080,7 @@ impl LibraryPane {
 
     fn draw_table(&self, pen: &mut Pen, p: &Parts, c: &PlColors, active: bool, playing: Option<&str>) {
         let t = p.table;
-        let columns = Self::columns(t.rows, pen.px as i32);
+        let columns = self.columns.lay(t.rows, pen.px as i32);
         Self::draw_header(pen, t.header, &columns, |col| (col.label(), col.right()));
         if self.has_panes() {
             if let Some(&(col, x, w)) = columns.iter().find(|c| c.0.sort() == self.sort.0) {
@@ -870,7 +1122,11 @@ impl LibraryPane {
     /// The right button went down: the menu is for the row under it.
     pub fn press_right(&mut self, at: Place, x: i32, y: i32) {
         let p = self.parts(at);
-        self.menu_for = if p.views.contains(x, y) { List::Views } else { List::Tracks };
+        self.menu_for = match () {
+            _ if p.views.contains(x, y) => Menu::Lists,
+            _ if p.table.header.contains(x, y) => Menu::Columns,
+            _ => Menu::Tracks,
+        };
         if let Some(n) = self.row_at(&p, List::Views, x, y) {
             self.open_view(self.views()[n].clone());
         }
@@ -945,6 +1201,12 @@ impl LibraryPane {
     /// follows it, held rows start being carried. True when that changed
     /// what the window shows.
     pub fn drag(&mut self, at: Place, x: i32, y: i32) -> bool {
+        if let Some(i) = self.resizing {
+            let p = self.parts(at);
+            let shown = self.columns.lay(p.table.rows, at.px);
+            self.columns.resize(&shown, i, x, at.px);
+            return true;
+        }
         if let Some((list, grab)) = self.dragging {
             self.scroll_thumb_to(&self.parts(at), list, y - grab);
             return true;
@@ -1000,14 +1262,33 @@ impl LibraryPane {
         moving
     }
 
-    /// A press in the table: its header sorts, its rows select.
+    /// The border of the header at `x`: the column left of it, by its
+    /// place among the shown ones. The table's own edges are none.
+    fn border_at(shown: &[(Column, i32, i32)], x: i32) -> Option<usize> {
+        let inner = shown.len().saturating_sub(1);
+        shown[..inner].iter().position(|&(_, cx, cw)| (x - (cx + cw)).abs() <= BORDER_SLACK)
+    }
+
+    /// A press on the table's header: a border between two columns takes
+    /// hold, the rest sorts by the column under it, but not a playlist
+    /// shown in its own order.
+    fn press_header(&mut self, p: &Parts, px: i32, x: i32) -> Reaction {
+        let shown = self.columns.lay(p.table.rows, px);
+        if let Some(i) = Self::border_at(&shown, x) {
+            self.resizing = Some(i);
+            return Reaction { capture: true, run: None };
+        }
+        if let Some(&(col, ..)) = shown.iter().find(|&&(_, cx, cw)| x >= cx && x < cx + cw).filter(|_| self.has_panes()) {
+            self.sort = if self.sort.0 == col.sort() { (self.sort.0, !self.sort.1) } else { (col.sort(), false) };
+            self.refresh();
+        }
+        Reaction::default()
+    }
+
+    /// A press in the table: on its header, or on its rows, which select.
     fn press_table(&mut self, p: &Parts, px: i32, (x, y): (i32, i32), shift: bool, ctrl: bool, double: bool) -> Reaction {
-        if p.table.header.contains(x, y) && self.has_panes() {
-            if let Some(&(col, ..)) = Self::columns(p.table.rows, px).iter().find(|&&(_, cx, cw)| x >= cx && x < cx + cw) {
-                self.sort = if self.sort.0 == col.sort() { (self.sort.0, !self.sort.1) } else { (col.sort(), false) };
-                self.refresh();
-            }
-            return Reaction::default();
+        if p.table.header.contains(x, y) {
+            return self.press_header(p, px, x);
         }
         let Some(n) = self.row_at(p, List::Tracks, x, y) else {
             if p.table.rows.contains(x, y) {
@@ -1042,7 +1323,7 @@ impl LibraryPane {
     /// The left button went up: a button pressed and let go over itself
     /// runs; a row clicked without carrying is the only one picked.
     pub fn release(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
-        self.dragging = None;
+        (self.dragging, self.resizing) = (None, None);
         match self.carry.take() {
             Some(Carry::Pressed { row, .. }) => self.select_only(row),
             Some(Carry::Moving) => {
@@ -1408,8 +1689,40 @@ impl Model {
     /// tracks'.
     pub fn library_menu(&self) -> Vec<crate::menu::MenuItem> {
         match self.library.menu_for {
-            List::Views => self.lists_menu(),
-            _ => self.tracks_menu(),
+            Menu::Lists => self.lists_menu(),
+            Menu::Tracks => self.tracks_menu(),
+            Menu::Columns => self.columns_menu(),
+        }
+    }
+
+    /// Every column, ticked when the table shows it.
+    fn columns_menu(&self) -> Vec<crate::menu::MenuItem> {
+        use crate::menu::MenuItem;
+        let cols = &self.library.columns;
+        let mut items: Vec<MenuItem> =
+            Column::ALL.iter().map(|&c| MenuItem::cmd(c.about().menu, "", c.about().toggle).checked(cols.has(c))).collect();
+        items.extend([MenuItem::sep(), MenuItem::cmd("Reset columns", "", Command::LibraryColumnsReset)]);
+        items
+    }
+
+    /// Runs a command of the menu of columns; false for any other.
+    pub fn library_column_command(&mut self, c: Command) -> bool {
+        match (c, Column::toggled_by(c)) {
+            (Command::LibraryColumnsReset, _) => self.library.columns = Columns::default(),
+            (_, Some(col)) => self.library.columns.toggle(col),
+            _ => return false,
+        }
+        self.keep_library_columns();
+        true
+    }
+
+    /// Keeps the table's columns in the settings, once they changed; the
+    /// first columns as none.
+    pub fn keep_library_columns(&mut self) {
+        let cols = &self.library.columns;
+        let setting = if *cols == Columns::default() { String::new() } else { cols.to_setting() };
+        if self.settings().ml_columns != setting {
+            self.settings_mut().ml_columns = setting;
         }
     }
 
@@ -1715,13 +2028,161 @@ mod tests {
     }
 
     #[test]
+    fn a_tall_window_has_the_cover_under_the_views_and_a_short_one_none() {
+        let p = Parts::new(AT, true);
+        let (cover, about) = (p.cover.unwrap(), p.about.unwrap());
+        assert_eq!((cover.x, cover.w, cover.h), (R.x, p.views.w + p.bar_w, p.views.w + p.bar_w), "square, as wide as the views");
+        assert!(p.views.y + p.views.h < cover.y && cover.y + cover.h <= about.y, "the views, the cover, what is known of the track");
+        assert!(about.y + about.h <= p.buttons[0].y && about.h >= 4 * p.row_h);
+        assert!(p.views.h >= 6 * p.row_h, "the views keep some rows");
+        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
+        assert_eq!((short.cover, short.about), (None, None));
+        assert_eq!(short.views.h, short.table.rows.y + short.table.rows.h - short.views.y, "the views take its room");
+    }
+
+    #[test]
+    fn the_cover_panel_tells_of_the_track_at_the_cursor_once_picked() {
+        let mut p = pane();
+        assert_eq!(p.about_lines(), None, "no track is picked");
+        let t = &mut p.lib.tracks[0];
+        (t.year, t.bitrate_kbps) = ("1999".into(), 320);
+        let rows = p.parts(AT).table.rows;
+        click(&mut p, rows, 0);
+        p.release(AT, rows.x + 5, rows.y + 2);
+        assert_eq!(p.about_lines(), Some(["One".into(), "Alpha".into(), "First (1999)".into(), "MP3, 320 kbps".into()]));
+        click(&mut p, rows, 2);
+        p.release(AT, rows.x + 5, rows.y + 2 * (PX + 3) + 2);
+        assert_eq!(p.about_lines().map(|l| l[3].clone()), Some("MP3".into()), "a bit rate not known is left out");
+    }
+
+    #[test]
+    fn the_cover_is_the_picture_beside_the_track_shrunk_to_its_frame() {
+        let dir = std::env::temp_dir().join(format!("popamp-lib-cover-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        popamp_skin::Bitmap::new(400, 200, 0xff11_2233).save_png(&dir.join("cover.png")).unwrap();
+        let song = dir.join("song.mp3").to_string_lossy().into_owned();
+        let mut p = LibraryPane::new(Library { tracks: vec![track(&song, "A", "B", "C")], ..Library::default() });
+        p.select_only(0);
+        let art = p.cover_sized((100, 100)).expect("a cover");
+        assert_eq!((art.w, art.h, art.px[0] & 0xff_ffff), (100, 50, 0x11_2233), "shrunk to fit, its shape kept");
+        assert_eq!(p.cover_sized((80, 80)).map(|a| (a.w, a.h)), Some((80, 40)), "a new size fits it again");
+        p.selected.fill(false);
+        assert!(p.cover_sized((80, 80)).is_none());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn columns_share_the_width_and_the_narrow_table_drops_some() {
-        let wide = LibraryPane::columns(rect(10, 0, 500, 100), PX);
-        assert_eq!(wide.iter().map(|c| c.0).collect::<Vec<_>>(), TABLE.map(|c| c.0));
+        let wide = Columns::default().lay(rect(10, 0, 500, 100), PX);
+        assert_eq!(wide.iter().map(|c| c.0).collect::<Vec<_>>(), FIRST);
         assert_eq!((wide[0].1, wide.last().map(|c| c.1 + c.2)), (10, Some(510)), "edge to edge");
         assert!(wide.windows(2).all(|w| w[0].1 + w[0].2 == w[1].1), "no gaps");
-        let narrow = LibraryPane::columns(rect(0, 0, 200, 100), PX);
+        let narrow = Columns::default().lay(rect(0, 0, 200, 100), PX);
         assert_eq!(narrow.iter().map(|c| c.0).collect::<Vec<_>>(), [Column::Artist, Column::Title, Column::Time]);
+    }
+
+    #[test]
+    fn the_column_setting_reads_back_and_what_is_wrong_in_it_keeps_out() {
+        let cols = Columns::parse("title:90, plays:45,nonsense:3,title:20,year:0,added");
+        assert_eq!(cols.0, [(Column::Title, 90), (Column::Plays, 45)]);
+        assert_eq!(Columns::parse(&cols.to_setting()), cols);
+        assert_eq!(Columns::parse(""), Columns::default());
+        assert_eq!(Columns::parse("year:0"), Columns::default(), "none good is the first columns");
+    }
+
+    #[test]
+    fn a_column_shows_and_hides_but_the_last_one_stays() {
+        let mut cols = Columns::parse("title:90");
+        cols.toggle(Column::Bitrate);
+        assert_eq!(cols.0, [(Column::Title, 90), (Column::Bitrate, 50)], "a new column comes at the right");
+        cols.toggle(Column::Title);
+        cols.toggle(Column::Bitrate);
+        assert_eq!(cols.0, [(Column::Bitrate, 50)]);
+    }
+
+    /// The left edge of each column of the table and its right end.
+    fn edges(p: &LibraryPane) -> Vec<(Column, i32, i32)> {
+        p.columns.lay(p.parts(AT).table.rows, PX)
+    }
+
+    #[test]
+    fn a_border_in_the_header_moves_with_the_mouse_and_only_its_two_columns_change() {
+        let mut p = pane();
+        p.columns = Columns::parse("artist:70,title:90,time:40");
+        let header = p.parts(AT).table.header;
+        let before = edges(&p);
+        let border = before[0].1 + before[0].2;
+        let re = p.press(AT, border, header.y + 2, false, false, false);
+        assert!(re.capture, "the mouse holds the border");
+        assert!(p.drag(AT, border + 30, header.y + 2));
+        assert_eq!(p.release(AT, border + 30, header.y + 2), None);
+        let after = edges(&p);
+        assert!((after[0].2 - before[0].2 - 30).abs() <= 1, "{before:?} → {after:?}");
+        assert_eq!(after[1].1 + after[1].2, before[1].1 + before[1].2, "the column on its right gave the room");
+        assert_eq!(after[2], before[2]);
+        assert_eq!(titles(&p), ["One", "Two", "Three", "Four"], "a press on a border does not sort");
+        p.press(AT, border + 30, header.y + 2, false, false, false);
+        p.drag(AT, header.x + header.w, header.y + 2);
+        assert!(edges(&p)[1].2 >= 2 * PX, "a column keeps some width");
+    }
+
+    #[test]
+    fn the_new_columns_show_the_number_file_bit_rate_and_plays() {
+        let mut p = pane();
+        let t = &mut p.lib.tracks[0];
+        (t.number, t.bitrate_kbps, t.comment, t.added) = (7, 320, "live".into(), 1_794_144_449);
+        p.lib.stats = popamp_core::stats::Stats::parse("P\t1794144449\t/music/1.mp3\nP\t1794144449\t/music/1.mp3\n");
+        p.tz = jiff::tz::TimeZone::UTC;
+        let t = p.lib.tracks[0].clone();
+        let cells: Vec<String> = Column::ALL[7..].iter().map(|&c| p.cell(&t, c)).collect();
+        assert_eq!(cells, ["7", "1.mp3", "live", "320", "2", "2026-11-08", "2026-11-08"]);
+        let none = p.lib.tracks[1].clone();
+        let empty: Vec<String> = Column::ALL[7..].iter().map(|&c| p.cell(&none, c)).collect();
+        assert_eq!(empty, ["", "2.mp3", "", "", "", "", ""], "nothing known shows nothing");
+    }
+
+    #[test]
+    fn a_new_column_sorts_from_its_header() {
+        let mut p = pane();
+        p.columns = Columns::parse("title:90,plays:40");
+        p.lib.stats = popamp_core::stats::Stats::parse("P\t5\t/music/3.mp3\n");
+        let header = p.parts(AT).table.header;
+        let plays = edges(&p)[1];
+        p.press(AT, plays.1 + plays.2 / 2, header.y + 2, false, false, false);
+        assert_eq!(titles(&p)[0], "Three", "the most played first");
+    }
+
+    #[test]
+    fn the_header_has_a_menu_of_the_columns_that_shows_and_hides_them() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let header = m.library.parts(AT).table.header;
+        m.library.press_right(AT, header.x + 5, header.y + 2);
+        let menu = m.library_menu();
+        let shown: Vec<&str> = menu.iter().filter(|i| i.checked).map(|i| i.label.as_str()).collect();
+        assert_eq!(shown, ["Artist", "Title", "Album", "Time", "Genre", "Year", "Rating"]);
+        assert!(menu.iter().any(|i| i.label == "Bit rate" && !i.checked));
+        m.exec(Command::LibraryColumnBitrate);
+        assert!(m.library.columns.has(Column::Bitrate));
+        assert!(m.settings().ml_columns.ends_with(",bitrate:50"), "{}", m.settings().ml_columns);
+        m.exec(Command::LibraryColumnsReset);
+        assert_eq!((m.library.columns.clone(), m.settings().ml_columns.as_str()), (Columns::default(), ""));
+    }
+
+    #[test]
+    fn a_moved_border_is_kept_in_the_settings_once_let_go() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let header = m.library.parts(AT).table.header;
+        let first = edges(&m.library)[0];
+        let border = first.1 + first.2;
+        m.library.press(AT, border, header.y + 2, false, false, false);
+        m.library.drag(AT, border - 20, header.y + 2);
+        m.library.release(AT, border - 20, header.y + 2);
+        m.keep_library_columns();
+        assert_eq!(Columns::parse(&m.settings().ml_columns), m.library.columns);
+        assert_ne!(m.library.columns, Columns::default());
     }
 
     #[test]
@@ -1847,7 +2308,7 @@ mod tests {
     fn the_header_sorts_and_a_second_click_turns_the_order() {
         let mut p = pane();
         let t = p.parts(AT).table;
-        let title_x = LibraryPane::columns(t.rows, PX).iter().find(|c| c.0 == Column::Title).unwrap().1;
+        let title_x = p.columns.lay(t.rows, PX).iter().find(|c| c.0 == Column::Title).unwrap().1;
         p.press(AT, title_x + 3, t.header.y + 2, false, false, false);
         assert_eq!(titles(&p), ["Four", "One", "Three", "Two"]);
         p.press(AT, title_x + 3, t.header.y + 2, false, false, false);
@@ -1989,8 +2450,10 @@ mod tests {
         assert_eq!((m.library.status().as_str(), titles(&m.library)), ("1 track", vec!["Song"]));
         assert_eq!(Library::load(&m.paths.library_file()), m.library.lib);
         m.library.view = View::Folder("/music".into());
-        let views = m.library.parts(AT).views;
-        right_click(&mut m, views);
+        let parts = m.library.parts(AT);
+        m.library.show_row(&parts, List::Views, view_rows(&m.library).len() - 1);
+        let (x, y) = view_row(&m.library, "music");
+        m.library.press_right(AT, x, y);
         assert!(labels(&m).iter().any(|l| l.starts_with("Remove")), "a folder's view offers to remove it");
         m.library_remove_folder();
         assert!(m.library.lib.folders.is_empty() && m.library.lib.tracks.is_empty());
@@ -2079,10 +2542,11 @@ mod tests {
         p.views().iter().map(|v| p.view_label(v)).collect()
     }
 
-    /// The middle of the views row that says `label`.
+    /// The middle of the views row that says `label`, as scrolled.
     fn view_row(p: &LibraryPane, label: &str) -> (i32, i32) {
         let parts = p.parts(AT);
         let n = view_rows(p).iter().position(|l| l == label).unwrap_or_else(|| panic!("{label} in {:?}", view_rows(p)));
+        let n = n - p.window(&parts, List::Views).0;
         (parts.views.x + 5, parts.views.y + n as i32 * parts.row_h + parts.row_h / 2)
     }
 
@@ -2144,7 +2608,7 @@ mod tests {
         assert_eq!(titles(&m.library), ["One", "Two"], "in the order put");
         // Removed from the list, the track stays in the library.
         m.library.select_only(0);
-        m.library.menu_for = List::Tracks;
+        m.library.menu_for = Menu::Tracks;
         assert!(labels(&m).contains(&"Remove from “Road_trip”".to_string()));
         m.exec(Command::LibraryPlaylistRemoveTracks);
         assert_eq!((titles(&m.library), m.library.lib.tracks.len()), (vec!["Two"], 4));

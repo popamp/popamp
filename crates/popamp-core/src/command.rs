@@ -142,6 +142,21 @@ commands! {
     LibraryPlaylistDelete = 50056,
     LibraryPlaylistRemoveTracks = 50057,
     LibraryDropOnPlaylist = 50058,
+    LibraryColumnArtist = 50059,
+    LibraryColumnTitle = 50060,
+    LibraryColumnAlbum = 50061,
+    LibraryColumnTime = 50062,
+    LibraryColumnGenre = 50063,
+    LibraryColumnYear = 50064,
+    LibraryColumnRating = 50065,
+    LibraryColumnNumber = 50066,
+    LibraryColumnFile = 50067,
+    LibraryColumnComment = 50068,
+    LibraryColumnBitrate = 50069,
+    LibraryColumnPlays = 50070,
+    LibraryColumnLastPlayed = 50071,
+    LibraryColumnAdded = 50072,
+    LibraryColumnsReset = 50073,
 }
 
 #[cfg(test)]

@@ -269,6 +269,7 @@ impl Model {
         let mut library = crate::library::LibraryPane::new(lib);
         library.smart = popamp_core::smart::load(&paths.smart_file());
         library.plain = popamp_core::plain::load(&paths.playlists_dir());
+        library.columns = crate::library::Columns::parse(&config.settings.ml_columns);
         library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));
         let mut m = Model {
@@ -1355,6 +1356,23 @@ impl Model {
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
             C::LibraryRescan => self.library_rescan(),
             C::LibraryRemoveFolder => self.library_remove_folder(),
+            C::LibraryColumnArtist
+            | C::LibraryColumnTitle
+            | C::LibraryColumnAlbum
+            | C::LibraryColumnTime
+            | C::LibraryColumnGenre
+            | C::LibraryColumnYear
+            | C::LibraryColumnRating
+            | C::LibraryColumnNumber
+            | C::LibraryColumnFile
+            | C::LibraryColumnComment
+            | C::LibraryColumnBitrate
+            | C::LibraryColumnPlays
+            | C::LibraryColumnLastPlayed
+            | C::LibraryColumnAdded
+            | C::LibraryColumnsReset => {
+                self.library_column_command(cmd);
+            }
             C::LibraryRate0 => self.library_rate(0),
             C::LibraryRate1 => self.library_rate(1),
             C::LibraryRate2 => self.library_rate(2),
