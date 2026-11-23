@@ -6,8 +6,37 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+The media library grows toward jetAudio's: a display with the visualizer
+over the list, transport under it, a cover panel, a views tree, and its own
+playing. The skins' new library windows come with skins 2.1.0.
+
 ### Added
 
+- **Library display and transport**: the library window has a display
+  under its title (play state, clock, song title, bit rate and a
+  visualizer) and, under the list, a position bar, the transport buttons
+  and the volume. They move like the main window's.
+- **Maximize the library** (Toggle library maximize, a double click on its
+  title, or "Maximized" in its menu): it fills the usable part of its
+  monitor as a window of its own and comes back maximized next time.
+- **The library plays on its own**, apart from the playlist: a double
+  click or Enter plays, a click on another track plays it while the library
+  plays, the middle button adds the track to the playlist (Ctrl+click
+  still picks several).
+- **Cover panel** under the views: the cover of the track at the cursor with
+  its title, artist, album, year, format and bit rate.
+- **More columns** in the library table: track number, file name, comment,
+  bit rate, plays, last played and added. A right click on the header
+  turns them on and off; a border in the header drags.
+- **Views tree**: Playlists, Smart playlists and Folders open and shut, and
+  a library folder opens into its folders, so the table can show any
+  folder inside the library. The tree comes back as it was left.
+- **A picture dropped on tracks becomes their cover**: JPEG, PNG, GIF or
+  BMP onto a row, the picked rows or the cover panel. Popamp asks first and
+  writes only the formats it writes tags into.
+- **Resizable library parts**: the gap right of the left panel and the gap
+  over the table (under the artists and albums) drag, with a resize
+  cursor; a double click gives the size back to the window.
 - **Timed library scan** ([#71](https://github.com/popamp/popamp/issues/71)):
   Media Library preferences has two check boxes: "Scan the folders at
   startup" (on by default; until now only in the settings file) and "Scan
@@ -16,6 +45,15 @@ All notable changes to this project are documented here. The format follows
   Each scan takes in new and changed files and drops the ones gone from
   disk; a folder that cannot be read, such as an unplugged drive, keeps its
   tracks.
+
+### Changed
+
+- The library has no shade mode any more; its title maximizes it instead.
+- The library's button row under the table (Play, Enqueue, Add folder,
+  Rescan) is gone; all of them are in its menus. The "enqueue by default"
+  option is gone with the library's own playing.
+- The labels of typed values in Preferences are wider and no longer cut
+  off.
 
 ## [1.1.0] - 2026-11-22
 
