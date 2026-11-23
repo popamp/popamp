@@ -270,6 +270,7 @@ impl Model {
         library.smart = popamp_core::smart::load(&paths.smart_file());
         library.plain = popamp_core::plain::load(&paths.playlists_dir());
         library.columns = crate::library::Columns::parse(&config.settings.ml_columns);
+        library.restore_tree_state(&config.settings.ml_tree, &config.settings.ml_view);
         library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));
         let mut m = Model {
@@ -509,6 +510,7 @@ impl Model {
 
     pub fn save_session(&mut self) {
         self.settings_mut().plpos = self.playlist.current().unwrap_or(0) as i32;
+        (self.config.settings.ml_tree, self.config.settings.ml_view) = self.library.tree_state();
         if let Err(e) = self.save_playlist_file(&self.paths.playlist_file()) {
             log::warn!("cannot save playlist: {e}");
         }

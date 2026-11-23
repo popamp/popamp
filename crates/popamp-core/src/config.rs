@@ -185,6 +185,10 @@ settings! {
     /// The library table's columns, left to right, with their widths:
     /// `artist:70,title:90`; empty for the first ones.
     ml_columns: String = String::new(),
+    /// The open nodes of the library's views tree, split by tabs, and the
+    /// view it shows; see `LibraryPane::tree_state`.
+    ml_tree: String = "b:folders\tb:playlists\tb:smart".to_string(),
+    ml_view: String = "all".to_string(),
     /// A play counts once this many percent of the track was heard:
     /// 50..=100 in steps of 5.
     listen_percent: u32 = 50,
@@ -639,6 +643,7 @@ mod tests {
             wsz_scaling: Scaling::Nearest,
             bar_edge: Some(BarEdge::Top),
             bar_zoom: 150,
+            ml_tree: "b:smart\tf:/music/A b\\tc".into(),
             ..Default::default()
         };
         s.set_eq_bands(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 63]);

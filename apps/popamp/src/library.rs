@@ -26,7 +26,7 @@ use popamp_core::plain::{self, PlainList};
 use popamp_core::replaygain::Stamp;
 use popamp_core::smart::{Field, Op, Rule, SmartList, Test};
 use popamp_core::stats::Rating;
-use popamp_core::text::format_duration_ms;
+use popamp_core::text::{escape_field, format_duration_ms, unescape_field};
 use popamp_core::Command;
 use popamp_skin::bitmap::mix;
 use popamp_skin::Bitmap;
@@ -62,6 +62,17 @@ enum Branch {
 }
 
 impl Branch {
+    const ALL: [Branch; 3] = [Branch::Playlists, Branch::Smart, Branch::Folders];
+
+    /// Its name in the settings.
+    fn key(self) -> &'static str {
+        match self {
+            Branch::Playlists => "playlists",
+            Branch::Smart => "smart",
+            Branch::Folders => "folders",
+        }
+    }
+
     fn label(self) -> &'static str {
         match self {
             Branch::Playlists => "Playlists",
@@ -601,7 +612,7 @@ impl LibraryPane {
             drop_on: None,
             view: View::All,
             tree: Vec::new(),
-            open: [Branch::Playlists, Branch::Smart, Branch::Folders].map(Node::Branch).into(),
+            open: Branch::ALL.map(Node::Branch).into(),
             seed: fastrand::u64(..),
             artist: None,
             album: None,
@@ -703,6 +714,52 @@ impl LibraryPane {
                     || self.lib.folders.iter().any(|r| is_under(f, r)) && self.lib.tracks.iter().any(|t| is_under(&t.path, f))
             }
         }
+    }
+
+    /// The tree as the settings keep it: the open nodes, then the view.
+    /// Nodes are `b:` and a branch, or `f:` and a folder, split by tabs; a
+    /// playlist's view goes by its name, so it is found again when its
+    /// place changed.
+    pub fn tree_state(&self) -> (String, String) {
+        let mut open: Vec<String> = self
+            .open
+            .iter()
+            .map(|n| match n {
+                Node::Branch(b) => format!("b:{}", b.key()),
+                Node::Folder(f) => format!("f:{}", escape_field(f)),
+            })
+            .collect();
+        open.sort();
+        let view = match &self.view {
+            View::All | View::Branch(_) => "all".to_string(),
+            View::Smart(n) => format!("smart:{}", escape_field(&self.smart[*n].name)),
+            View::Plain(n) => format!("plain:{}", escape_field(&self.plain[*n].name)),
+            View::Folder(f) => format!("folder:{}", escape_field(f)),
+        };
+        (open.join("\t"), view)
+    }
+
+    /// Opens the nodes and shows the view `tree_state` gave; what is no
+    /// longer there is left out, a view that is gone is all music.
+    pub fn restore_tree_state(&mut self, open: &str, view: &str) {
+        self.open = open
+            .split('\t')
+            .filter_map(|item| match item.split_once(':')? {
+                ("b", key) => Branch::ALL.into_iter().find(|b| b.key() == key).map(Node::Branch),
+                ("f", folder) => Some(Node::Folder(unescape_field(folder))),
+                _ => None,
+            })
+            .collect();
+        let named = |names: Vec<&String>, want: &str| names.iter().position(|n| **n == unescape_field(want));
+        let v = match view.split_once(':') {
+            Some(("smart", name)) => named(self.smart.iter().map(|l| &l.name).collect(), name).map(View::Smart),
+            Some(("plain", name)) => named(self.plain.iter().map(|l| &l.name).collect(), name).map(View::Plain),
+            Some(("folder", f)) => Some(View::Folder(unescape_field(f))),
+            _ => None,
+        };
+        self.view = View::All;
+        self.grow_tree();
+        self.open_view(v.filter(|v| self.exists(v)).unwrap_or(View::All));
     }
 
     /// Opens a node of the tree that is shut, shuts one that is open.
@@ -2453,6 +2510,60 @@ mod tests {
         p.lib.replace_folder("/music", vec![track("/music/1.mp3", "Alpha", "First", "One")]);
         p.changed();
         assert_eq!((p.view.clone(), tree(&p)[3].as_str()), (View::All, "  music"), "a folder that is gone takes its view along");
+    }
+
+    #[test]
+    fn the_tree_keeps_what_is_open_and_shown_and_comes_back_so() {
+        let mut p = nested();
+        p.fold(Node::Folder("/music".into()));
+        p.fold(Node::Folder("/music/Rock".into()));
+        p.fold(Node::Branch(Branch::Playlists));
+        let (x, y) = view_row(&p, "Old");
+        p.press(AT, x, y, false, false, false);
+        let (open, view) = p.tree_state();
+        let mut back = nested();
+        back.restore_tree_state(&open, &view);
+        assert_eq!((tree(&back), back.view.clone(), titles(&back)), (tree(&p), p.view.clone(), titles(&p)));
+        assert_eq!(back.view, View::Folder("/music/Rock/Old".into()));
+    }
+
+    #[test]
+    fn a_playlist_comes_back_by_its_name_and_one_that_is_gone_is_all_music() {
+        let mut p = pane();
+        p.smart = popamp_core::smart::parse("[[smart]]\nname = \"A\"\n[[smart]]\nname = \"B\"\n").0;
+        p.plain = vec![PlainList { name: "Mine".into(), tracks: vec![] }];
+        p.changed();
+        let state = |p: &mut LibraryPane, v: View| {
+            p.open_view(v);
+            p.tree_state()
+        };
+        let (open, smart) = state(&mut p, View::Smart(1));
+        let (_, plain) = state(&mut p, View::Plain(0));
+        let mut back = pane();
+        back.smart = popamp_core::smart::parse("[[smart]]\nname = \"B\"\n").0;
+        back.plain = vec![PlainList { name: "Mine".into(), tracks: vec![] }];
+        back.changed();
+        back.restore_tree_state(&open, &smart);
+        assert_eq!(back.view, View::Smart(0), "B, though it moved up");
+        back.restore_tree_state(&open, &plain);
+        assert_eq!(back.view, View::Plain(0));
+        back.restore_tree_state(&open, "smart:A");
+        assert_eq!(back.view, View::All, "A is gone");
+        back.restore_tree_state("", "nonsense");
+        assert_eq!((tree(&back)[1].as_str(), back.view.clone()), ("+ Playlists", View::All), "nothing open, a view not known");
+    }
+
+    #[test]
+    fn the_session_keeps_the_tree_in_the_settings() {
+        let mut m = Model::for_tests();
+        m.library = nested();
+        m.library.fold(Node::Folder("/music".into()));
+        m.library.open_view(View::Folder("/music/Jazz".into()));
+        m.save_session();
+        let s = m.settings();
+        let mut back = nested();
+        back.restore_tree_state(&s.ml_tree, &s.ml_view);
+        assert_eq!((tree(&back), back.view.clone()), (tree(&m.library), View::Folder("/music/Jazz".into())));
     }
 
     #[test]
