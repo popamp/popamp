@@ -324,6 +324,13 @@ impl SkinWin {
         })
     }
 
+    /// The tracks a picture let go at `x`, `y` is the cover of; see
+    /// `LibraryPane::cover_drop_targets`.
+    pub fn library_cover_targets(&mut self, model: &mut Model, x: i32, y: i32) -> Vec<String> {
+        let Some(at) = self.library_place(model) else { return Vec::new() };
+        model.library.cover_drop_targets(at, x, y)
+    }
+
     /// A key for the library; false when it has no use for it.
     pub fn library_key(&mut self, model: &mut Model, key: crate::widgets::Key, shift: bool) -> bool {
         let Some(at) = self.library_place(model) else { return false };

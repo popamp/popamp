@@ -986,6 +986,16 @@ impl Model {
                     self.library.plain.get(*index).map_or("", |l| l.name.as_str())
                 ),
             },
+            DialogKind::WriteCover { image, paths } => Request::Question {
+                title: "Write cover".into(),
+                text: {
+                    let name = |p: &str| popamp_core::library::file_name(p).to_string();
+                    let tracks = if paths.len() == 1 { "1 track".to_string() } else { format!("{} tracks", paths.len()) };
+                    let some: Vec<String> = paths.iter().take(10).map(|p| name(p)).collect();
+                    let more = if paths.len() > 10 { "\n…" } else { "" };
+                    format!("Write “{}” into {tracks} as the cover?\n\n{}{more}", name(image), some.join("\n"))
+                },
+            },
             DialogKind::DeleteSmart { index } => Request::Question {
                 title: "Delete smart playlist".into(),
                 text: format!("Delete the smart playlist “{}”?", self.library.smart.get(*index).map_or("", |l| l.name.as_str())),
@@ -1170,6 +1180,11 @@ impl Model {
             DialogKind::RemovePlugin { dir, id, .. } => {
                 if first.as_deref() == Some("yes") {
                     self.remove_plugin(&dir, id.as_deref());
+                }
+            }
+            DialogKind::WriteCover { image, paths } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_write_cover(&image, paths);
                 }
             }
             DialogKind::DeleteSmart { index } => {

@@ -1988,7 +1988,21 @@ impl App {
         let drops = std::mem::take(&mut self.drops);
         let k = drops[0].0;
         let files: Vec<String> = drops.into_iter().map(|(_, f)| f).collect();
+        let picture = |f: &str| {
+            let ext = std::path::Path::new(f).extension().map(|e| e.to_string_lossy().to_ascii_lowercase());
+            matches!(ext.as_deref(), Some("jpg" | "jpeg" | "png" | "gif" | "bmp"))
+        };
         match k {
+            // A picture on a track of the library: its cover.
+            WindowKey::Library if files.len() == 1 && picture(&files[0]) => {
+                let input = self.input(WindowKey::Library, false, false);
+                let targets = self.skins[WindowKey::Library.index()].library_cover_targets(&mut self.model, input.x, input.y);
+                if targets.is_empty() {
+                    self.model.flash("LIBRARY: LET THE PICTURE GO ON A TRACK OR ITS COVER");
+                } else {
+                    self.model.library_cover_dropped(&files[0], targets);
+                }
+            }
             WindowKey::Playlist => {
                 // Insert at the row under the cursor.
                 let input = self.input(WindowKey::Playlist, false, false);

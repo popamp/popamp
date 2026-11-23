@@ -499,6 +499,9 @@ pub enum LibEvent {
     /// What one folder holds now.
     Folder(u64, String, Vec<Track>),
     Done(u64),
+    /// A cover was written into these files; into so many more it could
+    /// not be.
+    Covers(Vec<String>, usize),
 }
 
 /// A plain press on a table row: it carries the picked tracks once the
@@ -825,8 +828,8 @@ impl LibraryPane {
 
     /// Finds the panes' rows and the table's tracks again, after the
     /// library, the view, a pick, the search or the order changed. A pick
-    /// that is no longer there goes; so does the selection: its rows are
-    /// other tracks now.
+    /// that is no longer there goes. So does the selection, unless the
+    /// table has the same rows: else they are other tracks now.
     fn refresh(&mut self) {
         self.grow_tree();
         if !self.exists(&self.view) {
@@ -842,6 +845,7 @@ impl LibraryPane {
                 *pick = None;
             }
         };
+        let before = std::mem::take(&mut self.shown);
         let own = match self.view {
             View::Smart(n) => Some(self.smart[n].tracks(&self.lib, &self.query, popamp_core::history::now(), self.seed)),
             View::Plain(n) => Some(self.plain[n].tracks(&self.lib, &self.query)),
@@ -857,6 +861,9 @@ impl LibraryPane {
             keep(&mut self.album, &self.albums);
             let filter = Filter { artist: self.artist.as_deref(), album: self.album.as_deref(), ..within };
             self.shown = self.lib.find(&filter, self.sort.0, self.sort.1);
+        }
+        if self.shown == before {
+            return;
         }
         self.selected = vec![false; self.shown.len()];
         (self.cursor, self.anchor) = (0, 0);
@@ -906,6 +913,23 @@ impl LibraryPane {
     /// The track at the cursor, when it is picked.
     fn focused(&self) -> Option<&Track> {
         self.selected.get(self.cursor).filter(|&&on| on).map(|_| &self.lib.tracks[self.shown[self.cursor]])
+    }
+
+    /// The tracks a picture let go at `x`, `y` is the cover of: those
+    /// picked, when it falls on the cover or on a picked row; the one
+    /// row it falls on else, which is then picked.
+    pub fn cover_drop_targets(&mut self, at: Place, x: i32, y: i32) -> Vec<String> {
+        let p = self.parts(at);
+        if let Some(n) = self.row_at(&p, List::Tracks, x, y) {
+            if !self.selected[n] {
+                self.select_only(n);
+            }
+            return self.selected_paths();
+        }
+        if p.cover.is_some_and(|c| c.contains(x, y)) {
+            return self.selected_paths();
+        }
+        Vec::new()
     }
 
     /// What the cover panel says of the track at the cursor: its title,
@@ -1711,6 +1735,23 @@ impl Pen<'_, '_> {
     }
 }
 
+/// Writes `picture` into each of `paths` as its front cover, in place of
+/// the old one. Returns the files written and how many could not be.
+fn write_covers(picture: &popamp_audio::cover::Picture, paths: &[String]) -> (Vec<String>, usize) {
+    let changes = popamp_audio::tags::Changes { fields: Vec::new(), cover: popamp_audio::tags::CoverChange::Set(picture.clone()) };
+    let (mut done, mut failed) = (Vec::new(), 0);
+    for path in paths {
+        match popamp_audio::tags::write(Path::new(path), &changes) {
+            Ok(()) => done.push(path.clone()),
+            Err(e) => {
+                log::warn!("cannot write a cover into {path}: {e}");
+                failed += 1;
+            }
+        }
+    }
+    (done, failed)
+}
+
 // --- the library in the player ------------------------------------------------
 
 /// Looks through `folders` for audio files. A file that is as `known` has
@@ -1792,8 +1833,11 @@ impl Model {
 
     pub fn on_library(&mut self, ev: LibEvent) {
         let pane = &mut self.library;
-        let (LibEvent::Progress(id, _) | LibEvent::Folder(id, ..) | LibEvent::Done(id)) = &ev;
-        if pane.scan.as_ref().is_none_or(|s| s.id != *id) {
+        let id = match &ev {
+            LibEvent::Progress(id, _) | LibEvent::Folder(id, ..) | LibEvent::Done(id) => *id,
+            LibEvent::Covers(done, failed) => return self.covers_written(done, *failed),
+        };
+        if pane.scan.as_ref().is_none_or(|s| s.id != id) {
             return;
         }
         match ev {
@@ -1811,7 +1855,52 @@ impl Model {
                 self.save_library();
                 self.follow_moves(&before);
             }
+            LibEvent::Covers(..) => {}
         }
+    }
+
+    /// A picture was let go on the library over `targets`: asks before it
+    /// goes into their files as their cover. Only the formats Popamp
+    /// writes tags into take it; a CUE sheet's tracks do not.
+    pub fn library_cover_dropped(&mut self, image: &str, targets: Vec<String>) {
+        if std::fs::read(image).ok().and_then(popamp_audio::tags::picture).is_none() {
+            return self.flash("LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE");
+        }
+        let writable = |p: &String| popamp_core::cue::split_location(p).is_none() && popamp_audio::tags::named_editable(Path::new(p));
+        let paths: Vec<String> = targets.into_iter().filter(writable).collect();
+        if paths.is_empty() {
+            return self.flash("LIBRARY: NO COVER CAN GO INTO THESE FILES");
+        }
+        self.request_dialog(DialogKind::WriteCover { image: image.to_string(), paths });
+    }
+
+    /// Writes the picture at `image` into `paths` as their cover, away
+    /// from the window; `LibEvent::Covers` tells when it is done.
+    pub fn library_write_cover(&mut self, image: &str, paths: Vec<String>) {
+        let Some(picture) = std::fs::read(image).ok().and_then(popamp_audio::tags::picture) else {
+            return self.flash("LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE");
+        };
+        let events = self.events.clone();
+        let spawned = std::thread::Builder::new().name("popamp-cover".into()).spawn(move || {
+            let (done, failed) = write_covers(&picture, &paths);
+            events.send(AppEvent::Library(LibEvent::Covers(done, failed)));
+        });
+        if let Err(e) = spawned {
+            log::warn!("cannot start writing covers: {e}");
+        }
+    }
+
+    /// The files that took a new cover are read again; says how it went.
+    fn covers_written(&mut self, done: &[String], failed: usize) {
+        for path in done {
+            self.tags_changed(path);
+        }
+        let files = |n: usize| if n == 1 { "1 FILE".to_string() } else { format!("{n} FILES") };
+        let text = match failed {
+            0 => format!("LIBRARY: COVER WRITTEN TO {}", files(done.len())),
+            _ => format!("LIBRARY: COVER WRITTEN TO {}, {failed} FAILED", files(done.len())),
+        };
+        self.flash(text);
     }
 
     /// Hands the plays and ratings of the files gone since `before` to
@@ -2016,6 +2105,8 @@ impl Model {
         let meta = self.sources.of(path).describe(path).and_then(Result::ok).unwrap_or_default();
         let added = self.library.lib.tracks[i].added;
         self.library.lib.tracks[i] = Track::new(path.to_string(), stamp, added, &meta);
+        // Its cover may be another now.
+        self.library.shown_cover.replace(None);
         self.library.changed();
         self.save_library();
     }
@@ -2865,6 +2956,99 @@ mod tests {
         m.exec(Command::FileInfo);
         assert!(m.info_entry().is_none(), "File info from the player is about the playlist again");
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// A folder of its own for a test, with a copy of the silent FLAC in
+    /// it under each of `names`.
+    fn flacs(test: &str, names: &[&str]) -> (PathBuf, Vec<String>) {
+        let dir = std::env::temp_dir().join(format!("popamp-lib-{test}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/popamp-audio/tests/fixtures/silence.flac");
+        let files = names.iter().map(|n| {
+            std::fs::copy(&fixture, dir.join(n)).unwrap();
+            dir.join(n).to_string_lossy().into_owned()
+        });
+        let files = files.collect();
+        (dir, files)
+    }
+
+    /// A small PNG picture in `dir`.
+    fn png(dir: &Path) -> String {
+        let path = dir.join("art.png");
+        Bitmap::new(4, 4, 0xff20_4060).save_png(&path).unwrap();
+        path.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn a_picture_dropped_on_a_row_is_for_that_track_or_for_all_the_picked_ones() {
+        let mut p = pane();
+        let rows = p.parts(AT).table.rows;
+        let row = |n: i32| (rows.x + 5, rows.y + n * (PX + 3) + 2);
+        let (x, y) = row(2);
+        assert_eq!(p.cover_drop_targets(AT, x, y), ["/music/3.mp3"]);
+        assert_eq!(p.selected_paths(), ["/music/3.mp3"], "the row it fell on is picked");
+        p.selected[0] = true;
+        assert_eq!(p.cover_drop_targets(AT, x, y), ["/music/1.mp3", "/music/3.mp3"], "on a picked row: all picked");
+        let (x, y) = row(1);
+        assert_eq!(p.cover_drop_targets(AT, x, y), ["/music/2.mp3"], "on another row: that one");
+        let cover = p.parts(AT).cover.unwrap();
+        assert_eq!(p.cover_drop_targets(AT, cover.x + 5, cover.y + 5), ["/music/2.mp3"], "on the cover: the picked tracks");
+        let search = p.parts(AT).search;
+        assert!(p.cover_drop_targets(AT, search.x + 5, search.y + 2).is_empty());
+    }
+
+    #[test]
+    fn a_dropped_picture_asks_before_it_is_written_into_the_files() {
+        let (dir, files) = flacs("drop-ask", &["a.flac", "b.flac"]);
+        let mut m = Model::for_tests();
+        let mut targets = files.clone();
+        targets.push(dir.join("disc.cue#2").to_string_lossy().into_owned());
+        m.library_cover_dropped(&png(&dir), targets);
+        let Some(UiReq::Dialog(DialogKind::WriteCover { paths, .. }, crate::dialogs::Request::Question { text, .. })) = m.ui.last() else {
+            panic!("asks: {:?}", m.ui.last())
+        };
+        assert_eq!(paths, &files, "not a track of a CUE sheet");
+        assert!(text.contains("2 tracks"), "{text}");
+        let ui = m.ui.len();
+        m.library_cover_dropped(&dir.join("a.flac").to_string_lossy(), files.clone());
+        assert_eq!((m.ui.len(), m.transient.as_ref().map(|t| t.0.as_str())), (ui, Some("LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE")));
+        m.library_cover_dropped(&png(&dir), vec!["/m/x.wav".into()]);
+        assert_eq!((m.ui.len(), m.transient.as_ref().map(|t| t.0.as_str())), (ui, Some("LIBRARY: NO COVER CAN GO INTO THESE FILES")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_written_cover_is_in_the_files_and_shows_in_the_library() {
+        let (dir, files) = flacs("drop-write", &["a.flac", "b.flac"]);
+        let mut m = Model::for_tests();
+        m.library = LibraryPane::new(Library { tracks: files.iter().map(|f| track(f, "A", "B", "C")).collect(), ..Library::default() });
+        m.library.select_only(1);
+        assert!(m.library.cover_sized((10, 10)).is_none(), "no cover yet");
+        let picture = popamp_audio::tags::picture(std::fs::read(png(&dir)).unwrap()).unwrap();
+        let mut targets = files.clone();
+        targets.push(dir.join("gone.flac").to_string_lossy().into_owned());
+        let (done, failed) = write_covers(&picture, &targets);
+        assert_eq!((done.as_slice(), failed), (files.as_slice(), 1));
+        for f in &files {
+            assert_eq!(popamp_audio::cover::tagged(Path::new(f)).map(|c| c.data), Some(picture.data.clone()));
+        }
+        m.on_library(LibEvent::Covers(done, failed));
+        assert_eq!(m.library.selected_paths(), [files[1].clone()], "the pick stays");
+        assert!(m.library.cover_sized((10, 10)).is_some_and(|c| c.px[0] & 0xff_ffff == 0x20_4060), "the new cover shows");
+        assert_eq!(m.transient.as_ref().map(|t| t.0.as_str()), Some("LIBRARY: COVER WRITTEN TO 2 FILES, 1 FAILED"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_change_that_leaves_the_same_rows_keeps_them_picked() {
+        let mut p = pane();
+        p.select_only(2);
+        p.scroll[List::Tracks as usize] = 1;
+        p.changed();
+        assert_eq!((p.selected_paths(), p.cursor, p.scroll[List::Tracks as usize]), (vec!["/music/3.mp3".to_string()], 2, 1));
+        type_text(&mut p, "alpha");
+        assert!(p.selected_paths().is_empty(), "other rows: none picked");
     }
 
     /// What the views list says, row by row.
