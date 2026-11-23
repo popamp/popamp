@@ -1,6 +1,6 @@
 //! The media library window's content, laid out as Winamp's: the views on
 //! the left; on the right a search field, the artists and the albums side
-//! by side, the track table under them, and the status under all. Picking an
+//! by side, and the track table under them. Picking an
 //! artist narrows the albums and the table, picking an album narrows the
 //! table further. A skin gives the window's frame and the rectangle for
 //! all this; the player lays it out there and draws it in the playlist's
@@ -379,7 +379,6 @@ struct Parts {
     /// The artists and the albums, when the view has them.
     panes: Option<[Table; 2]>,
     table: Table,
-    status: Rect,
     row_h: i32,
     /// The width of each list's scroll bar, right of its rows, and the
     /// length of the skin's thumb.
@@ -399,8 +398,7 @@ impl Parts {
         let Place { r, px, .. } = at;
         let bar_w = at.thumb.map_or(OWN_BAR, |t| t.0);
         let row_h = px + 3;
-        let bar_h = row_h + 4;
-        let body_h = (r.h - bar_h - 2).max(0);
+        let body_h = r.h.max(0);
         let views_w = (r.w * 3 / 10).clamp(60, 120).min(r.w);
         let about_h = ABOUT_LINES as i32 * row_h;
         let panel_h = 3 + views_w + 1 + about_h;
@@ -417,7 +415,6 @@ impl Parts {
         let panes_h = if panes { list_h * 2 / 5 } else { 0 };
         let half = ((w - 3) / 2).max(0);
         let ty = list_y + if panes { panes_h + 3 } else { 0 };
-        let by = r.y + r.h - bar_h;
         Parts {
             views: rect(r.x, r.y, (views_w - bar_w).max(0), views_h),
             cover: panel.then(|| rect(r.x, cover_y, views_w, views_w)),
@@ -425,7 +422,6 @@ impl Parts {
             search: rect(x, r.y, w, search_h),
             panes: panes.then(|| [table(x, list_y, half, panes_h), table(x + half + 3, list_y, (w - half - 3).max(0), panes_h)]),
             table: table(x, ty, w, list_y + list_h - ty),
-            status: rect(r.x, by, r.w, bar_h),
             row_h,
             bar_w,
             thumb_h: at.thumb.map(|t| t.1),
@@ -1163,10 +1159,6 @@ impl LibraryPane {
         self.draw_table(&mut pen, &p, c, active, playing);
         for list in LISTS {
             self.draw_bar(&mut pen, &p, list, c, at.thumb.is_none());
-        }
-
-        if p.status.w >= px * 4 {
-            pen.right(rect(p.status.x, p.status.y + 2, p.status.w, p.status.h - 2), &self.status(), dim);
         }
     }
 
@@ -2361,7 +2353,7 @@ mod tests {
         let bar = |list| p.bar(list).map(|b| b.x + b.w);
         assert_eq!((bar(List::Albums), bar(List::Tracks)), (Some(R.w), Some(R.w)));
         assert!(bar(List::Views).unwrap() < p.search.x && bar(List::Artists).unwrap() < albums.rows.x);
-        assert!(p.table.rows.y + p.table.rows.h < p.status.y && p.status.x + p.status.w <= R.w);
+        assert_eq!(p.table.rows.y + p.table.rows.h, R.y + R.h, "the table down to the bottom");
         assert_eq!(Parts::new(AT, false).table.header.y, artists.header.y, "without the panes the table takes their room");
         let small = Parts::new(Place { r: rect(0, 0, 20, 10), ..AT }, true);
         assert!(small.table.rows.w >= 0 && small.table.rows.h >= 0 && small.views.h >= 0, "too small a window draws nothing wrong");
@@ -2373,7 +2365,7 @@ mod tests {
         let (cover, about) = (p.cover.unwrap(), p.about.unwrap());
         assert_eq!((cover.x, cover.w, cover.h), (R.x, p.views.w + p.bar_w, p.views.w + p.bar_w), "square, as wide as the views");
         assert!(p.views.y + p.views.h < cover.y && cover.y + cover.h <= about.y, "the views, the cover, what is known of the track");
-        assert!(about.y + about.h <= p.status.y && about.h >= 4 * p.row_h);
+        assert!(about.y + about.h <= R.y + R.h && about.h >= 4 * p.row_h);
         assert!(p.views.h >= 6 * p.row_h, "the views keep some rows");
         let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
         assert_eq!((short.cover, short.about), (None, None));
@@ -2763,14 +2755,13 @@ mod tests {
     }
 
     #[test]
-    fn the_status_row_has_no_buttons() {
-        let mut p = pane();
-        let k = p.parts(AT).status;
-        assert_eq!((k.x, k.w), (R.x, R.w), "the status takes the whole row");
-        for x in [k.x + 2, k.x + k.w / 2, k.x + k.w - 2] {
-            assert_eq!(p.press(AT, x, k.y + 5, false, false, false), Reaction::default());
-            assert_eq!(p.release(AT, x, k.y + 5), None);
-        }
+    fn the_lists_and_the_cover_reach_the_bottom() {
+        let bottom = R.y + R.h;
+        let tall = Parts::new(AT, true);
+        let about = tall.about.unwrap();
+        assert_eq!((tall.table.rows.y + tall.table.rows.h, about.y + about.h), (bottom, bottom), "the table and the cover's text");
+        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
+        assert_eq!(short.views.y + short.views.h, 200, "the views without the cover");
     }
 
     #[test]
