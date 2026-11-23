@@ -380,6 +380,8 @@ struct Parts {
     /// The artists and the albums, when the view has them.
     panes: Option<[Table; 2]>,
     table: Table,
+    /// The gap between the left panel and the rest, which drags.
+    splitter: Option<Rect>,
     row_h: i32,
     /// The width of each list's scroll bar, right of its rows, and the
     /// length of the skin's thumb.
@@ -393,18 +395,21 @@ const fn rect(x: i32, y: i32, w: i32, h: i32) -> Rect {
 
 impl Parts {
     /// Lays the parts out for `at`; `panes` leaves room for the artists and
-    /// the albums above the table. Each list keeps the right of its room
-    /// for its scroll bar.
-    fn new(at: Place, panes: bool) -> Parts {
+    /// the albums above the table, `left` is the left panel's width as the
+    /// user dragged it, 0 for one that follows the window. Each list keeps
+    /// the right of its room for its scroll bar.
+    fn new(at: Place, panes: bool, left: i32) -> Parts {
         let Place { r, px, .. } = at;
         let bar_w = at.thumb.map_or(OWN_BAR, |t| t.0);
         let row_h = px + 3;
         let body_h = r.h.max(0);
-        let views_w = (r.w * 3 / 10).clamp(60, 120).min(r.w);
+        let views_w = left_width(r.w, left);
         let about_h = ABOUT_LINES as i32 * row_h;
-        let panel_h = 3 + views_w + 1 + about_h;
-        let panel = body_h - panel_h >= 6 * row_h;
-        let views_h = if panel { body_h - panel_h } else { body_h };
+        // The cover is square, as wide as the panel up to the widest the
+        // window gives it, in the panel's middle; the views keep six rows.
+        let side = views_w.min(LEFT_AUTO_MAX);
+        let panel = body_h - (3 + side + 1 + about_h) >= 6 * row_h;
+        let views_h = if panel { body_h - (3 + side + 1 + about_h) } else { body_h };
         let cover_y = r.y + views_h + 3;
         let (x, w) = (r.x + views_w + 3, (r.w - views_w - 3).max(0));
         let search_h = row_h + 3;
@@ -418,11 +423,12 @@ impl Parts {
         let ty = list_y + if panes { panes_h + 3 } else { 0 };
         Parts {
             views: rect(r.x, r.y, (views_w - bar_w).max(0), views_h),
-            cover: panel.then(|| rect(r.x, cover_y, views_w, views_w)),
-            about: panel.then(|| rect(r.x, cover_y + views_w + 1, views_w, about_h)),
+            cover: panel.then(|| rect(r.x + (views_w - side) / 2, cover_y, side, side)),
+            about: panel.then(|| rect(r.x, cover_y + side + 1, views_w, about_h)),
             search: rect(x, r.y, w, search_h),
             panes: panes.then(|| [table(x, list_y, half, panes_h), table(x + half + 3, list_y, (w - half - 3).max(0), panes_h)]),
             table: table(x, ty, w, list_y + list_h - ty),
+            splitter: (w > 0).then(|| rect(r.x + views_w, r.y, 3, body_h)),
             row_h,
             bar_w,
             thumb_h: at.thumb.map(|t| t.1),
@@ -457,6 +463,20 @@ impl Parts {
 
 /// How many lines tell of the track under its cover.
 const ABOUT_LINES: usize = 4;
+/// The left panel's narrowest width, its widest when it follows the
+/// window, and the least room it leaves the table at its right.
+const LEFT_MIN: i32 = 60;
+const LEFT_AUTO_MAX: i32 = 120;
+const RIGHT_MIN: i32 = 150;
+
+/// How wide the left panel is in a library `w` wide: `left` as dragged,
+/// kept clear of both edges, or with 0 three tenths of it, up to 120.
+fn left_width(w: i32, left: i32) -> i32 {
+    let w = w.max(0);
+    let auto = (w * 3 / 10).clamp(LEFT_MIN, LEFT_AUTO_MAX);
+    let most = (w - 3 - RIGHT_MIN).max(LEFT_MIN);
+    (if left > 0 { left.clamp(LEFT_MIN, most) } else { auto }).min(w)
+}
 
 /// The cover on show: the track's, as large as the panel can show it at
 /// any zoom, and that shrunk to the size it was last drawn at.
@@ -571,6 +591,12 @@ pub struct LibraryPane {
     /// The border of the header the mouse holds: the column left of it,
     /// by its place among the shown ones.
     resizing: Option<usize>,
+    /// The left panel's width as the user dragged it, 0 for one that
+    /// follows the window's; kept in `ml_left`.
+    pub left: i32,
+    /// The splitter right of the left panel is held this far right of its
+    /// left edge.
+    splitting: Option<i32>,
     /// The time zone the dates show in.
     tz: jiff::tz::TimeZone,
     /// Read when first drawn, kept while the same track is at the cursor.
@@ -620,6 +646,8 @@ impl LibraryPane {
             menu_for: Menu::Tracks,
             columns: Columns::default(),
             resizing: None,
+            left: 0,
+            splitting: None,
             tz: jiff::tz::TimeZone::system(),
             shown_cover: RefCell::new(None),
             dragging: None,
@@ -811,7 +839,7 @@ impl LibraryPane {
     }
 
     fn parts(&self, at: Place) -> Parts {
-        Parts::new(at, self.has_panes())
+        Parts::new(at, self.has_panes(), self.left)
     }
 
     /// Finds the panes' rows and the table's tracks again, after the
@@ -963,7 +991,7 @@ impl LibraryPane {
     /// The cover in its frame and what is known of the track under it.
     fn draw_cover(&self, pen: &mut Pen, p: &Parts, c: &PlColors) {
         let (Some(cover), Some(about)) = (p.cover, p.about) else { return };
-        pen.b.fill(cover.x, cover.y - 2, cover.w, 1, pen.line);
+        pen.b.fill(about.x, cover.y - 2, about.w, 1, pen.line);
         let frame = rect(cover.x + 2, cover.y + 2, cover.w - 4, cover.h - 4);
         match self.cover_sized(pen.b.screen_size(frame)) {
             Some(art) => pen.b.picture(&art, frame),
@@ -1378,6 +1406,15 @@ impl LibraryPane {
     pub fn press(&mut self, at: Place, x: i32, y: i32, shift: bool, ctrl: bool, double: bool) -> Reaction {
         self.carry = None;
         let p = self.parts(at);
+        if let Some(s) = p.splitter.filter(|s| s.contains(x, y)) {
+            // A double click gives the panel back to the window's width.
+            if double {
+                self.left = 0;
+                return Reaction::default();
+            }
+            self.splitting = Some(x - s.x);
+            return Reaction { capture: true, run: None };
+        }
         if let Some(list) = LISTS.into_iter().find(|&l| p.bar(l).is_some_and(|b| b.contains(x, y))) {
             return self.press_bar(&p, list, y);
         }
@@ -1423,6 +1460,10 @@ impl LibraryPane {
     /// follows it, held rows start being carried. True when that changed
     /// what the window shows.
     pub fn drag(&mut self, at: Place, x: i32, y: i32) -> bool {
+        if let Some(grab) = self.splitting {
+            self.left = left_width(at.r.w, x - grab - at.r.x);
+            return true;
+        }
         if let Some(i) = self.resizing {
             let p = self.parts(at);
             let shown = self.columns.lay(p.table.rows, at.px);
@@ -1567,7 +1608,7 @@ impl LibraryPane {
     /// The left button went up: a row clicked without carrying is the
     /// only one picked.
     pub fn release(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
-        (self.dragging, self.resizing) = (None, None);
+        (self.dragging, self.resizing, self.splitting) = (None, None, None);
         match self.carry.take() {
             Some(Carry::Pressed { row, .. }) => {
                 self.select_only(row);
@@ -2063,17 +2104,21 @@ impl Model {
             (_, Some(col)) => self.library.columns.toggle(col),
             _ => return false,
         }
-        self.keep_library_columns();
+        self.keep_library_layout();
         true
     }
 
-    /// Keeps the table's columns in the settings, once they changed; the
-    /// first columns as none.
-    pub fn keep_library_columns(&mut self) {
+    /// Keeps the table's columns, the first ones as none, and the left
+    /// panel's width in the settings, once they changed.
+    pub fn keep_library_layout(&mut self) {
         let cols = &self.library.columns;
         let setting = if *cols == Columns::default() { String::new() } else { cols.to_setting() };
         if self.settings().ml_columns != setting {
             self.settings_mut().ml_columns = setting;
+        }
+        let left = self.library.left;
+        if self.settings().ml_left != left {
+            self.settings_mut().ml_left = left;
         }
     }
 
@@ -2361,7 +2406,7 @@ mod tests {
 
     #[test]
     fn the_parts_fill_the_rectangle_without_overlap() {
-        let p = Parts::new(AT, true);
+        let p = Parts::new(AT, true, 0);
         let [artists, albums] = p.panes.unwrap();
         assert!(p.views.x + p.views.w < p.search.x && p.search.y + p.search.h < artists.header.y);
         assert!(artists.rows.x + artists.rows.w < albums.rows.x && albums.rows.y == artists.rows.y, "side by side");
@@ -2374,20 +2419,20 @@ mod tests {
         assert_eq!((bar(List::Albums), bar(List::Tracks)), (Some(R.w), Some(R.w)));
         assert!(bar(List::Views).unwrap() < p.search.x && bar(List::Artists).unwrap() < albums.rows.x);
         assert_eq!(p.table.rows.y + p.table.rows.h, R.y + R.h, "the table down to the bottom");
-        assert_eq!(Parts::new(AT, false).table.header.y, artists.header.y, "without the panes the table takes their room");
-        let small = Parts::new(Place { r: rect(0, 0, 20, 10), ..AT }, true);
+        assert_eq!(Parts::new(AT, false, 0).table.header.y, artists.header.y, "without the panes the table takes their room");
+        let small = Parts::new(Place { r: rect(0, 0, 20, 10), ..AT }, true, 0);
         assert!(small.table.rows.w >= 0 && small.table.rows.h >= 0 && small.views.h >= 0, "too small a window draws nothing wrong");
     }
 
     #[test]
     fn a_tall_window_has_the_cover_under_the_views_and_a_short_one_none() {
-        let p = Parts::new(AT, true);
+        let p = Parts::new(AT, true, 0);
         let (cover, about) = (p.cover.unwrap(), p.about.unwrap());
         assert_eq!((cover.x, cover.w, cover.h), (R.x, p.views.w + p.bar_w, p.views.w + p.bar_w), "square, as wide as the views");
         assert!(p.views.y + p.views.h < cover.y && cover.y + cover.h <= about.y, "the views, the cover, what is known of the track");
         assert!(about.y + about.h <= R.y + R.h && about.h >= 4 * p.row_h);
         assert!(p.views.h >= 6 * p.row_h, "the views keep some rows");
-        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
+        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true, 0);
         assert_eq!((short.cover, short.about), (None, None));
         assert_eq!(short.views.h, short.table.rows.y + short.table.rows.h - short.views.y, "the views take its room");
     }
@@ -2523,6 +2568,39 @@ mod tests {
     }
 
     #[test]
+    fn the_left_panel_is_as_wide_as_dragged_and_kept() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let p = m.library.parts(AT);
+        let (s, table_x) = (p.splitter.unwrap(), p.search.x);
+        assert_eq!(s.x + s.w, table_x, "the splitter is the gap left of the table");
+        m.library.press(AT, s.x + 1, 100, false, false, false);
+        m.library.drag(AT, s.x + 61, 100);
+        m.library.release(AT, s.x + 61, 100);
+        m.keep_library_layout();
+        let p = m.library.parts(AT);
+        assert_eq!((p.search.x, m.settings().ml_left), (table_x + 60, m.library.left));
+        assert_eq!(p.about.unwrap().w, m.library.left, "the cover's lines go across the panel");
+        let kept = m.library.left;
+        m.library.drag(AT, 10_000, 100);
+        assert_eq!(m.library.left, kept, "let go, the splitter stays");
+        m.library.press(AT, p.splitter.unwrap().x, 100, false, false, false);
+        m.library.drag(AT, 10_000, 100);
+        assert_eq!(m.library.parts(AT).search.w, RIGHT_MIN, "the table keeps its least room");
+        m.library.release(AT, 10_000, 100);
+        let s = m.library.parts(AT).splitter.unwrap();
+        m.library.press(AT, s.x, 100, false, false, true);
+        assert_eq!(m.library.left, 0, "a double click hands the width back to the window");
+    }
+
+    #[test]
+    fn a_wide_left_panel_has_its_cover_no_larger_in_its_middle() {
+        let p = Parts::new(AT, true, 200);
+        let (cover, about) = (p.cover.unwrap(), p.about.unwrap());
+        assert_eq!((cover.w, cover.h, cover.x * 2 + cover.w, about.w), (LEFT_AUTO_MAX, LEFT_AUTO_MAX, 200, 200));
+    }
+
+    #[test]
     fn a_moved_border_is_kept_in_the_settings_once_let_go() {
         let mut m = Model::for_tests();
         m.library = pane();
@@ -2532,7 +2610,7 @@ mod tests {
         m.library.press(AT, border, header.y + 2, false, false, false);
         m.library.drag(AT, border - 20, header.y + 2);
         m.library.release(AT, border - 20, header.y + 2);
-        m.keep_library_columns();
+        m.keep_library_layout();
         assert_eq!(Columns::parse(&m.settings().ml_columns), m.library.columns);
         assert_ne!(m.library.columns, Columns::default());
     }
@@ -2794,10 +2872,10 @@ mod tests {
     #[test]
     fn the_lists_and_the_cover_reach_the_bottom() {
         let bottom = R.y + R.h;
-        let tall = Parts::new(AT, true);
+        let tall = Parts::new(AT, true, 0);
         let about = tall.about.unwrap();
         assert_eq!((tall.table.rows.y + tall.table.rows.h, about.y + about.h), (bottom, bottom), "the table and the cover's text");
-        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
+        let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true, 0);
         assert_eq!(short.views.y + short.views.h, 200, "the views without the cover");
     }
 

@@ -740,7 +740,7 @@ impl SkinWin {
                 if let Some(c) = model.library.release(place(model, r, &thumb), ev.x, ev.y) {
                     model.exec(c);
                 }
-                model.keep_library_columns();
+                model.keep_library_layout();
                 Out::Redraw
             }
             Kind::Slider(s) => {

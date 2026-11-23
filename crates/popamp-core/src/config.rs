@@ -192,6 +192,9 @@ settings! {
     /// The library table's columns, left to right, with their widths:
     /// `artist:70,title:90`; empty for the first ones.
     ml_columns: String = String::new(),
+    /// The width of the library's left panel as dragged, in skin pixels;
+    /// 0 for three tenths of the window.
+    ml_left: i32 = 0,
     /// The open nodes of the library's views tree, split by tabs, and the
     /// view it shows; see `LibraryPane::tree_state`.
     ml_tree: String = "b:folders\tb:playlists\tb:smart".to_string(),
@@ -335,6 +338,7 @@ impl Settings {
         self.pe_height = self.pe_height.max(116);
         self.ml_width = self.ml_width.max(275);
         self.ml_height = self.ml_height.max(116);
+        self.ml_left = self.ml_left.max(0);
         self.pe_fontsize = self.pe_fontsize.clamp(6, 40);
         self.snaplen = self.snaplen.clamp(0, 100);
         self.zoom = self.zoom.clamp(125, 300);
