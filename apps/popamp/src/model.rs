@@ -1549,14 +1549,7 @@ impl Model {
             C::ToggleLibraryMaximize => {
                 let s = self.settings_mut();
                 s.ml_max = !s.ml_max;
-                if s.ml_max {
-                    (s.ml_open, s.ml_ws) = (true, false);
-                }
-                self.ui.push(UiReq::Layout);
-            }
-            C::ToggleLibraryShade => {
-                let v = !self.settings().ml_ws;
-                self.settings_mut().ml_ws = v;
+                s.ml_open |= s.ml_max;
                 self.ui.push(UiReq::Layout);
             }
             C::ToggleEqWindow => {
@@ -2303,10 +2296,10 @@ mod tests {
     #[test]
     fn maximizing_the_library_opens_it_whole() {
         let mut m = Model::for_tests();
-        m.settings_mut().ml_ws = true;
+        m.settings_mut().ml_open = false;
         m.exec(Command::ToggleLibraryMaximize);
         let s = m.settings();
-        assert!(s.ml_max && s.ml_open && !s.ml_ws, "shown, and not shaded");
+        assert!(s.ml_max && s.ml_open, "shown");
         assert!(matches!(m.ui.last(), Some(UiReq::Layout)));
         m.exec(Command::ToggleLibraryMaximize);
         assert!(!m.settings().ml_max && m.settings().ml_open, "back to its own size, still open");

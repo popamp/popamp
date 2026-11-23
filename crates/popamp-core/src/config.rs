@@ -179,7 +179,6 @@ settings! {
     ml_width: i32 = 550,
     ml_height: i32 = 348,
     /// The library window is shaded: only its title bar shows.
-    ml_ws: bool = false,
     ml_max: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,

@@ -185,7 +185,7 @@ pub fn shaded(model: &Model, key: WindowKey) -> bool {
         WindowKey::Main => s.windowshade,
         WindowKey::Eq => s.eq_ws,
         WindowKey::Playlist => s.pe_ws,
-        WindowKey::Library => s.ml_ws,
+        WindowKey::Library => false,
     }
 }
 
@@ -293,10 +293,10 @@ pub fn bar_zoom(model: &Model) -> i32 {
     std::iter::once(chosen).chain(smaller).find(|&pct| bar_fits(model, pct)).unwrap_or(popamp_core::config::ZOOMS[0])
 }
 
-/// The area the library fills when it is maximized and not shaded.
+/// The area the library fills when it is maximized.
 pub fn maximized_area(model: &Model, key: WindowKey) -> Option<crate::bar::Screen> {
     let s = model.settings();
-    (key == WindowKey::Library && s.ml_max && !s.ml_ws).then_some(model.library_area).flatten()
+    (key == WindowKey::Library && s.ml_max).then_some(model.library_area).flatten()
 }
 
 pub fn window_size(model: &Model, key: WindowKey) -> (i32, i32) {
@@ -330,9 +330,6 @@ mod tests {
         assert_eq!(stored_size(&m, WindowKey::Library), (550, 348), "its own size is kept for later");
         (m.settings_mut().dsize, m.settings_mut().zoom) = (true, 200);
         assert_eq!(window_size(&m, WindowKey::Library), (960, 508), "in skin pixels");
-        m.settings_mut().ml_ws = true;
-        assert_ne!(window_size(&m, WindowKey::Library), (960, 508), "shaded, it is its shade");
-        m.settings_mut().ml_ws = false;
         m.library_area = None;
         assert_eq!(window_size(&m, WindowKey::Library), (550, 348), "until the player knows the area");
     }
@@ -351,10 +348,6 @@ mod tests {
         m.settings_mut().ml_width = 500;
         m.settings_mut().ml_height = 300;
         assert_eq!(window_size(&m, WindowKey::Library), (500, 300));
-        m.settings_mut().ml_ws = true;
-        assert_eq!(window_size(&m, WindowKey::Library), (500, 14), "shaded: the title bar only");
-        m.exec(Command::ToggleLibraryShade);
-        assert_eq!(window_size(&m, WindowKey::Library), (500, 300), "and back");
     }
 
     #[test]

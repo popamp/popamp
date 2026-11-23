@@ -125,7 +125,6 @@ commands! {
     LibraryOpen = 50039,
     LibraryOpenOther = 50040,
     ToggleGroupMove = 50041,
-    ToggleLibraryShade = 50042,
     LibraryRate0 = 50043,
     LibraryRate1 = 50044,
     LibraryRate2 = 50045,

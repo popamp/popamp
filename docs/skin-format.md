@@ -242,6 +242,12 @@ it is dragged); without a `thumb` the player draws narrow bars of its
 own. The window needs no `list-scroll`. A skin without a `library` window gets one made of its playlist's
 pictures. It came in Popamp 1.0.0.
 
+The library has no shade mode. It can be maximized over its monitor:
+`toggle-library-maximize` does it and undoes it, and a double click on a
+`drag` element without a `double` of its own does the same. The window
+may carry a visualizer (`vis`) and the transport, as the main window
+does; the player draws it every frame while its visualizer moves.
+
 `[window.shade]` describes the shade mode the same way. Elements are drawn
 in the order they are listed; the mouse goes to the last one under it.
 
@@ -387,7 +393,8 @@ A wrong word is reported with the list of right ones.
 - **Commands:** the player's commands in lower case with dashes, for
   example `play`, `pause`, `stop`, `next`, `previous`, `open-file`,
   `toggle-shuffle`, `toggle-repeat`, `toggle-eq-window`,
-  `toggle-playlist-window`, `toggle-library-window`, `toggle-windowshade`,
+  `toggle-playlist-window`, `toggle-library-window`, `toggle-library-maximize`,
+  `toggle-windowshade`,
   `minimize`, `exit`.
 - **Player states** (`flag`, `lit`, `show`, `hide`): `playing`, `paused`,
   `stopped`, `seekable`, `stereo`, `mono`, `shuffle`, `repeat`,

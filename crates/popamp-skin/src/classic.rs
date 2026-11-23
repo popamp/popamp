@@ -531,12 +531,13 @@ fn library_window() -> WindowDef {
         tiles(span(Start(12), End(-38), End(-150), End(0)), p::BOTTOM_TILE),
         piece(Start(0), End(-38), Look::plain(paint(Sheet::PlEdit, bottom_left)), 12, 38),
         piece(End(-150), End(-38), Look::plain(paint(Sheet::PlEdit, p::BOTTOM_RIGHT)), 150, 38),
-        Element::new(span(Start(0), Start(0), End(0), Start(20)), Kind::Drag { double: Some(Command::ToggleLibraryShade) })
+        Element::new(span(Start(0), Start(0), End(0), Start(20)), Kind::Drag { double: Some(Command::ToggleLibraryMaximize) })
             .cursor(C::PTBar),
         button(span(End(-11), Start(3), End(-2), Start(12)), pl_overlay(p::CLOSE_PRESSED), Action::click(Command::ToggleLibraryWindow))
             .cursor(C::PClose),
-        button(span(End(-20), Start(3), End(-11), Start(12)), pl_overlay(p::SHADE_PRESSED), Action::click(Command::ToggleLibraryShade))
-            .cursor(C::PWinBut),
+        button(span(End(-20), Start(3), End(-11), Start(12)), pl_overlay(p::SHADE_PRESSED), Action::click(Command::ToggleLibraryMaximize))
+            .cursor(C::PWinBut)
+            .tip("Maximize"),
         // Over the right side's groove: each list has a bar of its own.
         Element::new(
             span(Start(12), Start(20), End(-7), End(-38)),
@@ -561,17 +562,11 @@ fn library_window() -> WindowDef {
             elements: v,
             shape: None,
         },
-        shade: Some(library_shade()),
+        shade: None,
         bar: None,
         empty_press: EmptyPress::Nothing,
         wheel: Wheel::ScrollList,
     }
-}
-
-/// The library's windowshade strip, which a skin that draws the library
-/// window itself and gives it none gets.
-pub(crate) fn library_shade() -> Mode {
-    shade_bar(Command::ToggleLibraryShade, Command::ToggleLibraryWindow, Text::LibraryTitle)
 }
 
 /// The small transport buttons drawn in the playlist frame's bottom right.
@@ -714,25 +709,14 @@ mod tests {
     }
 
     #[test]
-    fn the_library_can_shade_like_the_playlist() {
+    fn the_library_maximizes_where_the_playlist_shades() {
         let l = layout(433, 433);
         let def = l.window(WindowKey::Library).unwrap();
-        let shade = &def.shade.as_ref().expect("a shaded look");
-        assert!(matches!(shade.height, Dim::Fixed(14)));
-        let w = 450;
-        for (x, y) in [(100, 5), (w - 30, 5)] {
-            let drag = hit(shade, w, 14, x, y).unwrap();
-            assert!(matches!(drag.kind, Kind::Drag { double: Some(Command::ToggleLibraryShade) }), "a double click on the bar unshades");
-        }
-        let unshade = hit(shade, w, 14, w - 16, 7).unwrap();
-        assert!(matches!(unshade.kind, Kind::Button { action: Action::Click { plain: Command::ToggleLibraryShade, .. }, .. }));
-        let close = hit(shade, w, 14, w - 6, 7).unwrap();
-        assert!(matches!(close.kind, Kind::Button { action: Action::Click { plain: Command::ToggleLibraryWindow, .. }, .. }));
-        // Full size: a double click on the title bar shades, and so does the button.
-        let (nw, nh) = (450, 348);
-        assert!(matches!(hit(&def.normal, nw, nh, 100, 5).unwrap().kind, Kind::Drag { double: Some(Command::ToggleLibraryShade) }));
-        let button = hit(&def.normal, nw, nh, nw - 16, 7).unwrap();
-        assert!(matches!(button.kind, Kind::Button { action: Action::Click { plain: Command::ToggleLibraryShade, .. }, .. }));
+        assert!(def.shade.is_none(), "no strip");
+        let (w, h) = (450, 348);
+        assert!(matches!(hit(&def.normal, w, h, 100, 5).unwrap().kind, Kind::Drag { double: Some(Command::ToggleLibraryMaximize) }));
+        let button = hit(&def.normal, w, h, w - 16, 7).unwrap();
+        assert!(matches!(button.kind, Kind::Button { action: Action::Click { plain: Command::ToggleLibraryMaximize, .. }, .. }));
     }
 
     #[test]
