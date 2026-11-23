@@ -2030,15 +2030,10 @@ impl App {
         self.model.vis.analyze(&settings, rate);
         self.skins[WindowKey::Main.index()].tick(&self.model, &mut self.fonts);
         self.render(WindowKey::Main);
+        let live = self.tick_library(state);
         if self.last_slow.elapsed() >= Duration::from_millis(500) {
             self.last_slow = Instant::now();
-            self.model.reload_skin_if_changed();
-            if bar::edge(&self.model).is_some() && self.update_bar_area() {
-                self.apply_layout(WindowKey::Main);
-            }
-            if state != PlayState::Stopped || settings.pe_width >= 350 {
-                self.render(WindowKey::Playlist);
-            }
+            self.slow_tick(state, &settings, live);
         } else if settings.pe_width >= 350 && state == PlayState::Playing {
             self.render(WindowKey::Playlist);
         }
@@ -2046,6 +2041,34 @@ impl App {
         // own thread, and nothing else wakes the UI to tell the desktop.
         self.media.update(self.model.media_snapshot());
         self.hotkeys.want(settings.global_hotkeys);
+    }
+
+    /// Twice a second: a changed skin, the bar's screen area and the
+    /// clocks of the playlist and the library.
+    fn slow_tick(&mut self, state: PlayState, settings: &popamp_core::config::Settings, library_drawn: bool) {
+        self.model.reload_skin_if_changed();
+        if bar::edge(&self.model).is_some() && self.update_bar_area() {
+            self.apply_layout(WindowKey::Main);
+        }
+        if state != PlayState::Stopped || settings.pe_width >= 350 {
+            self.render(WindowKey::Playlist);
+        }
+        if state != PlayState::Stopped && !library_drawn {
+            self.render(WindowKey::Library); // its clock
+        }
+    }
+
+    /// Draws the library again when its strip moves: a visualizer while
+    /// there is sound or its bars are still falling, a scrolling title.
+    /// True when it was drawn.
+    fn tick_library(&mut self, state: PlayState) -> bool {
+        let k = WindowKey::Library;
+        let scrolled = self.skins[k.index()].tick(&self.model, &mut self.fonts);
+        let vis = self.skins[k.index()].shows_vis(&self.model) && (state == PlayState::Playing || !self.model.vis.at_rest());
+        if scrolled || vis {
+            self.render(k);
+        }
+        scrolled || vis
     }
 }
 

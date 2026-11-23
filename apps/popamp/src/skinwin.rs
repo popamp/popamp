@@ -91,6 +91,11 @@ impl SkinWin {
         Some(Current { mode, w, h })
     }
 
+    /// Whether the mode on screen has a visualizer, which moves every frame.
+    pub fn shows_vis(&self, model: &Model) -> bool {
+        self.current(model).is_some_and(|c| c.mode.elements.iter().any(|el| matches!(el.kind, Kind::Vis)))
+    }
+
     /// The pressed element, if it belongs to the mode on screen.
     fn pressed_index(&self, model: &Model) -> Option<usize> {
         let (shade, i) = self.pressed?;
@@ -930,6 +935,16 @@ mod tests {
         let w = SkinWin::new(WindowKey::Main);
         assert_eq!(w.tooltip(&m, 20, 20).as_deref(), Some("Play"));
         assert_eq!(w.tooltip(&m, 11, 11), None, "the corner is not the button");
+    }
+
+    #[test]
+    fn a_window_with_a_visualizer_shows_it() {
+        let mut m = Model::for_tests();
+        let toml = "[meta]\nname = \"Vis\"\nformat_version = 1\n[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\n\
+            [[window]]\nkey = \"library\"\nnormal.size = [275, 116]\n[[window.normal.element]]\ntype = \"vis\"\nrect = [10, 10, 76, 16]\n";
+        m.skin = popamp_skin::vector::load(&[("skin.toml".to_string(), toml.as_bytes().to_vec())].into(), None).unwrap();
+        assert!(SkinWin::new(WindowKey::Library).shows_vis(&m));
+        assert!(!SkinWin::new(WindowKey::Main).shows_vis(&m), "this main window has none");
     }
 
     #[test]
