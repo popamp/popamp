@@ -1841,12 +1841,12 @@ impl Model {
         }
     }
 
-    /// Scans the folders again once `ml_rescan_minutes` have gone since the
-    /// last scan ended; called from time to time.
+    /// With `ml_rescan` on, scans the folders again once `ml_rescan_minutes`
+    /// have gone since the last scan ended; called from time to time.
     pub fn library_rescan_if_due(&mut self, now: Instant) {
-        let minutes = self.settings().ml_rescan_minutes;
+        let (on, minutes) = (self.settings().ml_rescan, self.settings().ml_rescan_minutes);
         let pane = &self.library;
-        if minutes > 0 && pane.scan.is_none() && now.duration_since(pane.scanned_at).as_secs() >= u64::from(minutes) * 60 {
+        if on && pane.scan.is_none() && now.duration_since(pane.scanned_at).as_secs() >= u64::from(minutes) * 60 {
             self.library_rescan();
         }
     }
@@ -3222,6 +3222,7 @@ mod tests {
         let after = |secs| start + std::time::Duration::from_secs(secs);
         m.library_rescan_if_due(after(86_400));
         assert!(m.library.scan.is_none(), "not unless asked for");
+        m.settings_mut().ml_rescan = true;
         m.settings_mut().ml_rescan_minutes = 10;
         m.library_rescan_if_due(after(599));
         assert!(m.library.scan.is_none());

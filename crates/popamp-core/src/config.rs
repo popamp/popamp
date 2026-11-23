@@ -184,9 +184,11 @@ settings! {
     ml_max: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,
-    /// Look through them again each this many minutes while Popamp runs;
-    /// 0 for never.
-    ml_rescan_minutes: u32 = 0,
+    /// Look through them again from time to time while Popamp runs: each
+    /// `ml_rescan_minutes`. Off by default, as a scan of a large library
+    /// keeps the disk busy.
+    ml_rescan: bool = false,
+    ml_rescan_minutes: u32 = 60,
     /// The library table's columns, left to right, with their widths:
     /// `artist:70,title:90`; empty for the first ones.
     ml_columns: String = String::new(),
@@ -342,7 +344,7 @@ impl Settings {
         self.buffer_ms = self.buffer_ms.clamp(40, 2000);
         self.crossfade_ms = self.crossfade_ms.min(10_000);
         self.listen_percent = self.listen_percent.clamp(50, 100) / 5 * 5;
-        self.ml_rescan_minutes = self.ml_rescan_minutes.min(MAX_RESCAN_MINUTES);
+        self.ml_rescan_minutes = self.ml_rescan_minutes.clamp(1, MAX_RESCAN_MINUTES);
         if self.output_device.trim().is_empty() {
             self.output_device = "default".to_string();
         }

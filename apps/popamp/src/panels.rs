@@ -382,6 +382,7 @@ pub enum Flag {
     KeepScanOpen,
     CheckUpdates,
     ScanAtStart,
+    ScanPeriodically,
 }
 
 impl Flag {
@@ -404,7 +405,8 @@ impl Flag {
             Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
             Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
-            Flag::ScanAtStart => "Scan the folders when Popamp starts",
+            Flag::ScanAtStart => "Scan the folders at startup",
+            Flag::ScanPeriodically => "Scan the folders periodically",
         }
     }
 
@@ -441,6 +443,7 @@ impl Flag {
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
             Flag::ScanAtStart => &mut s.ml_scan_at_start,
+            Flag::ScanPeriodically => &mut s.ml_rescan,
         }
     }
 
@@ -492,7 +495,7 @@ impl Field {
             Field::Proxy => "HTTP proxy",
             Field::SoundFont => "MIDI SoundFont",
             Field::ListenPercent => "Count a play after hearing (%)",
-            Field::RescanMinutes => "Rescan every (min, 0 = off)",
+            Field::RescanMinutes => "Scan every (minutes)",
         }
     }
 
@@ -523,8 +526,8 @@ impl Field {
                 _ => Err("Count a play: 50 to 100, in steps of 5".into()),
             },
             Field::RescanMinutes => match text.trim().parse::<u32>() {
-                Ok(n) if n <= MAX_RESCAN_MINUTES => Ok(()),
-                _ => Err(format!("Rescan every: 0 to {MAX_RESCAN_MINUTES} minutes")),
+                Ok(n) if (1..=MAX_RESCAN_MINUTES).contains(&n) => Ok(()),
+                _ => Err(format!("Scan every: 1 to {MAX_RESCAN_MINUTES} minutes")),
             },
             Field::TitleFormat if text.trim().is_empty() => Err("Title format: must not be empty".into()),
             Field::SoundFont if !text.trim().is_empty() && !std::path::Path::new(text.trim()).is_file() => {
@@ -613,7 +616,7 @@ impl Section {
             }
             Section::Playlist => &[Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad],
             Section::Playback => &[Flag::AutoAdvance, Flag::KeepScanOpen],
-            Section::Library => &[Flag::ScanAtStart],
+            Section::Library => &[Flag::ScanAtStart, Flag::ScanPeriodically],
             Section::Desktop => &[Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys],
             Section::Internet => &[Flag::CheckUpdates],
             Section::Shortcuts => &[],
@@ -753,6 +756,9 @@ impl ShortcutEditor {
 
 /// Rows the device list shows at once.
 const DEVICE_ROWS: i32 = 4;
+/// The labels of the typed values in Preferences: "Count a play after
+/// hearing (%)" is about 160 wide in a common sans-serif.
+const LABEL_W: i32 = 172;
 
 impl Preferences {
     fn new(model: &Model, mut devices: Vec<Device>, file_types: FileTypes) -> Preferences {
@@ -783,10 +789,11 @@ impl Preferences {
             }
             let mut y = 40 + rows * 22;
             for &f in section.fields() {
-                form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: f.label().into(), dim: false });
+                form.add_on(page, Rect::new(x0 + 4, y, LABEL_W, 24), Widget::Label { text: f.label().into(), dim: false });
                 let text = f.get(s);
                 let cursor = text.chars().count();
-                fields.push((f, form.add_on(page, Rect::new(x0 + 140, y, cw - 140, 24), Widget::Input { text, cursor })));
+                let r = Rect::new(x0 + 4 + LABEL_W, y, cw - 4 - LABEL_W, 24);
+                fields.push((f, form.add_on(page, r, Widget::Input { text, cursor })));
                 y += 30;
             }
             match section {
@@ -796,9 +803,10 @@ impl Preferences {
                         devices.push(Device { label: format!("{} (not found)", s.output_device), name: s.output_device.clone() });
                     }
                     let current = devices.iter().position(|d| d.name == s.output_device);
-                    form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: "Output device".into(), dim: false });
+                    form.add_on(page, Rect::new(x0 + 4, y, LABEL_W, 24), Widget::Label { text: "Output device".into(), dim: false });
                     let list = Widget::List { rows: vec![], selected: None, scroll: 0 };
-                    device_list = form.add_on(page, Rect::new(x0 + 140, y, cw - 140, DEVICE_ROWS * ROW_H + 4), list);
+                    let r = Rect::new(x0 + 4 + LABEL_W, y, cw - 4 - LABEL_W, DEVICE_ROWS * ROW_H + 4);
+                    device_list = form.add_on(page, r, list);
                     form.set_rows(device_list, devices.iter().map(|d| d.label.clone()).collect(), current);
                     y += DEVICE_ROWS * ROW_H + 10;
                 }
