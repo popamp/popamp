@@ -607,9 +607,7 @@ impl App {
                 }
                 w.window.request_redraw();
             }
-            if !(k == WindowKey::Library && self.library_maxed) {
-                self.store_pos(k, pos);
-            }
+            self.store_pos(k, pos);
         }
         if let Some((edge, screen)) = bar {
             self.reserve_bar_strip(edge, screen, sizes[0].1);

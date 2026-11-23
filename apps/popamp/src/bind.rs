@@ -220,7 +220,12 @@ pub fn position(model: &Model, key: WindowKey) -> (i32, i32) {
     }
 }
 
+/// Remembers where the window is; not the maximized library's corner, so
+/// that it goes back to its own place.
 pub fn set_position(model: &mut Model, key: WindowKey, p: (i32, i32)) {
+    if maximized_area(model, key).is_some() {
+        return;
+    }
     let s = model.settings_mut();
     match key {
         WindowKey::Main => (s.wx, s.wy) = p,
@@ -332,6 +337,18 @@ mod tests {
         assert_eq!(window_size(&m, WindowKey::Library), (960, 508), "in skin pixels");
         m.library_area = None;
         assert_eq!(window_size(&m, WindowKey::Library), (550, 348), "until the player knows the area");
+    }
+
+    #[test]
+    fn a_maximized_library_keeps_its_own_place() {
+        let mut m = Model::for_tests();
+        (m.settings_mut().ml_wx, m.settings_mut().ml_wy) = (375, 100);
+        (m.settings_mut().ml_max, m.library_area) = (true, Some(crate::bar::Screen { x: 0, y: 0, w: 1280, h: 752 }));
+        set_position(&mut m, WindowKey::Library, (0, 0));
+        assert_eq!(position(&m, WindowKey::Library), (375, 100), "where it goes back to");
+        m.settings_mut().ml_max = false;
+        set_position(&mut m, WindowKey::Library, (10, 20));
+        assert_eq!(position(&m, WindowKey::Library), (10, 20));
     }
 
     #[test]
