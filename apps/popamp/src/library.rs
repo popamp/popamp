@@ -21,7 +21,7 @@ use crate::model::{AddMode, AppEvent, Model, UiReq};
 use crate::panels::PanelKind;
 use crate::widgets::Key;
 use popamp_audio::source::{Context, Sources};
-use popamp_core::library::{Filter, Group, GroupRow, Library, Sort, Track};
+use popamp_core::library::{is_under, Filter, Group, GroupRow, Library, Sort, Track};
 use popamp_core::plain::{self, PlainList};
 use popamp_core::replaygain::Stamp;
 use popamp_core::smart::{Field, Op, Rule, SmartList, Test};
@@ -32,24 +32,69 @@ use popamp_skin::bitmap::mix;
 use popamp_skin::Bitmap;
 use popamp_skin::{PlColors, Rect};
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-/// A row of the views list.
+/// What a row of the views tree shows.
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum View {
     All,
-    /// A row naming the group under it; empty for a space. It is no view.
-    Heading(&'static str),
+    /// A node holding the rows of one kind: a branch. It is no view.
+    Branch(Branch),
     /// A smart playlist, by its place in the lists; in its own order and
     /// without the panes.
     Smart(usize),
     /// A playlist of tracks put there by hand, by its place in the lists;
     /// in its own order and without the panes.
     Plain(usize),
+    /// A folder of the library, or a folder somewhere in one.
     Folder(String),
+}
+
+/// The branches of the views tree.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Branch {
+    Playlists,
+    Smart,
+    Folders,
+}
+
+impl Branch {
+    fn label(self) -> &'static str {
+        match self {
+            Branch::Playlists => "Playlists",
+            Branch::Smart => "Smart playlists",
+            Branch::Folders => "Folders",
+        }
+    }
+}
+
+/// A row of the views tree: what it shows, how deep it is, and whether
+/// it is open, for a node with rows under it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Row {
+    view: View,
+    depth: u8,
+    fold: Option<bool>,
+}
+
+/// A node of the views tree that opens: a branch, or a folder.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum Node {
+    Branch(Branch),
+    Folder(String),
+}
+
+impl Node {
+    fn of(view: &View) -> Option<Node> {
+        match view {
+            View::Branch(b) => Some(Node::Branch(*b)),
+            View::Folder(f) => Some(Node::Folder(f.clone())),
+            _ => None,
+        }
+    }
 }
 
 /// The lists of the window, in the order Tab goes through them; also
@@ -493,6 +538,11 @@ pub struct LibraryPane {
     /// when let go.
     drop_on: Option<usize>,
     view: View,
+    /// The rows of the views tree as they show, made again when the
+    /// library, a playlist or an open node changes.
+    tree: Vec<Row>,
+    /// The nodes of the tree that are open.
+    open: HashSet<Node>,
     /// The shuffle a randomly ordered list is shown in, drawn anew each
     /// time a list is opened.
     seed: u64,
@@ -550,6 +600,8 @@ impl LibraryPane {
             counts: (Vec::new(), Vec::new()),
             drop_on: None,
             view: View::All,
+            tree: Vec::new(),
+            open: [Branch::Playlists, Branch::Smart, Branch::Folders].map(Node::Branch).into(),
             seed: fastrand::u64(..),
             artist: None,
             album: None,
@@ -578,25 +630,93 @@ impl LibraryPane {
         p
     }
 
-    fn views(&self) -> Vec<View> {
-        let mut views = vec![View::All];
+    /// Makes the rows of the views tree again.
+    fn grow_tree(&mut self) {
+        let mut rows = vec![Row { view: View::All, depth: 0, fold: None }];
         // The user's own playlists have a place even before there are any,
         // so it is plain where a new one goes.
-        let mut group = |name, rows: Vec<View>, always: bool| {
-            if always || !rows.is_empty() {
-                views.extend([View::Heading(""), View::Heading(name)].into_iter().chain(rows));
+        if self.grow_branch(&mut rows, Branch::Playlists, true) {
+            rows.extend((0..self.plain.len()).map(|n| Row { view: View::Plain(n), depth: 1, fold: None }));
+        }
+        if self.grow_branch(&mut rows, Branch::Smart, !self.smart.is_empty()) {
+            rows.extend((0..self.smart.len()).map(|n| Row { view: View::Smart(n), depth: 1, fold: None }));
+        }
+        if self.grow_branch(&mut rows, Branch::Folders, !self.lib.folders.is_empty()) {
+            for f in &self.lib.folders {
+                self.grow_folder(&mut rows, f, 1);
             }
-        };
-        group("Playlists", (0..self.plain.len()).map(View::Plain).collect(), true);
-        group("Smart playlists", (0..self.smart.len()).map(View::Smart).collect(), false);
-        group("Folders", self.lib.folders.iter().map(|f| View::Folder(f.clone())).collect(), false);
-        views
+        }
+        self.tree = rows;
+    }
+
+    /// Adds the row of `branch` when it is `shown`. True when it is shown
+    /// open, for the rows under it to follow.
+    fn grow_branch(&self, rows: &mut Vec<Row>, branch: Branch, shown: bool) -> bool {
+        let open = self.open.contains(&Node::Branch(branch));
+        if shown {
+            rows.push(Row { view: View::Branch(branch), depth: 0, fold: Some(open) });
+        }
+        shown && open
+    }
+
+    /// Adds the row of `folder` at `depth`, and when it is open, the rows
+    /// of the folders in it.
+    fn grow_folder(&self, rows: &mut Vec<Row>, folder: &str, depth: u8) {
+        let inside = self.folders_in(folder);
+        let open = self.open.contains(&Node::Folder(folder.to_string()));
+        let fold = (!inside.is_empty()).then_some(open);
+        rows.push(Row { view: View::Folder(folder.to_string()), depth, fold });
+        if fold == Some(true) {
+            for f in inside {
+                self.grow_folder(rows, &f, depth + 1);
+            }
+        }
+    }
+
+    /// The folders right inside `folder` that hold tracks, at any depth,
+    /// in natural order.
+    fn folders_in(&self, folder: &str) -> Vec<String> {
+        let base = Path::new(folder);
+        let mut names = BTreeSet::new();
+        for t in &self.lib.tracks {
+            let file = popamp_core::cue::split_location(&t.path).map_or(t.path.as_str(), |(sheet, _)| sheet);
+            let Some(rest) = Path::new(file).parent().and_then(|d| d.strip_prefix(base).ok()) else { continue };
+            if let Some(first) = rest.components().next() {
+                names.insert(base.join(first).to_string_lossy().into_owned());
+            }
+        }
+        let mut out: Vec<String> = names.into_iter().collect();
+        out.sort_by(|a, b| popamp_core::text::natural_cmp(a, b));
+        out
+    }
+
+    /// Whether `v` is still there to show: a playlist, or a folder that
+    /// holds tracks of the library, may have gone.
+    fn exists(&self, v: &View) -> bool {
+        match v {
+            View::All => true,
+            View::Branch(_) => false,
+            View::Smart(n) => *n < self.smart.len(),
+            View::Plain(n) => *n < self.plain.len(),
+            View::Folder(f) => {
+                self.lib.folders.contains(f)
+                    || self.lib.folders.iter().any(|r| is_under(f, r)) && self.lib.tracks.iter().any(|t| is_under(&t.path, f))
+            }
+        }
+    }
+
+    /// Opens a node of the tree that is shut, shuts one that is open.
+    fn fold(&mut self, node: Node) {
+        if !self.open.remove(&node) {
+            self.open.insert(node);
+        }
+        self.grow_tree();
     }
 
     fn view_label(&self, v: &View) -> String {
         match v {
             View::All => "All music".into(),
-            View::Heading(name) => (*name).into(),
+            View::Branch(b) => b.label().into(),
             View::Smart(n) => format!("{} ({})", self.smart[*n].name, self.counts.0.get(*n).unwrap_or(&0)),
             View::Plain(n) => format!("{} ({})", self.plain[*n].name, self.counts.1.get(*n).unwrap_or(&0)),
             View::Folder(f) => folder_label(f),
@@ -651,7 +771,8 @@ impl LibraryPane {
     /// that is no longer there goes; so does the selection: its rows are
     /// other tracks now.
     fn refresh(&mut self) {
-        if !self.views().contains(&self.view) {
+        self.grow_tree();
+        if !self.exists(&self.view) {
             self.view = View::All;
         }
         let folder = match &self.view {
@@ -698,10 +819,11 @@ impl LibraryPane {
         rows.map(|(&i, _)| self.lib.tracks[i].path.clone()).collect()
     }
 
-    /// The folder of the view on screen, when it shows one.
+    /// The folder of the library the view on screen shows, when it shows
+    /// one; not a folder inside it.
     pub fn folder(&self) -> Option<&str> {
         match &self.view {
-            View::Folder(f) => Some(f),
+            View::Folder(f) if self.lib.folders.contains(f) => Some(f),
             _ => None,
         }
     }
@@ -827,7 +949,7 @@ impl LibraryPane {
     /// The rows a list has.
     fn len(&self, list: List) -> usize {
         match list {
-            List::Views => self.views().len(),
+            List::Views => self.tree.len(),
             List::Artists => self.artists.len() + 1,
             List::Albums => self.albums.len() + 1,
             List::Tracks => self.shown.len(),
@@ -961,21 +1083,7 @@ impl LibraryPane {
         pen.b.fill(r.x, r.y, r.w, r.h, c.normal_bg);
         pen.b.fill(p.views.x + p.views.w + p.bar_w + 1, p.views.y, 1, p.views.h, line);
 
-        let views = self.views();
-        let (scroll, page) = self.window(&p, List::Views);
-        for (n, v) in views.iter().enumerate().skip(scroll).take(page) {
-            let row = rect(p.views.x, p.views.y + (n - scroll) as i32 * p.row_h, p.views.w, p.row_h);
-            let target = matches!(v, View::Plain(i) if self.dropping() && self.drop_on == Some(*i));
-            if *v == self.view || target {
-                pen.b.fill(row.x, row.y, row.w, row.h, c.selected_bg);
-            }
-            let color = match v {
-                View::Heading(_) => dim,
-                _ if *v == self.view => c.current,
-                _ => c.normal,
-            };
-            pen.left(row, &self.view_label(v), color);
-        }
+        self.draw_tree(&mut pen, &p, c);
 
         self.draw_cover(&mut pen, &p, c);
         self.draw_search(&mut pen, p.search, c, active);
@@ -1000,6 +1108,49 @@ impl LibraryPane {
         }
         if p.status.w >= px * 4 {
             pen.right(rect(p.status.x, p.status.y + 2, p.status.w, p.status.h - 2), &self.status(), dim);
+        }
+    }
+
+    /// The rows of the views tree, each indented by its depth, a node
+    /// after the mark that opens and shuts it.
+    fn draw_tree(&self, pen: &mut Pen, p: &Parts, c: &PlColors) {
+        let (scroll, page) = self.window(p, List::Views);
+        for (n, r) in self.tree.iter().enumerate().skip(scroll).take(page) {
+            let row = rect(p.views.x, p.views.y + (n - scroll) as i32 * p.row_h, p.views.w, p.row_h);
+            let target = matches!(r.view, View::Plain(i) if self.dropping() && self.drop_on == Some(i));
+            if r.view == self.view || target {
+                pen.b.fill(row.x, row.y, row.w, row.h, c.selected_bg);
+            }
+            let color = match r.view {
+                View::Branch(_) => pen.dim,
+                _ if r.view == self.view => c.current,
+                _ => c.normal,
+            };
+            let mark = Self::mark(p, row, r.depth);
+            if let Some(open) = r.fold {
+                Self::draw_mark(pen, mark, open, color);
+            }
+            let text = rect(mark.x + mark.w - 2, row.y, (row.x + row.w - mark.x - mark.w + 2).max(0), row.h);
+            pen.left(text, &self.view_label(&r.view), color);
+        }
+    }
+
+    /// Where the mark of a tree row at `depth` is; the label follows it.
+    fn mark(p: &Parts, row: Rect, depth: u8) -> Rect {
+        let w = p.row_h - 3;
+        rect(row.x + 2 + depth as i32 * w, row.y, w, row.h)
+    }
+
+    /// A small triangle: pointing right for a node that is shut, down for
+    /// an open one.
+    fn draw_mark(pen: &mut Pen, at: Rect, open: bool, color: u32) {
+        let (cx, cy) = (at.x + at.w / 2, at.y + at.h / 2);
+        for k in 0..3 {
+            if open {
+                pen.b.fill(cx - 2 + k, cy - 1 + k, 5 - 2 * k, 1, color);
+            } else {
+                pen.b.fill(cx - 1 + k, cy - 2 + k, 1, 5 - 2 * k, color);
+            }
         }
     }
 
@@ -1128,7 +1279,7 @@ impl LibraryPane {
             _ => Menu::Tracks,
         };
         if let Some(n) = self.row_at(&p, List::Views, x, y) {
-            self.open_view(self.views()[n].clone());
+            self.open_view(self.tree[n].view.clone());
         }
         if let Some(n) = self.row_at(&p, List::Tracks, x, y).filter(|&n| !self.selected[n]) {
             self.select_only(n);
@@ -1137,7 +1288,7 @@ impl LibraryPane {
 
     /// Shows view `v`; a heading is no view.
     fn open_view(&mut self, v: View) {
-        if matches!(v, View::Heading(_)) || v == self.view {
+        if matches!(v, View::Branch(_)) || v == self.view {
             return;
         }
         (self.view, self.artist, self.album) = (v, None, None);
@@ -1175,7 +1326,7 @@ impl LibraryPane {
             return self.press_bar(&p, list, y);
         }
         if let Some(n) = self.row_at(&p, List::Views, x, y) {
-            self.open_view(self.views()[n].clone());
+            self.press_tree(&p, n, x, double);
             return Reaction::default();
         }
         for list in [List::Artists, List::Albums] {
@@ -1185,6 +1336,21 @@ impl LibraryPane {
             }
         }
         self.press_table(&p, at.px, (x, y), shift, ctrl, double)
+    }
+
+    /// A press on row `n` of the views tree at `x`: a branch, the mark of a
+    /// node or a double click opens or shuts it; any other row is shown.
+    fn press_tree(&mut self, p: &Parts, n: usize, x: i32, double: bool) {
+        let r = self.tree[n].clone();
+        let rows = p.rows(List::Views).unwrap_or(p.views);
+        let mark = Self::mark(p, rows, r.depth);
+        let on_mark = x >= mark.x && x < mark.x + mark.w;
+        if !matches!(r.view, View::Branch(_)) && !(on_mark && r.fold.is_some()) {
+            self.open_view(r.view.clone());
+        }
+        if r.fold.is_some() && (matches!(r.view, View::Branch(_)) || on_mark || double) {
+            self.fold(Node::of(&r.view).expect("a node that folds"));
+        }
     }
 
     /// A press on a list's scroll bar takes hold of its thumb, which comes
@@ -1231,7 +1397,7 @@ impl LibraryPane {
     /// The plain playlist whose row is at `x`, `y`.
     fn plain_at(&self, at: Place, x: i32, y: i32) -> Option<usize> {
         let n = self.row_at(&self.parts(at), List::Views, x, y)?;
-        match self.views()[n] {
+        match self.tree[n].view {
             View::Plain(i) => Some(i),
             _ => None,
         }
@@ -2234,13 +2400,66 @@ mod tests {
         assert_eq!(p.focus, List::Artists, "Shift+Tab goes back");
     }
 
+    /// The views as the tree shows them: each label indented two spaces a
+    /// level, after `+` for a closed node and `-` for an open one.
+    fn tree(p: &LibraryPane) -> Vec<String> {
+        let mark = |r: &Row| match r.fold {
+            Some(true) => "- ",
+            Some(false) => "+ ",
+            None => "",
+        };
+        p.tree.iter().map(|r| format!("{}{}{}", "  ".repeat(r.depth as usize), mark(r), p.view_label(&r.view))).collect()
+    }
+
+    /// A pane whose first folder has folders in it, two levels deep.
+    fn nested() -> LibraryPane {
+        let mut p = pane();
+        p.lib.tracks.extend([
+            track("/music/Rock/Old/5.mp3", "Delta", "Fourth", "Five"),
+            track("/music/Rock/6.mp3", "Delta", "Fourth", "Six"),
+            track("/music/Jazz/7.mp3", "Epsilon", "Fifth", "Seven"),
+            track("/music/Jazz/Live.cue#2", "Epsilon", "Live", "Eight"),
+        ]);
+        p.changed();
+        p
+    }
+
+    #[test]
+    fn the_views_are_a_tree_whose_groups_fold() {
+        let mut p = pane();
+        assert_eq!(tree(&p), ["All music", "- Playlists", "- Folders", "  music", "  more"]);
+        let (x, y) = view_row(&p, "Folders");
+        p.press(AT, x, y, false, false, false);
+        assert_eq!(tree(&p), ["All music", "- Playlists", "+ Folders"], "a branch folds and is no view");
+        assert_eq!(p.view, View::All);
+        p.press(AT, x, y, false, false, false);
+        assert_eq!(tree(&p).len(), 5, "and opens again");
+    }
+
+    #[test]
+    fn a_folder_opens_into_the_folders_in_it_and_each_shows_only_its_own_tracks() {
+        let mut p = nested();
+        assert_eq!(tree(&p)[3..], ["  + music", "  more"], "a folder without folders in it does not open");
+        let (x, y) = view_row(&p, "music");
+        p.press(AT, x, y, false, false, true);
+        assert_eq!(tree(&p)[3..], ["  - music", "    Jazz", "    + Rock", "  more"], "in order, a CUE sheet's folder too");
+        let (x, y) = view_row(&p, "Rock");
+        p.press(AT, x, y, false, false, false);
+        assert_eq!((p.view.clone(), titles(&p)), (View::Folder("/music/Rock".into()), vec!["Five", "Six"]), "with what is under it");
+        assert_eq!(p.folder(), None, "no folder of the library itself");
+        let parts = p.parts(AT);
+        p.press(AT, parts.views.x + 2 * PX + 2, y, false, false, false);
+        assert_eq!(tree(&p)[5..7], ["    - Rock", "      Old"], "its mark opens it without a double click");
+        p.lib.replace_folder("/music", vec![track("/music/1.mp3", "Alpha", "First", "One")]);
+        p.changed();
+        assert_eq!((p.view.clone(), tree(&p)[3].as_str()), (View::All, "  music"), "a folder that is gone takes its view along");
+    }
+
     #[test]
     fn a_folder_is_a_view_of_its_tracks() {
         let mut p = pane();
-        let parts = p.parts(AT);
-        click(&mut p, parts.views, 4);
-        assert_eq!(p.view, View::All, "the heading above the folders is no view");
-        click(&mut p, parts.views, 6);
+        let (x, y) = view_row(&p, "more");
+        p.press(AT, x, y, false, false, false);
         assert_eq!((p.folder(), titles(&p), p.artists.len()), (Some("/more"), vec!["Four"], 1));
         p.lib.remove_folder("/more");
         p.refresh();
@@ -2254,9 +2473,9 @@ mod tests {
         p.smart = popamp_core::smart::parse(text).0;
         p.changed();
         let parts = p.parts(AT);
-        let labels: Vec<String> = p.views().iter().map(|v| p.view_label(v)).collect();
-        assert_eq!(labels, ["All music", "", "Playlists", "", "Smart playlists", "Alpha (2)", "", "Folders", "music", "more"]);
-        click(&mut p, parts.views, 5);
+        let labels = view_rows(&p);
+        assert_eq!(labels, ["All music", "Playlists", "Smart playlists", "Alpha (2)", "Folders", "music", "more"]);
+        click(&mut p, parts.views, 3);
         assert_eq!((titles(&p), p.parts(AT).panes), (vec!["Two", "One"], None), "its own order, without the panes");
         type_text(&mut p, "one");
         assert_eq!(titles(&p), ["One"], "the search looks within the list");
@@ -2539,7 +2758,7 @@ mod tests {
 
     /// What the views list says, row by row.
     fn view_rows(p: &LibraryPane) -> Vec<String> {
-        p.views().iter().map(|v| p.view_label(v)).collect()
+        p.tree.iter().map(|r| p.view_label(&r.view)).collect()
     }
 
     /// The middle of the views row that says `label`, as scrolled.
@@ -2562,7 +2781,7 @@ mod tests {
         m.library.plain = vec![PlainList { name: "Mine".into(), tracks: vec!["/music/2.mp3".into(), "/gone.mp3".into()] }];
         m.library.changed();
         let rows = view_rows(&m.library);
-        assert_eq!(rows[..7], ["All music", "", "Playlists", "Mine (1)", "", "Smart playlists", "Everything (4)"], "{rows:?}");
+        assert_eq!(rows[..5], ["All music", "Playlists", "Mine (1)", "Smart playlists", "Everything (4)"], "{rows:?}");
     }
 
     #[test]
@@ -2573,7 +2792,7 @@ mod tests {
         m.library.plain.clear();
         m.library.changed();
         let rows = view_rows(&m.library);
-        assert_eq!(rows[..5], ["All music", "", "Playlists", "", "Smart playlists"], "{rows:?}");
+        assert_eq!(rows[..3], ["All music", "Playlists", "Smart playlists"], "{rows:?}");
     }
 
     #[test]
