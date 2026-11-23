@@ -260,7 +260,10 @@ impl App {
     }
 
     fn role(&self, k: WindowKey) -> WindowRole {
-        if k == WindowKey::Library && self.compositor_maximizes() {
+        // The maximized library is a window of its own, as other programs'
+        // windows are, not one docked to the main window: a window manager
+        // keeps docked ones above the program's dialogs.
+        if k == WindowKey::Library && self.model.settings().ml_max {
             return WindowRole::Main;
         }
         match self.placement(k) {
@@ -343,7 +346,7 @@ impl App {
             pos = self.near_main(k, pos, monitors);
         }
         let role = self.role(k);
-        let own = k == WindowKey::Library && self.compositor_maximizes();
+        let own = k == WindowKey::Library && self.model.settings().ml_max;
         let mut attrs = platform::attributes(role)
             .with_title(crate::bind::title(k))
             .with_inner_size(platform::size(scale.px(w), scale.px(h)))
@@ -353,7 +356,7 @@ impl App {
         if self.model.settings().aot {
             attrs = attrs.with_window_level(WindowLevel::AlwaysOnTop);
         }
-        if own {
+        if own && self.compositor_maximizes() {
             attrs = attrs.with_resizable(true).with_maximized(true);
         }
         // Under Wayland only the main window is a window; its picture
@@ -375,8 +378,9 @@ impl App {
             el.create_window(attrs.with_transparent(wayland)).map_err(|e| e.to_string()).and_then(|w| {
                 let w = Arc::new(w);
                 w.set_cursor(CursorIcon::Default);
-                // Under Wayland the window made through the platform is the
-                // one the others are parts of: the library's own is not it.
+                // The window made through the platform is the main one: under
+                // Wayland the one the others are parts of. The library's own
+                // is not it.
                 let surface = if own { Surface::soft(&w)? } else { self.platform.surface(&w, pos)? };
                 Ok((Win::Top(w.clone()), surface))
             })
@@ -1322,7 +1326,7 @@ impl App {
     }
 
     /// Hides the equalizer and the playlist under Wayland while the
-    /// maximized library has the focus (`on`), and shows them again.
+    /// maximized library is in front (`on`), and shows them again.
     fn cover_companions(&mut self, on: bool) {
         if self.covered == on {
             return;
@@ -2416,8 +2420,12 @@ impl ApplicationHandler<AppEvent> for App {
                 }
             }
             WindowEvent::Focused(f) if self.platform.on_wayland() => {
-                if k == WindowKey::Library {
-                    self.cover_companions(f && self.compositor_maximizes());
+                // Hidden while the maximized library has the focus, back
+                // when the main window has it; a dialog changes nothing.
+                match (k, f) {
+                    (WindowKey::Library, true) => self.cover_companions(self.compositor_maximizes()),
+                    (WindowKey::Main, true) => self.cover_companions(false),
+                    _ => {}
                 }
                 self.active = f;
                 if !f && !self.popups.is_empty() {
