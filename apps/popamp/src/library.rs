@@ -1284,6 +1284,10 @@ impl LibraryPane {
         let t = p.table;
         let columns = self.columns.lay(t.rows, pen.px as i32);
         Self::draw_header(pen, t.header, &columns, |col| (col.label(), col.right()));
+        if p.panes.is_some() {
+            // The artists and the albums above end on it.
+            pen.b.fill(t.header.x, t.header.y - 2, t.header.w, 1, pen.line);
+        }
         if self.has_panes() {
             if let Some(&(col, x, w)) = columns.iter().find(|c| c.0.sort() == self.sort.0) {
                 Self::draw_sort_arrow(pen, t.header, (col, x, w), self.sort.1);
@@ -2752,6 +2756,23 @@ mod tests {
         assert_eq!(titles(&p), ["Four", "One", "Three", "Two"]);
         p.press(AT, title_x + 3, t.header.y + 2, false, false, false);
         assert_eq!(titles(&p), ["Two", "Three", "One", "Four"]);
+    }
+
+    #[test]
+    fn the_table_has_a_line_over_its_header_under_the_panes_only() {
+        let line_over_header = |p: &LibraryPane| {
+            let mut b = Bitmap::new(R.w, R.h, 0);
+            let mut canvas = Canvas::new(&mut b, crate::scale::Scale::new(100, popamp_core::config::Scaling::Sharp));
+            let c = PlColors::default();
+            p.draw(&mut canvas, &mut Font::load("sans-serif"), AT, &c, true, None);
+            let h = p.parts(AT).table.header;
+            let line = mix(c.normal, c.normal_bg, 0.7);
+            [h.x + 2, h.x + h.w / 2, h.x + h.w - 2].iter().all(|&x| b.get(x, h.y - 2) == Some(line))
+        };
+        let mut p = pane();
+        assert!(line_over_header(&p), "the artists and the albums end on it");
+        p.view = View::Smart(0);
+        assert!(!line_over_header(&p), "a table on its own needs none");
     }
 
     #[test]
