@@ -154,6 +154,10 @@ pub struct App {
     /// to show them again where they were should COSMIC not tell that the
     /// main window moved.
     aside: Vec<WindowKey>,
+    /// Under Wayland the equalizer and the playlist, parts of the main
+    /// window, show above every window: they hide while the maximized
+    /// library has the focus.
+    covered: bool,
     aside_until: Option<Instant>,
     /// `POPAMP_SNAPSHOT=<dir>`: write each window as PNG after a few frames and exit.
     snapshot: Option<(std::path::PathBuf, u32)>,
@@ -202,6 +206,7 @@ impl App {
             popup_focus_check: None,
             hidden_with_main: Vec::new(),
             aside: Vec::new(),
+            covered: false,
             aside_until: None,
             snapshot: std::env::var_os("POPAMP_SNAPSHOT").map(|d| (std::path::PathBuf::from(d), 0)),
             platform: Platform::connect(),
@@ -255,6 +260,9 @@ impl App {
     }
 
     fn role(&self, k: WindowKey) -> WindowRole {
+        if k == WindowKey::Library && self.compositor_maximizes() {
+            return WindowRole::Main;
+        }
         match self.placement(k) {
             Placement::Free => WindowRole::Main,
             Placement::Docked => WindowRole::Docked,
@@ -335,6 +343,7 @@ impl App {
             pos = self.near_main(k, pos, monitors);
         }
         let role = self.role(k);
+        let own = k == WindowKey::Library && self.compositor_maximizes();
         let mut attrs = platform::attributes(role)
             .with_title(crate::bind::title(k))
             .with_inner_size(platform::size(scale.px(w), scale.px(h)))
@@ -344,9 +353,12 @@ impl App {
         if self.model.settings().aot {
             attrs = attrs.with_window_level(WindowLevel::AlwaysOnTop);
         }
+        if own {
+            attrs = attrs.with_resizable(true).with_maximized(true);
+        }
         // Under Wayland only the main window is a window; its picture
         // carries its shape, so it has see-through pixels.
-        let made = if wayland && k != WindowKey::Main {
+        let made = if wayland && k != WindowKey::Main && !own {
             self.platform.child(pos, true).ok_or_else(|| "no main window to place it against".to_string())
         } else if let (true, Some(edge)) = (wayland, bar::edge(&self.model).filter(|_| role == WindowRole::Bar)) {
             // The bar is a layer of the desktop. A window of winit's is
@@ -363,7 +375,10 @@ impl App {
             el.create_window(attrs.with_transparent(wayland)).map_err(|e| e.to_string()).and_then(|w| {
                 let w = Arc::new(w);
                 w.set_cursor(CursorIcon::Default);
-                Ok((Win::Top(w.clone()), self.platform.surface(&w, pos)?))
+                // Under Wayland the window made through the platform is the
+                // one the others are parts of: the library's own is not it.
+                let surface = if own { Surface::soft(&w)? } else { self.platform.surface(&w, pos)? };
+                Ok((Win::Top(w.clone()), surface))
             })
         };
         let (window, surface) = match made {
@@ -473,7 +488,7 @@ impl App {
     fn attach_docked(&self) {
         let owner = self.win(WindowKey::Main).filter(|w| w.role == WindowRole::Main).and_then(|w| w.window.top()).map(|w| &**w);
         for k in [WindowKey::Eq, WindowKey::Playlist, WindowKey::Library] {
-            if let Some(w) = self.win(k).and_then(|w| w.window.top()) {
+            if let Some(w) = self.win(k).filter(|w| w.role == WindowRole::Docked).and_then(|w| w.window.top()) {
                 if let Err(e) = self.platform.attach(w, owner) {
                     log::warn!("cannot tie {k:?} to the main window: {e}");
                 }
@@ -547,8 +562,22 @@ impl App {
         }
     }
 
-    /// Finds where the library goes when it is maximized.
+    /// Under Wayland nobody tells a program where its windows are or where
+    /// the panels are: the maximized library is a window of its own there,
+    /// which the compositor maximizes and sizes.
+    fn compositor_maximizes(&self) -> bool {
+        self.platform.on_wayland() && self.model.settings().ml_max
+    }
+
+    /// Finds where the library goes when it is maximized; under Wayland the
+    /// compositor says, in its size for the window.
     fn update_library_area(&mut self) {
+        if self.platform.on_wayland() {
+            if !self.model.settings().ml_max {
+                self.model.library_area = None;
+            }
+            return;
+        }
         let (x, y) = self.saved_pos(WindowKey::Library);
         let (w, h) = crate::bind::stored_size(&self.model, WindowKey::Library);
         let scale = self.scale(WindowKey::Library);
@@ -580,7 +609,9 @@ impl App {
             let scale = self.scale(k);
             if let Some(w) = self.win_mut(k) {
                 let size = (scale.px(lw), scale.px(lh));
-                if let Some(top) = w.window.top() {
+                // The compositor sizes the library it maximized.
+                let own = wayland && k == WindowKey::Library && w.role == WindowRole::Main;
+                if let Some(top) = w.window.top().filter(|_| !own) {
                     // winit holds a window that cannot be resized by the
                     // user to its first size under Wayland, as its least
                     // and greatest size: those go along.
@@ -723,7 +754,7 @@ impl App {
     fn render(&mut self, k: WindowKey) {
         let i = k.index();
         let layout = self.scale(k);
-        if self.aside.contains(&k) {
+        if self.aside.contains(&k) || (self.covered && matches!(k, WindowKey::Eq | WindowKey::Playlist)) {
             return;
         }
         let Some(w) = self.wins[i].as_mut() else { return };
@@ -1288,6 +1319,24 @@ impl App {
             self.aside.push(k);
         }
         log::debug!(target: "moves", "set aside {:?}", self.aside);
+    }
+
+    /// Hides the equalizer and the playlist under Wayland while the
+    /// maximized library has the focus (`on`), and shows them again.
+    fn cover_companions(&mut self, on: bool) {
+        if self.covered == on {
+            return;
+        }
+        self.covered = on;
+        for k in [WindowKey::Eq, WindowKey::Playlist] {
+            let scale = self.scale(k);
+            let Some(w) = self.win_mut(k).filter(|w| w.visible) else { continue };
+            if on {
+                w.surface.hide((scale.px(w.size.0), scale.px(w.size.1)));
+            } else {
+                self.render(k);
+            }
+        }
     }
 
     /// Shows the windows hidden by `set_aside` where they were on the
@@ -1967,6 +2016,12 @@ impl App {
                     self.open_popup(el, items, at, false);
                 }
                 UiReq::Layout => {
+                    if WindowKey::ALL.iter().any(|&k| self.win(k).is_some_and(|w| w.role != self.role(k))) {
+                        self.remake_changed_windows(el);
+                    }
+                    if !self.compositor_maximizes() {
+                        self.covered = false;
+                    }
                     self.update_bar_area();
                     self.apply_layout(WindowKey::Main);
                     self.redraw_all();
@@ -2331,6 +2386,14 @@ impl ApplicationHandler<AppEvent> for App {
         }
         let Some(k) = self.kind_of(id) else { return };
         match ev {
+            WindowEvent::Resized(size) if k == WindowKey::Library && self.compositor_maximizes() => {
+                let area = Screen { x: 0, y: 0, w: size.width as i32, h: size.height as i32 };
+                if self.model.library_area != Some(area) && area.w > 0 && area.h > 0 {
+                    self.model.library_area = Some(area);
+                    self.apply_layout(WindowKey::Library);
+                    self.render(WindowKey::Library);
+                }
+            }
             WindowEvent::CursorLeft { .. } => self.tip = None,
             // As after the main window is dragged under Wayland.
             WindowEvent::CursorEntered { .. } => self.mouse_back(),
@@ -2353,6 +2416,9 @@ impl ApplicationHandler<AppEvent> for App {
                 }
             }
             WindowEvent::Focused(f) if self.platform.on_wayland() => {
+                if k == WindowKey::Library {
+                    self.cover_companions(f && self.compositor_maximizes());
+                }
                 self.active = f;
                 if !f && !self.popups.is_empty() {
                     self.popup_focus_check = Some(Instant::now());
