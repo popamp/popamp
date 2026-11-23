@@ -2152,10 +2152,11 @@ impl App {
         self.hotkeys.want(settings.global_hotkeys);
     }
 
-    /// Twice a second: a changed skin, the bar's screen area and the
-    /// clocks of the playlist and the library.
+    /// Twice a second: a changed skin, the bar's screen area, the clocks
+    /// of the playlist and the library, and the library's timed scan.
     fn slow_tick(&mut self, state: PlayState, settings: &popamp_core::config::Settings, library_drawn: bool) {
         self.model.reload_skin_if_changed();
+        self.model.library_rescan_if_due(Instant::now());
         if bar::edge(&self.model).is_some() && self.update_bar_area() {
             self.apply_layout(WindowKey::Main);
         }

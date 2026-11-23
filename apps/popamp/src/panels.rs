@@ -12,7 +12,7 @@ use crate::museum::{self, Fetched, Job};
 use crate::shortcuts;
 use crate::widgets::{Event, Form, PageEntry, Rect, Widget, BUTTON, PAGE_H, ROW_H};
 use popamp_audio::output::Device;
-use popamp_core::config::Settings;
+use popamp_core::config::{Settings, MAX_RESCAN_MINUTES};
 use popamp_core::Command;
 use popamp_skin::Bitmap;
 use std::collections::HashMap;
@@ -381,6 +381,7 @@ pub enum Flag {
     GlobalHotkeys,
     KeepScanOpen,
     CheckUpdates,
+    ScanAtStart,
 }
 
 impl Flag {
@@ -403,6 +404,7 @@ impl Flag {
             Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
             Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
+            Flag::ScanAtStart => "Scan the folders when Popamp starts",
         }
     }
 
@@ -438,6 +440,7 @@ impl Flag {
             Flag::CheckUpdates => &mut s.update_check,
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
+            Flag::ScanAtStart => &mut s.ml_scan_at_start,
         }
     }
 
@@ -475,6 +478,7 @@ pub enum Field {
     Proxy,
     SoundFont,
     ListenPercent,
+    RescanMinutes,
 }
 
 impl Field {
@@ -488,6 +492,7 @@ impl Field {
             Field::Proxy => "HTTP proxy",
             Field::SoundFont => "MIDI SoundFont",
             Field::ListenPercent => "Count a play after hearing (%)",
+            Field::RescanMinutes => "Rescan every (min, 0 = off)",
         }
     }
 
@@ -501,6 +506,7 @@ impl Field {
             Field::Proxy => s.proxy.clone(),
             Field::SoundFont => s.soundfont.clone(),
             Field::ListenPercent => s.listen_percent.to_string(),
+            Field::RescanMinutes => s.ml_rescan_minutes.to_string(),
         }
     }
 
@@ -515,6 +521,10 @@ impl Field {
             Field::ListenPercent => match text.trim().parse::<u32>() {
                 Ok(n) if (50..=100).contains(&n) && n % 5 == 0 => Ok(()),
                 _ => Err("Count a play: 50 to 100, in steps of 5".into()),
+            },
+            Field::RescanMinutes => match text.trim().parse::<u32>() {
+                Ok(n) if n <= MAX_RESCAN_MINUTES => Ok(()),
+                _ => Err(format!("Rescan every: 0 to {MAX_RESCAN_MINUTES} minutes")),
             },
             Field::TitleFormat if text.trim().is_empty() => Err("Title format: must not be empty".into()),
             Field::SoundFont if !text.trim().is_empty() && !std::path::Path::new(text.trim()).is_file() => {
@@ -533,6 +543,7 @@ impl Field {
             Field::CrossfadeMs => model.settings_mut().crossfade_ms = n(),
             Field::BufferMs => model.settings_mut().buffer_ms = n(),
             Field::ListenPercent => model.settings_mut().listen_percent = n(),
+            Field::RescanMinutes => model.settings_mut().ml_rescan_minutes = n(),
             Field::Proxy => model.settings_mut().proxy = text.trim().to_string(),
             Field::SoundFont => model.settings_mut().soundfont = text.trim().to_string(),
             Field::TitleFormat => {
@@ -602,7 +613,7 @@ impl Section {
             }
             Section::Playlist => &[Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad],
             Section::Playback => &[Flag::AutoAdvance, Flag::KeepScanOpen],
-            Section::Library => &[],
+            Section::Library => &[Flag::ScanAtStart],
             Section::Desktop => &[Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys],
             Section::Internet => &[Flag::CheckUpdates],
             Section::Shortcuts => &[],
@@ -614,7 +625,7 @@ impl Section {
             Section::Playlist => &[Field::FontSize, Field::TitleFormat],
             Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::SoundFont],
             Section::Internet => &[Field::Proxy],
-            Section::Library => &[Field::ListenPercent],
+            Section::Library => &[Field::RescanMinutes, Field::ListenPercent],
             Section::Windows | Section::Desktop | Section::Shortcuts => &[],
         }
     }

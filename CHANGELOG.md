@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Timed library scan** ([#71](https://github.com/popamp/popamp/issues/71)):
+  Media Library preferences can rescan the library's folders every so many
+  minutes while Popamp runs ("Rescan every", off by default). The check box
+  for the scan at startup, until now only in the settings file, is there too.
+  Each scan takes in new and changed files and drops the ones gone from
+  disk; a folder that cannot be read, such as an unplugged drive, keeps its
+  tracks.
+
 ## [1.1.0] - 2026-11-22
 
 ### Added

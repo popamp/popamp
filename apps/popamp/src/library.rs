@@ -38,6 +38,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Instant;
 
 /// What a row of the views tree shows.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -581,6 +582,9 @@ pub struct LibraryPane {
     carry: Option<Carry>,
     pub scan: Option<Scan>,
     scans: u64,
+    /// When the last scan ended, or the library was opened: the timer of
+    /// `ml_rescan_minutes` runs from it.
+    scanned_at: Instant,
 }
 
 /// The last part of a folder's path, which names it in the views.
@@ -622,6 +626,7 @@ impl LibraryPane {
             carry: None,
             scan: None,
             scans: 0,
+            scanned_at: Instant::now(),
         };
         p.changed();
         p
@@ -1836,6 +1841,16 @@ impl Model {
         }
     }
 
+    /// Scans the folders again once `ml_rescan_minutes` have gone since the
+    /// last scan ended; called from time to time.
+    pub fn library_rescan_if_due(&mut self, now: Instant) {
+        let minutes = self.settings().ml_rescan_minutes;
+        let pane = &self.library;
+        if minutes > 0 && pane.scan.is_none() && now.duration_since(pane.scanned_at).as_secs() >= u64::from(minutes) * 60 {
+            self.library_rescan();
+        }
+    }
+
     pub fn on_library(&mut self, ev: LibEvent) {
         let pane = &mut self.library;
         let id = match &ev {
@@ -1856,6 +1871,7 @@ impl Model {
                 }
             }
             LibEvent::Done(_) => {
+                pane.scanned_at = Instant::now();
                 let before = pane.scan.take().map(|s| s.before).unwrap_or_default();
                 self.save_library();
                 self.follow_moves(&before);
@@ -3196,6 +3212,26 @@ mod tests {
         answer(&mut m, DialogKind::NewPlaylist, "mine");
         answer(&mut m, DialogKind::NewPlaylist, " .. ");
         assert_eq!(m.library.plain.iter().map(|l| l.name.as_str()).collect::<Vec<_>>(), ["Mine"]);
+    }
+
+    #[test]
+    fn the_folders_are_scanned_again_once_the_set_minutes_have_gone() {
+        let mut m = Model::for_tests();
+        m.library.lib.add_folder("/music");
+        let start = m.library.scanned_at;
+        let after = |secs| start + std::time::Duration::from_secs(secs);
+        m.library_rescan_if_due(after(86_400));
+        assert!(m.library.scan.is_none(), "not unless asked for");
+        m.settings_mut().ml_rescan_minutes = 10;
+        m.library_rescan_if_due(after(599));
+        assert!(m.library.scan.is_none());
+        m.library_rescan_if_due(after(600));
+        let id = m.library.scan.as_ref().map(|s| s.id);
+        assert!(id.is_some());
+        m.library_rescan_if_due(after(1200));
+        assert_eq!(m.library.scan.as_ref().map(|s| s.id), id, "a scan under way is let finish");
+        m.on_library(LibEvent::Done(id.unwrap()));
+        assert!(m.library.scanned_at > start, "the next wait runs from the end of this scan");
     }
 
     #[test]

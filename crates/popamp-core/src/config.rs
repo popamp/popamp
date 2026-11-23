@@ -124,6 +124,8 @@ impl IniValue for Option<BarEdge> {
 }
 
 /// The window sizes offered, in percent.
+/// The longest wait between the library's scans: a day.
+pub const MAX_RESCAN_MINUTES: u32 = 24 * 60;
 pub const ZOOMS: [i32; 7] = [100, 125, 150, 175, 200, 250, 300];
 
 macro_rules! settings {
@@ -182,6 +184,9 @@ settings! {
     ml_max: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,
+    /// Look through them again each this many minutes while Popamp runs;
+    /// 0 for never.
+    ml_rescan_minutes: u32 = 0,
     /// The library table's columns, left to right, with their widths:
     /// `artist:70,title:90`; empty for the first ones.
     ml_columns: String = String::new(),
@@ -337,6 +342,7 @@ impl Settings {
         self.buffer_ms = self.buffer_ms.clamp(40, 2000);
         self.crossfade_ms = self.crossfade_ms.min(10_000);
         self.listen_percent = self.listen_percent.clamp(50, 100) / 5 * 5;
+        self.ml_rescan_minutes = self.ml_rescan_minutes.min(MAX_RESCAN_MINUTES);
         if self.output_device.trim().is_empty() {
             self.output_device = "default".to_string();
         }
