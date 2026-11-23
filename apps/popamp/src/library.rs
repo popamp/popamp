@@ -1,6 +1,6 @@
 //! The media library window's content, laid out as Winamp's: the views on
 //! the left; on the right a search field, the artists and the albums side
-//! by side, the track table under them, and a row of buttons. Picking an
+//! by side, the track table under them, and the status under all. Picking an
 //! artist narrows the albums and the table, picking an album narrows the
 //! table further. A skin gives the window's frame and the rectangle for
 //! all this; the player lays it out there and draws it in the playlist's
@@ -348,13 +348,6 @@ fn lay<T: Copy>(cols: &[(T, Width)], area: Rect, px: i32) -> Vec<(T, i32, i32)> 
     out
 }
 
-const BUTTONS: [(&str, Command); 4] = [
-    ("Play", Command::LibraryPlay),
-    ("Enqueue", Command::LibraryEnqueue),
-    ("Add folder", Command::LibraryAddFolder),
-    ("Rescan", Command::LibraryRescan),
-];
-
 /// Where the library is drawn: the skin's rectangle, the text height, and
 /// the size of the skin's scroll thumb, when it gives one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -386,7 +379,6 @@ struct Parts {
     /// The artists and the albums, when the view has them.
     panes: Option<[Table; 2]>,
     table: Table,
-    buttons: [Rect; 4],
     status: Rect,
     row_h: i32,
     /// The width of each list's scroll bar, right of its rows, and the
@@ -425,10 +417,7 @@ impl Parts {
         let panes_h = if panes { list_h * 2 / 5 } else { 0 };
         let half = ((w - 3) / 2).max(0);
         let ty = list_y + if panes { panes_h + 3 } else { 0 };
-        let button_w = (px * 5 + 4).min((r.w - 9) / 4).max(1);
         let by = r.y + r.h - bar_h;
-        let buttons = [0, 1, 2, 3].map(|i| rect(r.x + i * (button_w + 3), by, button_w, bar_h));
-        let after = 4 * (button_w + 3);
         Parts {
             views: rect(r.x, r.y, (views_w - bar_w).max(0), views_h),
             cover: panel.then(|| rect(r.x, cover_y, views_w, views_w)),
@@ -436,8 +425,7 @@ impl Parts {
             search: rect(x, r.y, w, search_h),
             panes: panes.then(|| [table(x, list_y, half, panes_h), table(x + half + 3, list_y, (w - half - 3).max(0), panes_h)]),
             table: table(x, ty, w, list_y + list_h - ty),
-            buttons,
-            status: rect(r.x + after, by, (r.w - after).max(0), bar_h),
+            status: rect(r.x, by, r.w, bar_h),
             row_h,
             bar_w,
             thumb_h: at.thumb.map(|t| t.1),
@@ -590,8 +578,6 @@ pub struct LibraryPane {
     tz: jiff::tz::TimeZone,
     /// Read when first drawn, kept while the same track is at the cursor.
     shown_cover: RefCell<Option<Shown>>,
-    /// The button held down by the mouse.
-    pressed: Option<usize>,
     /// The list whose thumb the mouse holds, and how far below the
     /// thumb's top it does.
     dragging: Option<(List, i32)>,
@@ -636,7 +622,6 @@ impl LibraryPane {
             resizing: None,
             tz: jiff::tz::TimeZone::system(),
             shown_cover: RefCell::new(None),
-            pressed: None,
             dragging: None,
             carry: None,
             scan: None,
@@ -1180,15 +1165,6 @@ impl LibraryPane {
             self.draw_bar(&mut pen, &p, list, c, at.thumb.is_none());
         }
 
-        for (i, (label, _)) in BUTTONS.iter().enumerate() {
-            let k = p.buttons[i];
-            let face = rect(k.x, k.y + 2, k.w, k.h - 2);
-            pen.b.fill(face.x, face.y, face.w, face.h, if self.pressed == Some(i) { c.selected_bg } else { line });
-            if self.pressed != Some(i) {
-                pen.b.fill(face.x + 1, face.y + 1, face.w - 2, face.h - 2, c.normal_bg);
-            }
-            pen.centre(face, label, c.normal);
-        }
         if p.status.w >= px * 4 {
             pen.right(rect(p.status.x, p.status.y + 2, p.status.w, p.status.h - 2), &self.status(), dim);
         }
@@ -1401,10 +1377,6 @@ impl LibraryPane {
     pub fn press(&mut self, at: Place, x: i32, y: i32, shift: bool, ctrl: bool, double: bool) -> Reaction {
         self.carry = None;
         let p = self.parts(at);
-        if let Some(i) = p.buttons.iter().position(|k| k.contains(x, y)) {
-            self.pressed = Some(i);
-            return Reaction { capture: true, run: None };
-        }
         if let Some(list) = LISTS.into_iter().find(|&l| p.bar(l).is_some_and(|b| b.contains(x, y))) {
             return self.press_bar(&p, list, y);
         }
@@ -1591,8 +1563,8 @@ impl LibraryPane {
         (self.shown.clone(), at.min(self.shown.len().saturating_sub(1)))
     }
 
-    /// The left button went up: a button pressed and let go over itself
-    /// runs; a row clicked without carrying is the only one picked.
+    /// The left button went up: a row clicked without carrying is the
+    /// only one picked.
     pub fn release(&mut self, at: Place, x: i32, y: i32) -> Option<Command> {
         (self.dragging, self.resizing) = (None, None);
         match self.carry.take() {
@@ -1606,8 +1578,7 @@ impl LibraryPane {
             }
             None => {}
         }
-        let i = self.pressed.take()?;
-        self.parts(at).buttons[i].contains(x, y).then_some(BUTTONS[i].1)
+        None
     }
 
     /// Scrolls the list under the mouse by `steps` wheel notches (up is
@@ -2390,7 +2361,7 @@ mod tests {
         let bar = |list| p.bar(list).map(|b| b.x + b.w);
         assert_eq!((bar(List::Albums), bar(List::Tracks)), (Some(R.w), Some(R.w)));
         assert!(bar(List::Views).unwrap() < p.search.x && bar(List::Artists).unwrap() < albums.rows.x);
-        assert!(p.table.rows.y + p.table.rows.h < p.buttons[0].y && p.buttons[3].x + p.buttons[3].w <= R.w);
+        assert!(p.table.rows.y + p.table.rows.h < p.status.y && p.status.x + p.status.w <= R.w);
         assert_eq!(Parts::new(AT, false).table.header.y, artists.header.y, "without the panes the table takes their room");
         let small = Parts::new(Place { r: rect(0, 0, 20, 10), ..AT }, true);
         assert!(small.table.rows.w >= 0 && small.table.rows.h >= 0 && small.views.h >= 0, "too small a window draws nothing wrong");
@@ -2402,7 +2373,7 @@ mod tests {
         let (cover, about) = (p.cover.unwrap(), p.about.unwrap());
         assert_eq!((cover.x, cover.w, cover.h), (R.x, p.views.w + p.bar_w, p.views.w + p.bar_w), "square, as wide as the views");
         assert!(p.views.y + p.views.h < cover.y && cover.y + cover.h <= about.y, "the views, the cover, what is known of the track");
-        assert!(about.y + about.h <= p.buttons[0].y && about.h >= 4 * p.row_h);
+        assert!(about.y + about.h <= p.status.y && about.h >= 4 * p.row_h);
         assert!(p.views.h >= 6 * p.row_h, "the views keep some rows");
         let short = Parts::new(Place { r: rect(0, 0, 400, 200), ..AT }, true);
         assert_eq!((short.cover, short.about), (None, None));
@@ -2792,13 +2763,14 @@ mod tests {
     }
 
     #[test]
-    fn a_button_runs_when_let_go_over_itself() {
+    fn the_status_row_has_no_buttons() {
         let mut p = pane();
-        let k = p.parts(AT).buttons[2];
-        assert!(p.press(AT, k.x + 2, k.y + 5, false, false, false).capture);
-        assert_eq!(p.release(AT, k.x + 2, k.y + 5), Some(Command::LibraryAddFolder));
-        p.press(AT, k.x + 2, k.y + 5, false, false, false);
-        assert_eq!(p.release(AT, 0, 0), None, "let go elsewhere");
+        let k = p.parts(AT).status;
+        assert_eq!((k.x, k.w), (R.x, R.w), "the status takes the whole row");
+        for x in [k.x + 2, k.x + k.w / 2, k.x + k.w - 2] {
+            assert_eq!(p.press(AT, x, k.y + 5, false, false, false), Reaction::default());
+            assert_eq!(p.release(AT, x, k.y + 5), None);
+        }
     }
 
     #[test]
