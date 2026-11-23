@@ -286,6 +286,7 @@ impl Model {
         library.plain = popamp_core::plain::load(&paths.playlists_dir());
         library.columns = crate::library::Columns::parse(&config.settings.ml_columns);
         library.left = config.settings.ml_left;
+        library.panes_h = config.settings.ml_panes;
         library.restore_tree_state(&config.settings.ml_tree, &config.settings.ml_view);
         library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));

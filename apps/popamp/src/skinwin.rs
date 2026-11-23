@@ -134,13 +134,13 @@ impl SkinWin {
             .unwrap_or(c.mode.cursor)
     }
 
-    /// Whether the library element under `x`, `y`, or the one held, resizes
-    /// something there: the cursor shows it.
-    pub fn library_resizes(&self, model: &Model, x: i32, y: i32) -> bool {
-        let Some(i) = self.pressed_index(model).or_else(|| self.hit(model, x, y)) else { return false };
-        match self.element(model, i) {
-            Some((Element { kind: Kind::Library { thumb }, .. }, r)) => model.library.resizes_at(place(model, r, &thumb), x, y),
-            _ => false,
+    /// Which way the library element under `x`, `y`, or the one held,
+    /// resizes something there: the cursor shows it.
+    pub fn library_resizes(&self, model: &Model, x: i32, y: i32) -> Option<crate::library::Resize> {
+        let i = self.pressed_index(model).or_else(|| self.hit(model, x, y))?;
+        match self.element(model, i)? {
+            (Element { kind: Kind::Library { thumb }, .. }, r) => model.library.resizes_at(place(model, r, &thumb), x, y),
+            _ => None,
         }
     }
 

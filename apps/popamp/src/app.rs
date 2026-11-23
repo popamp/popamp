@@ -1098,12 +1098,13 @@ impl App {
     /// when it does.
     fn show_resize_cursor(&mut self, input: (i32, i32)) -> bool {
         let k = WindowKey::Library;
-        if !self.skins[k.index()].library_resizes(&self.model, input.0, input.1) {
-            return false;
-        }
+        let icon = match self.skins[k.index()].library_resizes(&self.model, input.0, input.1) {
+            Some(crate::library::Resize::Across) => CursorIcon::EwResize,
+            Some(crate::library::Resize::Down) => CursorIcon::NsResize,
+            None => return false,
+        };
         let Some(w) = self.wins[k.index()].as_mut() else { return false };
         let Some(top) = w.window.top() else { return false };
-        let icon = CursorIcon::EwResize;
         if w.pointer != Some(Pointer::System(icon)) {
             w.pointer = Some(Pointer::System(icon));
             top.set_cursor(icon);
