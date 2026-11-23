@@ -2817,7 +2817,7 @@ mod tests {
         assert_eq!(tree(&p)[3..], ["  - music", "    Jazz", "    + Rock", "  more"], "in order, a CUE sheet's folder too");
         let (x, y) = view_row(&p, "Rock");
         p.press(AT, x, y, false, false, false);
-        assert_eq!((p.view.clone(), titles(&p)), (View::Folder("/music/Rock".into()), vec!["Five", "Six"]), "with what is under it");
+        assert_eq!((p.view.clone(), titles(&p)), (View::Folder(sub("/music", &["Rock"])), vec!["Five", "Six"]), "with what is under it");
         assert_eq!(p.folder(), None, "no folder of the library itself");
         let parts = p.parts(AT);
         p.press(AT, parts.views.x + 2 * PX + 2, y, false, false, false);
@@ -2831,7 +2831,7 @@ mod tests {
     fn the_tree_keeps_what_is_open_and_shown_and_comes_back_so() {
         let mut p = nested();
         p.fold(Node::Folder("/music".into()));
-        p.fold(Node::Folder("/music/Rock".into()));
+        p.fold(Node::Folder(sub("/music", &["Rock"])));
         p.fold(Node::Branch(Branch::Playlists));
         let (x, y) = view_row(&p, "Old");
         p.press(AT, x, y, false, false, false);
@@ -2839,7 +2839,7 @@ mod tests {
         let mut back = nested();
         back.restore_tree_state(&open, &view);
         assert_eq!((tree(&back), back.view.clone(), titles(&back)), (tree(&p), p.view.clone(), titles(&p)));
-        assert_eq!(back.view, View::Folder("/music/Rock/Old".into()));
+        assert_eq!(back.view, View::Folder(sub("/music", &["Rock", "Old"])));
     }
 
     #[test]
@@ -3300,6 +3300,12 @@ mod tests {
         assert_eq!((p.selected_paths(), p.cursor, p.scroll[List::Tracks as usize]), (vec!["/music/3.mp3".to_string()], 2, 1));
         type_text(&mut p, "alpha");
         assert!(p.selected_paths().is_empty(), "other rows: none picked");
+    }
+
+    /// The folder `names` deep under the library folder `root`, joined
+    /// the way the system joins paths, as the views tree does.
+    fn sub(root: &str, names: &[&str]) -> String {
+        names.iter().fold(std::path::PathBuf::from(root), |p, n| p.join(n)).to_string_lossy().into_owned()
     }
 
     /// What the views list says, row by row.
