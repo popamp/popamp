@@ -54,7 +54,7 @@ pub struct Item {
 }
 
 impl Item {
-    /// The site's rank for "Top rated": the average as if every entry had
+    /// The site's rank for tr!("Top rated"): the average as if every entry had
     /// started with five votes of 3.5, so a few fives do not top many
     /// good votes. Entries nobody rated come last.
     fn score(&self) -> f64 {
@@ -87,9 +87,9 @@ impl Section {
 
     fn label(self) -> &'static str {
         match self {
-            Section::Skins => "Skins",
-            Section::Plugins => "Plug-ins",
-            Section::Visuals => "Visualizations",
+            Section::Skins => tr!("Skins"),
+            Section::Plugins => tr!("Plug-ins"),
+            Section::Visuals => tr!("Visualizations"),
         }
     }
 }
@@ -107,9 +107,9 @@ impl Sort {
 
     fn label(self) -> &'static str {
         match self {
-            Sort::Popular => "Popular",
+            Sort::Popular => tr!("Popular"),
             Sort::Rating => "Top rated",
-            Sort::New => "New",
+            Sort::New => tr!("New"),
         }
     }
 
@@ -185,15 +185,15 @@ fn permissions(p: &serde_json::Value) -> Vec<String> {
         }
     }
     if !programs.is_empty() {
-        lines.push(format!("May run {}", programs.join(" and ")));
+        lines.push(tr!("May run {programs}", programs = programs.join(tr!(" and "))));
         lines.extend(limits);
     }
     let hosts: Vec<&str> = p["net"].as_array().into_iter().flatten().filter_map(|h| h.as_str()).collect();
     if !hosts.is_empty() {
-        lines.push(format!("May connect to {}", hosts.join(", ")));
+        lines.push(tr!("May connect to {hosts}", hosts = hosts.join(", ")));
     }
     if p["files"].as_bool().unwrap_or(false) {
-        lines.push("May read the folders you allow".into());
+        lines.push(tr!("May read the folders you allow").into());
     }
     lines
 }
@@ -444,10 +444,10 @@ enum Action {
 impl Action {
     fn label(self) -> &'static str {
         match self {
-            Action::Install => "Install",
-            Action::Update => "Update",
-            Action::Use => "Use",
-            Action::Installed => "Installed",
+            Action::Install => tr!("Install"),
+            Action::Update => tr!("Update"),
+            Action::Use => tr!("Use"),
+            Action::Installed => tr!("Installed"),
         }
     }
 }
@@ -462,7 +462,7 @@ impl GalleryPanel {
         let sections = form.add(Rect::new(10, 10, w - 20, BUTTON.1), tabs(Section::ALL.map(Section::label).to_vec()));
         let y = 10 + BUTTON.1 + 10;
         let search = form.add(Rect::new(10, y, list_w - 80, 24), Widget::Input { text: String::new(), cursor: 0 });
-        button(&mut form, 10 + list_w - 74, y, "Search", Act::Search, true);
+        button(&mut form, 10 + list_w - 74, y, tr!("Search"), Act::Search, true);
         let sort = form.add(Rect::new(10, y + 32, list_w, 22), tabs(Sort::ALL.map(Sort::label).to_vec()));
         let list_h = 4 + 10 * ROW_H;
         let list = form.add(Rect::new(10, y + 62, list_w, list_h), Widget::List { rows: vec![], selected: None, scroll: 0 });
@@ -477,7 +477,7 @@ impl GalleryPanel {
             Rect::new(w - 2 * BUTTON.0 - 16, y, BUTTON.0, BUTTON.1),
             Widget::Button { label: Action::Install.label().into(), action: Act::Ok, default: false },
         );
-        button(&mut form, w - BUTTON.0 - 10, y, "Close", Act::Close, false);
+        button(&mut form, w - BUTTON.0 - 10, y, tr!("Close"), Act::Close, false);
         form.h = y + BUTTON.1 + 10;
         let index_file = model.paths.data_dir.join("gallery.json");
         let mut p = GalleryPanel {
@@ -498,7 +498,7 @@ impl GalleryPanel {
             busy: None,
             jobs: vec![Job::Catalog],
         };
-        p.form.set_label(p.status, "Loading the catalog…".into());
+        p.form.set_label(p.status, tr!("Loading the catalog…").into());
         p
     }
 
@@ -526,8 +526,8 @@ impl GalleryPanel {
     fn row(&self, item: &Item) -> String {
         let tag = match self.action(item) {
             Action::Install => "",
-            Action::Update => " (update)",
-            Action::Use | Action::Installed => " (installed)",
+            Action::Update => tr!(" (update)"),
+            Action::Use | Action::Installed => tr!(" (installed)"),
         };
         format!("{} {}{tag}", item.name, item.version)
     }
@@ -568,10 +568,10 @@ impl GalleryPanel {
         match (self.previews.get(&item.id), &item.preview) {
             (Some(img), _) => self.form.set_image(self.preview, Some(img.clone()), ""),
             (None, Some(url)) => {
-                self.form.set_image(self.preview, None, "Loading the preview…");
+                self.form.set_image(self.preview, None, tr!("Loading the preview…"));
                 self.jobs.push(Job::Preview { id: item.id.clone(), url: url.clone() });
             }
-            (None, None) => self.form.set_image(self.preview, None, "No preview"),
+            (None, None) => self.form.set_image(self.preview, None, tr!("No preview")),
         }
     }
 
@@ -579,11 +579,11 @@ impl GalleryPanel {
     fn empty_note(&self) -> &'static str {
         let section = Section::ALL[self.form.tab(self.sections)];
         if section != Section::Skins && !cfg!(feature = "plugins") {
-            "Plug-ins need Popamp Plus"
+            tr!("Plug-ins need Popamp Plus")
         } else if self.items.is_empty() {
             ""
         } else {
-            "Nothing found"
+            tr!("Nothing found")
         }
     }
 
@@ -607,13 +607,15 @@ impl GalleryPanel {
         let note = match self.action(&item) {
             Action::Use => {
                 model.set_skin(self.index.path(&item.id).map(Path::to_path_buf));
-                format!("Using {}.", item.name)
+                tr!("Using {name}.", name = item.name)
             }
-            Action::Installed => format!("{} is installed. Turn it on in Options > Plug-ins.", item.name),
-            Action::Install if foreign(&item, &dir) => format!("{} is already in {}; the gallery leaves it alone.", item.id, dir.display()),
+            Action::Installed => tr!("{name} is installed. Turn it on in Options > Plug-ins.", name = item.name),
+            Action::Install if foreign(&item, &dir) => {
+                tr!("{id} is already in {folder}; the gallery leaves it alone.", id = item.id, folder = dir.display())
+            }
             Action::Install | Action::Update => {
                 self.busy = Some(item.id.clone());
-                let note = format!("Downloading {}…", item.name);
+                let note = tr!("Downloading {name}…", name = item.name);
                 self.jobs.push(Job::Install { item: Box::new(item), dir });
                 note
             }
@@ -628,19 +630,17 @@ impl GalleryPanel {
                 let hidden = items.iter().filter(|i| !usable(i)).count();
                 self.items = items.into_iter().filter(usable).collect();
                 let updates = self.items.iter().filter(|i| self.action(i) == Action::Update).count();
-                let mut note = format!("{} in the gallery", self.items.len());
+                let mut note = tr!("{n} in the gallery", n = self.items.len());
                 if updates > 0 {
-                    note += &format!(", {updates} to update");
+                    note += &tr!(", {n} to update", n = updates);
                 }
-                match hidden {
-                    0 => {}
-                    1 => note += "; 1 plug-in needs Popamp Plus",
-                    n => note += &format!("; {n} plug-ins need Popamp Plus"),
+                if hidden > 0 {
+                    note += &trn!(hidden, "; {n} plug-in needs Popamp Plus", "; {n} plug-ins need Popamp Plus");
                 }
                 self.form.set_label(self.status, note + ".");
                 self.filter();
             }
-            Fetched::Catalog(Err(e)) => self.form.set_label(self.status, format!("Gallery: {e}")),
+            Fetched::Catalog(Err(e)) => self.form.set_label(self.status, tr!("Gallery: {e}", e)),
             Fetched::Preview { id, result } => {
                 match result {
                     Ok(img) => {
@@ -651,7 +651,7 @@ impl GalleryPanel {
                 if self.selected().is_some_and(|i| i.id == id) {
                     match self.previews.get(&id) {
                         Some(img) => self.form.set_image(self.preview, Some(img.clone()), ""),
-                        None => self.form.set_image(self.preview, None, "No preview"),
+                        None => self.form.set_image(self.preview, None, tr!("No preview")),
                     }
                 }
             }
@@ -675,12 +675,12 @@ impl GalleryPanel {
         match item.kind {
             Kind::Skin => {
                 model.set_skin(Some(path));
-                format!("Using {}.", item.name)
+                tr!("Using {name}.", name = item.name)
             }
             Kind::Plugin(_) => {
                 #[cfg(feature = "plugins")]
                 model.load_plugins();
-                format!("{} {} is installed. Turn it on in Options > Plug-ins.", item.name, item.version)
+                tr!("{name} is installed. Turn it on in Options > Plug-ins.", name = format!("{} {}", item.name, item.version))
             }
         }
     }
@@ -697,21 +697,30 @@ fn foreign(item: &Item, dir: &Path) -> bool {
 /// The lines about `item` under the list.
 fn details(item: &Item) -> Vec<String> {
     let what = match &item.kind {
-        Kind::Skin => "Skin".to_string(),
-        Kind::Plugin(k) if k.is_empty() => "Plug-in".to_string(),
-        Kind::Plugin(k) => format!("{} plug-in", if k == "dsp" { "DSP".to_string() } else { capital(k) }),
+        Kind::Skin => tr!("Skin").to_string(),
+        Kind::Plugin(k) => match k.as_str() {
+            "" => tr!("Plug-in").to_string(),
+            "dsp" => tr!("DSP plug-in").to_string(),
+            "source" => tr!("Source plug-in").to_string(),
+            "decoder" => tr!("Decoder plug-in").to_string(),
+            "visual" => tr!("Visual plug-in").to_string(),
+            k => tr!("{kind} plug-in", kind = capital(k)),
+        },
     };
-    let by = Some(&item.author).filter(|a| !a.is_empty()).map(|a| format!(" by {a}")).unwrap_or_default();
-    let mut lines = vec![what + &by, standing(item)];
+    let what = match item.author.as_str() {
+        "" => what,
+        author => tr!("{what} by {author}", what, author),
+    };
+    let mut lines = vec![what, standing(item)];
     lines.extend(wrap(&item.summary));
     if matches!(item.kind, Kind::Plugin(_)) {
         if item.permissions.is_empty() {
-            lines.push("Asks for no permissions.".into());
+            lines.push(tr!("Asks for no permissions.").into());
         }
         lines.extend(item.permissions.iter().flat_map(|l| wrap(l)));
     }
     if !item.license.is_empty() {
-        lines.push(format!("License: {}", item.license));
+        lines.push(tr!("License: {license}", license = item.license));
     }
     lines
 }
@@ -719,11 +728,10 @@ fn details(item: &Item) -> Vec<String> {
 /// "Rated 4.5 of 5 by 12, 340 downloads".
 fn standing(item: &Item) -> String {
     let rated = match item.votes {
-        0 => "Not rated yet".to_string(),
-        n => format!("Rated {:.1} of 5 by {n}", item.rating),
+        0 => tr!("Not rated yet").to_string(),
+        n => tr!("Rated {rating} of 5 by {n}", rating = format!("{:.1}", item.rating), n),
     };
-    let s = if item.downloads == 1 { "" } else { "s" };
-    format!("{rated}, {} download{s}", item.downloads)
+    trn!(item.downloads, "{rated}, {n} download", "{rated}, {n} downloads", rated)
 }
 
 fn capital(s: &str) -> String {

@@ -10,8 +10,11 @@ use popamp_core::Command;
 use popamp_skin::layout::WindowKey;
 
 /// The windows that have shortcuts.
-pub const TARGETS: [(WindowKey, &str, &str); 3] =
-    [(WindowKey::Main, "main", "Main"), (WindowKey::Eq, "eq", "Equalizer"), (WindowKey::Playlist, "playlist", "Playlist")];
+pub const TARGETS: [(WindowKey, &str, &str); 3] = [
+    (WindowKey::Main, "main", tr_const!("Main")),
+    (WindowKey::Eq, "eq", tr_const!("Equalizer")),
+    (WindowKey::Playlist, "playlist", tr_const!("Playlist")),
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Click {
@@ -24,22 +27,22 @@ pub enum Click {
 
 /// The mouse buttons and wheel turns that have shortcuts.
 pub const CLICKS: [(Click, &str, &str); 4] = [
-    (Click::Right, "right", "Right Mouse"),
-    (Click::Middle, "middle", "Middle Mouse"),
-    (Click::ScrollUp, "scrollup", "Scroll Up"),
-    (Click::ScrollDown, "scrolldown", "Scroll Down"),
+    (Click::Right, "right", tr_const!("Right Mouse")),
+    (Click::Middle, "middle", tr_const!("Middle Mouse")),
+    (Click::ScrollUp, "scrollup", tr_const!("Scroll Up")),
+    (Click::ScrollDown, "scrolldown", tr_const!("Scroll Down")),
 ];
 
 /// What a click can do.
 pub const ACTIONS: [(Command, &str, &str); 8] = [
-    (Command::Previous, "previous", "Previous track"),
-    (Command::Next, "next", "Next track"),
-    (Command::Pause, "pause", "Pause"),
-    (Command::Stop, "stop", "Stop"),
-    (Command::ToggleShuffle, "shuffle", "Shuffle on/off"),
-    (Command::ToggleRepeat, "repeat", "Repeat on/off"),
-    (Command::VolumeUp, "volup", "Vol Up"),
-    (Command::VolumeDown, "voldown", "Vol Down"),
+    (Command::Previous, "previous", tr_const!("Previous track")),
+    (Command::Next, "next", tr_const!("Next track")),
+    (Command::Pause, "pause", tr_const!("Pause")),
+    (Command::Stop, "stop", tr_const!("Stop")),
+    (Command::ToggleShuffle, "shuffle", tr_const!("Shuffle on/off")),
+    (Command::ToggleRepeat, "repeat", tr_const!("Repeat on/off")),
+    (Command::VolumeUp, "volup", tr_const!("Vol Up")),
+    (Command::VolumeDown, "voldown", tr_const!("Vol Down")),
 ];
 
 /// One rule: a click on a window's title bar runs a command.
@@ -94,9 +97,10 @@ pub fn assign(rules: &mut Vec<Rule>, rule: Rule) {
 /// `rule` as a row of the table in Preferences: window, click and action,
 /// split by tabs into columns.
 pub fn row(rule: &Rule) -> String {
-    let w = TARGETS.iter().find(|t| t.0 == rule.window).map_or("", |t| t.2);
-    let c = CLICKS.iter().find(|t| t.0 == rule.click).map_or("", |t| t.2);
-    let a = ACTIONS.iter().find(|t| t.0 == rule.command).map_or("", |t| t.2);
+    let tr = crate::i18n::tr;
+    let w = TARGETS.iter().find(|t| t.0 == rule.window).map_or("", |t| tr(t.2));
+    let c = CLICKS.iter().find(|t| t.0 == rule.click).map_or("", |t| tr(t.2));
+    let a = ACTIONS.iter().find(|t| t.0 == rule.command).map_or("", |t| tr(t.2));
     format!("{w}\t{c}\t{a}")
 }
 

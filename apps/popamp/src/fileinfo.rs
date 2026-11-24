@@ -65,15 +65,15 @@ impl FileInfo {
             })
             .collect();
         y = labels(&mut form, y + 4, rows.iter().filter(|(k, _)| !is_field(k)), FIELD_W);
-        let cover = form.add(Rect::new(COVER_X, top, COVER, COVER), Widget::Image { image: shown(&path), note: "No cover".into() });
+        let cover = form.add(Rect::new(COVER_X, top, COVER, COVER), Widget::Image { image: shown(&path), note: tr!("No cover").into() });
         let by = top + COVER + 8;
-        button(&mut form, COVER_X, by, "Change…", Act::ChangeCover, false);
-        button(&mut form, W - 10 - BUTTON.0, by, "Remove", Act::RemoveCover, false);
+        button(&mut form, COVER_X, by, tr!("Change…"), Act::ChangeCover, false);
+        button(&mut form, W - 10 - BUTTON.0, by, tr!("Remove"), Act::RemoveCover, false);
         let y = y.max(by + BUTTON.1) + 8;
         let status = form.add(Rect::new(10, y, W - 20, ROW_H), Widget::Label { text: String::new(), dim: false });
         let by = y + ROW_H + 8;
-        button(&mut form, W - 2 * BUTTON.0 - 16, by, "Save", Act::Ok, true);
-        button(&mut form, W - BUTTON.0 - 10, by, "Close", Act::Close, false);
+        button(&mut form, W - 2 * BUTTON.0 - 16, by, tr!("Save"), Act::Ok, true);
+        button(&mut form, W - BUTTON.0 - 10, by, tr!("Close"), Act::Close, false);
         form.h = by + BUTTON.1 + 10;
         FileInfo { form, edit: Some(Editor { path, inputs, cover, change: CoverChange::Keep, status }) }
     }
@@ -84,13 +84,13 @@ impl FileInfo {
         let local = entry.filter(|e| !is_url(&e.location)).map(|e| PathBuf::from(&e.location));
         let y = labels(&mut form, 10, rows.iter(), FIELD_W);
         if let Some(path) = &local {
-            form.add(Rect::new(COVER_X, 10, COVER, COVER), Widget::Image { image: shown(path), note: "No cover".into() });
+            form.add(Rect::new(COVER_X, 10, COVER, COVER), Widget::Image { image: shown(path), note: tr!("No cover").into() });
         }
         let why = entry.map_or("", |e| why_shown(&e.location));
         let y = y.max(if local.is_some() { 10 + COVER } else { 0 }) + 8;
         form.add(Rect::new(10, y, W - 20, ROW_H), Widget::Label { text: why.into(), dim: true });
         let by = y + ROW_H + 8;
-        button(&mut form, W - BUTTON.0 - 10, by, "Close", Act::Close, true);
+        button(&mut form, W - BUTTON.0 - 10, by, tr!("Close"), Act::Close, true);
         form.h = by + BUTTON.1 + 10;
         FileInfo { form, edit: None }
     }
@@ -134,7 +134,7 @@ impl FileInfo {
                 false
             }
             Err(e) => {
-                self.form.set_label(ed.status, format!("Not saved: {e}"));
+                self.form.set_label(ed.status, tr!("Not saved: {e}", e));
                 true
             }
         }
@@ -150,7 +150,7 @@ impl FileInfo {
                 self.form.set_label(ed.status, String::new());
                 ed.change = CoverChange::Set(picture.expect("decoded"));
             }
-            None => self.form.set_label(ed.status, format!("{} is not a JPEG, PNG, GIF or BMP picture.", path.display())),
+            None => self.form.set_label(ed.status, tr!("{file} is not a JPEG, PNG, GIF or BMP picture.", file = path.display())),
         }
     }
 
@@ -160,7 +160,7 @@ impl FileInfo {
         let Some(ed) = &mut self.edit else { return };
         ed.change = CoverChange::Remove;
         let beside = cover::beside(&ed.path).and_then(|p| decode_file(&p));
-        self.form.set_image(ed.cover, beside.map(|b| fit(&b, largest(COVER), largest(COVER))), "No cover");
+        self.form.set_image(ed.cover, beside.map(|b| fit(&b, largest(COVER), largest(COVER))), tr!("No cover"));
     }
 }
 
@@ -189,25 +189,25 @@ fn editable(e: &Entry) -> Option<Writable> {
 fn why_shown(location: &str) -> &'static str {
     let path = Path::new(location);
     if is_url(location) {
-        "A stream's tags cannot be changed."
+        tr!("A stream's tags cannot be changed.")
     } else if cue::split_location(location).is_some() {
-        "This track is part of a whole-disc image; its tags are in the CUE sheet."
+        tr!("This track is part of a whole-disc image; its tags are in the CUE sheet.")
     } else if !path.exists() {
-        "The file is not there."
+        tr!("The file is not there.")
     } else if tags::named_editable(path) {
-        "Popamp cannot read this file: it may be damaged or still downloading."
+        tr!("Popamp cannot read this file: it may be damaged or still downloading.")
     } else {
-        "Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files."
+        tr!("Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.")
     }
 }
 
 fn is_field(key: &str) -> bool {
-    key == "Location" || Field::ALL.iter().any(|f| f.label() == key)
+    key == tr!("Location") || Field::ALL.iter().any(|f| f.label() == key)
 }
 
 /// The location across the top. Returns where the next row goes.
 fn location(form: &mut Form<Act>, path: &str) -> i32 {
-    form.add(Rect::new(10, 10, KEY_W - 10, ROW_H), Widget::Label { text: "Location".into(), dim: true });
+    form.add(Rect::new(10, 10, KEY_W - 10, ROW_H), Widget::Label { text: tr!("Location").into(), dim: true });
     form.add(Rect::new(KEY_W, 10, W - KEY_W - 10, ROW_H), Widget::Label { text: path.into(), dim: false });
     10 + ROW_H + 8
 }
@@ -269,7 +269,7 @@ impl AlbumArt {
             return false;
         }
         let image = now.as_ref().filter(|(l, _)| !is_url(l)).and_then(|(l, _)| cover_of(Path::new(l)));
-        let note = if now.is_some() { "No cover" } else { "Nothing to play" };
+        let note = if now.is_some() { tr!("No cover") } else { tr!("Nothing to play") };
         self.form.set_image(self.image, image.map(|b| fit(&b, largest(ART), largest(ART))), note);
         self.shown = now;
         true

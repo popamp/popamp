@@ -3079,6 +3079,7 @@ dependencies = [
  "sha2",
  "smithay-client-toolkit",
  "softbuffer",
+ "toml 1.1.8+spec-1.1.0",
  "wayland-backend",
  "wayland-client",
  "wayland-cursor",

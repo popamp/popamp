@@ -207,13 +207,14 @@ fn byline(track: &Track) -> String {
 
 /// What the tray icon's tooltip says under the name.
 fn now_playing(snap: &Snapshot) -> String {
-    let Some(track) = &snap.track else { return "Stopped".into() };
+    let Some(track) = &snap.track else { return tr!("Stopped").into() };
     let line = match byline(track) {
         by if by.is_empty() => track.title.clone(),
         by => format!("{}\n{by}", track.title),
     };
     match snap.status {
         "Playing" => line,
+        "Paused" => format!("{line}\n({})", tr!("Paused")),
         status => format!("{line}\n({status})"),
     }
 }
@@ -232,18 +233,18 @@ fn tray_menu(snap: &Snapshot) -> Vec<Option<Entry>> {
     let button = |label, command| Some(Entry { label, checked: None, remote: Remote::Cmd(command) });
     let check = |label, on: bool, remote| Some(Entry { label, checked: Some(on), remote });
     vec![
-        Some(Entry { label: "Show Popamp", checked: None, remote: Remote::Show }),
+        Some(Entry { label: tr!("Show Popamp"), checked: None, remote: Remote::Show }),
         None,
-        button("Previous", Command::Previous),
-        button("Play", Command::Play),
-        button("Pause", Command::Pause),
-        button("Stop", Command::Stop),
-        button("Next", Command::Next),
+        button(tr!("Previous"), Command::Previous),
+        button(tr!("Play"), Command::Play),
+        button(tr!("Pause"), Command::Pause),
+        button(tr!("Stop"), Command::Stop),
+        button(tr!("Next"), Command::Next),
         None,
-        check("Shuffle", snap.shuffle, Remote::Shuffle(Some(!snap.shuffle))),
-        check("Repeat", snap.repeat, Remote::Repeat(Some(!snap.repeat))),
+        check(tr!("Shuffle"), snap.shuffle, Remote::Shuffle(Some(!snap.shuffle))),
+        check(tr!("Repeat"), snap.repeat, Remote::Repeat(Some(!snap.repeat))),
         None,
-        Some(Entry { label: "Exit", checked: None, remote: Remote::Quit }),
+        Some(Entry { label: tr!("Exit"), checked: None, remote: Remote::Quit }),
     ]
 }
 

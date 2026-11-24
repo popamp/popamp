@@ -317,6 +317,9 @@ settings! {
     notify_tracks: bool = false,
     /// Ctrl+Alt+Insert/Home/End/PgUp/PgDn and arrows from any program.
     global_hotkeys: bool = false,
+    /// The language of menus and windows by its code (`ru`), empty for
+    /// the system's.
+    language: String = String::new(),
     // Network.
     proxy: String = String::new(),
     /// Ask popamp.app at start, at most once a day, whether a newer

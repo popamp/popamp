@@ -94,7 +94,7 @@ pub fn text(model: &Model, t: Text) -> Option<String> {
             };
             format!("{shown:>6}")
         }),
-        Text::LibraryTitle => Some("MEDIA LIBRARY".into()),
+        Text::LibraryTitle => Some(tr!("MEDIA LIBRARY").into()),
         Text::LibraryStatus => Some(model.library.status().to_uppercase()),
     }
 }
@@ -112,54 +112,54 @@ pub fn menu(model: &Model, m: MenuRef) -> Vec<MenuItem> {
         MenuRef::PlaylistSort => model.sort_menu(),
         MenuRef::Library => model.library_menu(),
         MenuRef::PlaylistRemoveMisc => vec![
-            MenuItem::cmd("Remove missing files", "Alt+Del", C::RemoveMissing),
-            MenuItem::cmd("Physically remove selected file(s)…", "", C::PhysicallyRemove),
+            MenuItem::cmd(tr!("Remove missing files"), "Alt+Del", C::RemoveMissing),
+            MenuItem::cmd(tr!("Physically remove selected file(s)…"), "", C::PhysicallyRemove),
         ],
         MenuRef::Previous => vec![
-            MenuItem::cmd("Previous", "Click", C::Previous),
-            MenuItem::cmd("Start of list", "Ctrl+Click", C::StartOfList),
-            MenuItem::cmd("Rewind 5 seconds", "Shift+Click", C::Back5s),
+            MenuItem::cmd(tr!("Previous"), "Click", C::Previous),
+            MenuItem::cmd(tr!("Start of list"), "Ctrl+Click", C::StartOfList),
+            MenuItem::cmd(tr!("Rewind 5 seconds"), "Shift+Click", C::Back5s),
         ],
         MenuRef::Play => vec![
-            MenuItem::cmd("Play/restart", "Click", C::Play),
-            MenuItem::cmd("Open URL…", "Ctrl+Click", C::OpenUrl),
-            MenuItem::cmd("Open file…", "Shift+Click", C::OpenFile),
+            MenuItem::cmd(tr!("Play/restart"), "Click", C::Play),
+            MenuItem::cmd(tr!("Open URL…"), "Ctrl+Click", C::OpenUrl),
+            MenuItem::cmd(tr!("Open file…"), "Shift+Click", C::OpenFile),
         ],
-        MenuRef::Pause => vec![MenuItem::cmd("Pause/Unpause", "Click", C::Pause)],
+        MenuRef::Pause => vec![MenuItem::cmd(tr!("Pause/Unpause"), "Click", C::Pause)],
         MenuRef::Stop => vec![
-            MenuItem::cmd("Stop", "Click", C::Stop),
-            MenuItem::cmd("Stop w/ fadeout", "Shift+Click", C::StopFadeout),
-            MenuItem::cmd("Stop after current", "Ctrl+Click", C::StopAfterCurrent).checked(model.stop_after_current),
+            MenuItem::cmd(tr!("Stop"), "Click", C::Stop),
+            MenuItem::cmd(tr!("Stop w/ fadeout"), "Shift+Click", C::StopFadeout),
+            MenuItem::cmd(tr!("Stop after current"), "Ctrl+Click", C::StopAfterCurrent).checked(model.stop_after_current),
         ],
         MenuRef::Next => vec![
-            MenuItem::cmd("Next", "Click", C::Next),
-            MenuItem::cmd("Fast-forward 5 seconds", "Shift+Click", C::Fwd5s),
-            MenuItem::cmd("End of list", "Ctrl+Click", C::EndOfList),
+            MenuItem::cmd(tr!("Next"), "Click", C::Next),
+            MenuItem::cmd(tr!("Fast-forward 5 seconds"), "Shift+Click", C::Fwd5s),
+            MenuItem::cmd(tr!("End of list"), "Ctrl+Click", C::EndOfList),
         ],
         MenuRef::Eject => vec![
-            MenuItem::cmd("Open file…", "Click", C::OpenFile),
-            MenuItem::cmd("Open folder…", "Shift+Click", C::OpenFolder),
-            MenuItem::cmd("Open URL…", "Ctrl+Click", C::OpenUrl),
+            MenuItem::cmd(tr!("Open file…"), "Click", C::OpenFile),
+            MenuItem::cmd(tr!("Open folder…"), "Shift+Click", C::OpenFolder),
+            MenuItem::cmd(tr!("Open URL…"), "Ctrl+Click", C::OpenUrl),
         ],
         MenuRef::Seek => vec![
-            MenuItem::cmd("Jump to time…", "Ctrl+J", C::JumpToTime),
-            MenuItem::cmd("Rewind 5 seconds", "Left", C::Back5s),
-            MenuItem::cmd("Forward 5 seconds", "Right", C::Fwd5s),
+            MenuItem::cmd(tr!("Jump to time…"), "Ctrl+J", C::JumpToTime),
+            MenuItem::cmd(tr!("Rewind 5 seconds"), "Left", C::Back5s),
+            MenuItem::cmd(tr!("Forward 5 seconds"), "Right", C::Fwd5s),
         ],
         MenuRef::Repeat => vec![
-            MenuItem::cmd("Repeat", "R", C::ToggleRepeat).checked(s.repeat),
-            MenuItem::cmd("Manual playlist advance", "Shift+R", C::ToggleManualAdvance).checked(!s.pladv),
+            MenuItem::cmd(tr!("Repeat"), "R", C::ToggleRepeat).checked(s.repeat),
+            MenuItem::cmd(tr!("Manual playlist advance"), "Shift+R", C::ToggleManualAdvance).checked(!s.pladv),
         ],
-        MenuRef::Shuffle => vec![MenuItem::cmd("Shuffle", "S", C::ToggleShuffle).checked(s.shuffle)],
+        MenuRef::Shuffle => vec![MenuItem::cmd(tr!("Shuffle"), "S", C::ToggleShuffle).checked(s.shuffle)],
         MenuRef::Time => vec![
-            MenuItem::cmd("Time elapsed", "Ctrl+T", C::TimeElapsed).checked(!s.timeleftmode),
-            MenuItem::cmd("Time remaining", "Ctrl+T", C::TimeRemaining).checked(s.timeleftmode),
+            MenuItem::cmd(tr!("Time elapsed"), "Ctrl+T", C::TimeElapsed).checked(!s.timeleftmode),
+            MenuItem::cmd(tr!("Time remaining"), "Ctrl+T", C::TimeRemaining).checked(s.timeleftmode),
         ],
         MenuRef::SongTitle => vec![
-            MenuItem::cmd("View file info…", "Alt+3", C::FileInfo),
-            MenuItem::cmd("Jump to file…", "J", C::JumpToFile),
-            MenuItem::cmd("Jump to time…", "Ctrl+J", C::JumpToTime),
-            MenuItem::cmd("Autoscroll song name", "", C::ToggleAutoscroll).checked(s.autoscrollname),
+            MenuItem::cmd(tr!("View file info…"), "Alt+3", C::FileInfo),
+            MenuItem::cmd(tr!("Jump to file…"), "J", C::JumpToFile),
+            MenuItem::cmd(tr!("Jump to time…"), "Ctrl+J", C::JumpToTime),
+            MenuItem::cmd(tr!("Autoscroll song name"), "", C::ToggleAutoscroll).checked(s.autoscrollname),
         ],
     }
 }
@@ -192,9 +192,9 @@ pub fn shaded(model: &Model, key: WindowKey) -> bool {
 pub fn title(key: WindowKey) -> &'static str {
     match key {
         WindowKey::Main => "Popamp",
-        WindowKey::Eq => "Popamp Equalizer",
-        WindowKey::Playlist => "Popamp Playlist Editor",
-        WindowKey::Library => "Popamp Media Library",
+        WindowKey::Eq => tr!("Popamp Equalizer"),
+        WindowKey::Playlist => tr!("Popamp Playlist Editor"),
+        WindowKey::Library => tr!("Popamp Media Library"),
     }
 }
 

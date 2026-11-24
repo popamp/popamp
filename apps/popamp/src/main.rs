@@ -4,6 +4,9 @@
 // for the command line goes to the console it was started from.
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
+// First: its `tr!` macros are for the modules after it.
+#[macro_use]
+mod i18n;
 mod app;
 mod bar;
 mod bind;
