@@ -207,9 +207,9 @@ FILE \"03.wav\" WAVE
     INDEX 01 00:00:00
 ";
         let t = parse(sheet, Path::new("/m"), &[]).tracks;
-        let got: Vec<_> = t.iter().map(|t| (t.number, t.file.to_string_lossy().into_owned(), t.start_ms, t.end_ms)).collect();
-        let want = [(1, "/m/01.wav", 0, None), (2, "/m/02.wav", 0, None), (3, "/m/03.wav", 0, None)];
-        assert_eq!(got, want.map(|(n, f, s, e)| (n, f.to_string(), s, e)));
+        let got: Vec<_> = t.iter().map(|t| (t.number, t.file.clone(), t.start_ms, t.end_ms)).collect();
+        let want = [(1, "01.wav"), (2, "02.wav"), (3, "03.wav")].map(|(n, f)| (n, Path::new("/m").join(f), 0, None));
+        assert_eq!(got, want);
     }
 
     #[test]
