@@ -169,6 +169,17 @@ struct Pointer {
     _own: Option<Buf>,
 }
 
+/// A button held over a subsurface: which one, and where the mouse is.
+struct Held {
+    id: u32,
+    at: (f64, f64),
+    /// The compositor told how far the mouse moved since the press. Until it
+    /// does, the mouse is followed where the compositor reports it: an
+    /// absolute device, as a graphics tablet or a virtual machine's mouse,
+    /// moves the pointer without any such movement.
+    moved: bool,
+}
+
 struct State {
     shared: Rc<Shared>,
     events: Vec<Event>,
@@ -184,7 +195,7 @@ struct State {
     /// dragged is not where the compositor reports the mouse from until a
     /// while after it moves, and the mouse read from it would run ahead of
     /// itself. `None` too where the compositor tells no such movement.
-    held: Option<(u32, (f64, f64))>,
+    held: Option<Held>,
     /// The compositor tells how far the mouse moves.
     relative: bool,
     /// The serial of the last press of a button over a subsurface, which
@@ -401,11 +412,12 @@ impl Dispatch<ZwpRelativePointerV1, ()> for State {
     ) {
         if let zwp_relative_pointer_v1::Event::RelativeMotion { dx, dy, .. } = event {
             let scale = state.shared.scale.get();
-            if let Some((id, at)) = &mut state.held {
-                at.0 += dx * scale;
-                at.1 += dy * scale;
-                let p = (at.0.round() as i32, at.1.round() as i32);
-                state.events.push(Event::Moved(*id, p));
+            if let Some(held) = &mut state.held {
+                held.moved = true;
+                held.at.0 += dx * scale;
+                held.at.1 += dy * scale;
+                let p = (held.at.0.round() as i32, held.at.1.round() as i32);
+                state.events.push(Event::Moved(held.id, p));
             }
         }
     }
@@ -557,11 +569,15 @@ impl Dispatch<WlPointer, ()> for State {
                 }
             }
             E::Motion { surface_x, surface_y, .. } => {
-                if state.held.is_some() {
+                if state.held.as_ref().is_some_and(|h| h.moved) {
                     return;
                 }
                 if let Some((id, _)) = state.over {
                     let p = at(state, id, surface_x, surface_y);
+                    let last = state.last;
+                    if let Some(held) = &mut state.held {
+                        held.at = last;
+                    }
                     state.events.push(Event::Moved(id, p));
                 }
             }
@@ -576,7 +592,7 @@ impl Dispatch<WlPointer, ()> for State {
                     _ => return,
                 };
                 let pressed = pressed == WEnum::Value(wl_pointer::ButtonState::Pressed);
-                state.held = (pressed && state.relative).then_some((id, state.last));
+                state.held = (pressed && state.relative).then_some(Held { id, at: state.last, moved: false });
                 state.events.push(Event::Button(id, button, pressed));
             }
             E::Axis { axis: WEnum::Value(wl_pointer::Axis::VerticalScroll), value, .. } => {
