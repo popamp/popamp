@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **CUE sheets from EAC with gaps appended to the previous track**: when a
+  sheet names each track's own file after its TRACK line (the pregap kept
+  at the end of the file before), every track played the file before its
+  own, the first track showed 0:00 and the last file came up a second
+  time. A track now plays from the file its INDEX 01 is in. A library that
+  read such a sheet before reads it again once the sheet changes (touch it).
+
 ## [1.2.0] - 2026-11-24
 
 The media library grows toward jetAudio's: a display with the visualizer
