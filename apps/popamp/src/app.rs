@@ -60,8 +60,9 @@ struct SkinWindow {
 enum Pointer {
     /// The skin's, for the control under it.
     Skin(CursorKind),
-    /// Tracks carried out of the library: whether they can be let go here.
-    Carry(CursorIcon),
+    /// The system's: tracks carried out of the library, whether they can be
+    /// let go here; a border in the library that drags.
+    System(CursorIcon),
 }
 
 struct Popup {
@@ -132,6 +133,8 @@ pub struct App {
     /// Windows the user moved away from the bar while it is on, by `idx`:
     /// they stay where they were put until the bar goes.
     off_bar: [bool; 4],
+    /// The library is on screen maximized: it neither moves nor docks.
+    library_maxed: bool,
     capture: Option<WindowKey>,
     mods: ModifiersState,
     last_click: Option<(WindowKey, Instant, (i32, i32))>,
@@ -152,6 +155,10 @@ pub struct App {
     /// to show them again where they were should COSMIC not tell that the
     /// main window moved.
     aside: Vec<WindowKey>,
+    /// Under Wayland the equalizer and the playlist, parts of the main
+    /// window, show above every window: they hide while the maximized
+    /// library has the focus.
+    covered: bool,
     aside_until: Option<Instant>,
     /// `POPAMP_SNAPSHOT=<dir>`: write each window as PNG after a few frames and exit.
     snapshot: Option<(std::path::PathBuf, u32)>,
@@ -186,6 +193,7 @@ impl App {
             cursors: HashMap::new(),
             drag: None,
             off_bar: [false; 4],
+            library_maxed: false,
             capture: None,
             mods: ModifiersState::empty(),
             last_click: None,
@@ -199,6 +207,7 @@ impl App {
             popup_focus_check: None,
             hidden_with_main: Vec::new(),
             aside: Vec::new(),
+            covered: false,
             aside_until: None,
             snapshot: std::env::var_os("POPAMP_SNAPSHOT").map(|d| (std::path::PathBuf::from(d), 0)),
             platform: Platform::connect(),
@@ -252,6 +261,12 @@ impl App {
     }
 
     fn role(&self, k: WindowKey) -> WindowRole {
+        // The maximized library is a window of its own, as other programs'
+        // windows are, not one docked to the main window: a window manager
+        // keeps docked ones above the program's dialogs.
+        if k == WindowKey::Library && self.model.settings().ml_max {
+            return WindowRole::Main;
+        }
         match self.placement(k) {
             Placement::Free => WindowRole::Main,
             Placement::Docked => WindowRole::Docked,
@@ -332,6 +347,7 @@ impl App {
             pos = self.near_main(k, pos, monitors);
         }
         let role = self.role(k);
+        let own = k == WindowKey::Library && self.model.settings().ml_max;
         let mut attrs = platform::attributes(role)
             .with_title(crate::bind::title(k))
             .with_inner_size(platform::size(scale.px(w), scale.px(h)))
@@ -341,9 +357,12 @@ impl App {
         if self.model.settings().aot {
             attrs = attrs.with_window_level(WindowLevel::AlwaysOnTop);
         }
+        if own && self.compositor_maximizes() {
+            attrs = attrs.with_resizable(true).with_maximized(true);
+        }
         // Under Wayland only the main window is a window; its picture
         // carries its shape, so it has see-through pixels.
-        let made = if wayland && k != WindowKey::Main {
+        let made = if wayland && k != WindowKey::Main && !own {
             self.platform.child(pos, true).ok_or_else(|| "no main window to place it against".to_string())
         } else if let (true, Some(edge)) = (wayland, bar::edge(&self.model).filter(|_| role == WindowRole::Bar)) {
             // The bar is a layer of the desktop. A window of winit's is
@@ -360,7 +379,11 @@ impl App {
             el.create_window(attrs.with_transparent(wayland)).map_err(|e| e.to_string()).and_then(|w| {
                 let w = Arc::new(w);
                 w.set_cursor(CursorIcon::Default);
-                Ok((Win::Top(w.clone()), self.platform.surface(&w, pos)?))
+                // The window made through the platform is the main one: under
+                // Wayland the one the others are parts of. The library's own
+                // is not it.
+                let surface = if own { Surface::soft(&w)? } else { self.platform.surface(&w, pos)? };
+                Ok((Win::Top(w.clone()), surface))
             })
         };
         let (window, surface) = match made {
@@ -470,7 +493,7 @@ impl App {
     fn attach_docked(&self) {
         let owner = self.win(WindowKey::Main).filter(|w| w.role == WindowRole::Main).and_then(|w| w.window.top()).map(|w| &**w);
         for k in [WindowKey::Eq, WindowKey::Playlist, WindowKey::Library] {
-            if let Some(w) = self.win(k).and_then(|w| w.window.top()) {
+            if let Some(w) = self.win(k).filter(|w| w.role == WindowRole::Docked).and_then(|w| w.window.top()) {
                 if let Err(e) = self.platform.attach(w, owner) {
                     log::warn!("cannot tie {k:?} to the main window: {e}");
                 }
@@ -520,23 +543,69 @@ impl App {
         }
     }
 
+    /// The shown windows' rectangles, of those that dock: a maximized
+    /// library, or one coming back from it, takes no part in docking.
+    fn docking_rects(&self, maxed: bool) -> Vec<Option<Rect>> {
+        let docking = |k: WindowKey| k != WindowKey::Library || (!maxed && !self.library_maxed);
+        WindowKey::ALL
+            .iter()
+            .map(|&k| {
+                let w = self.win(k).filter(|w| w.visible && docking(k))?;
+                Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
+            })
+            .collect()
+    }
+
+    /// Where the library goes instead of `planned`: the corner of its area
+    /// when maximized, back to its own place when it stops being.
+    fn library_place(&mut self, maxed: Option<Screen>, planned: (i32, i32)) -> (i32, i32) {
+        let was = std::mem::replace(&mut self.library_maxed, maxed.is_some());
+        match maxed {
+            Some(a) => (a.x, a.y),
+            None if was => self.saved_pos(WindowKey::Library),
+            None => planned,
+        }
+    }
+
+    /// Under Wayland nobody tells a program where its windows are or where
+    /// the panels are: the maximized library is a window of its own there,
+    /// which the compositor maximizes and sizes.
+    fn compositor_maximizes(&self) -> bool {
+        self.platform.on_wayland() && self.model.settings().ml_max
+    }
+
+    /// Finds where the library goes when it is maximized; under Wayland the
+    /// compositor says, in its size for the window.
+    fn update_library_area(&mut self) {
+        if self.platform.on_wayland() {
+            if !self.model.settings().ml_max {
+                self.model.library_area = None;
+            }
+            return;
+        }
+        let (x, y) = self.saved_pos(WindowKey::Library);
+        let (w, h) = crate::bind::stored_size(&self.model, WindowKey::Library);
+        let scale = self.scale(WindowKey::Library);
+        let monitors: Vec<Screen> = self.screens().into_iter().map(|(m, _)| m).collect();
+        let area =
+            self.model.settings().ml_max.then(|| library_area(&monitors, &self.platform.work_areas(), (x, y, scale.px(w), scale.px(h))));
+        self.model.library_area = area.flatten();
+    }
+
     /// Applies sizes, scale and visibility; keeps docked windows attached
     /// when windows change size; `anchor` stays where it is.
     fn apply_layout(&mut self, anchor: WindowKey) {
-        let old: Vec<Option<Rect>> = WindowKey::ALL
-            .iter()
-            .map(|&k| {
-                let w = self.win(k).filter(|w| w.visible)?;
-                Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
-            })
-            .collect();
+        self.update_library_area();
+        let maxed = crate::bind::maximized_area(&self.model, WindowKey::Library);
+        let old = self.docking_rects(maxed.is_some());
         let bar = bar::edge(&self.model).zip(self.model.screen);
         let mut plan = self.plan(&old, anchor, bar);
         let pl = WindowKey::Playlist.index();
         if bar.is_none() && !self.platform.on_wayland() && self.keep_playlist_grip_on_screen(old[pl], plan.pos[pl]) {
             plan = self.plan(&old, anchor, bar);
         }
-        let Plan { sizes, pos: new_pos } = plan;
+        let Plan { sizes, pos: mut new_pos } = plan;
+        new_pos[WindowKey::Library.index()] = self.library_place(maxed, new_pos[WindowKey::Library.index()]);
         let wayland = self.platform.on_wayland();
         for (i, &k) in WindowKey::ALL.iter().enumerate() {
             let visible = self.wanted_visible(k);
@@ -545,7 +614,9 @@ impl App {
             let scale = self.scale(k);
             if let Some(w) = self.win_mut(k) {
                 let size = (scale.px(lw), scale.px(lh));
-                if let Some(top) = w.window.top() {
+                // The compositor sizes the library it maximized.
+                let own = wayland && k == WindowKey::Library && w.role == WindowRole::Main;
+                if let Some(top) = w.window.top().filter(|_| !own) {
                     // winit holds a window that cannot be resized by the
                     // user to its first size under Wayland, as its least
                     // and greatest size: those go along.
@@ -688,7 +759,7 @@ impl App {
     fn render(&mut self, k: WindowKey) {
         let i = k.index();
         let layout = self.scale(k);
-        if self.aside.contains(&k) {
+        if self.aside.contains(&k) || (self.covered && matches!(k, WindowKey::Eq | WindowKey::Playlist)) {
             return;
         }
         let Some(w) = self.wins[i].as_mut() else { return };
@@ -984,6 +1055,9 @@ impl App {
             return;
         }
         let input = self.input(k, false, false);
+        if k == WindowKey::Library && self.show_resize_cursor((input.x, input.y)) {
+            return;
+        }
         let kind = self.skins[k.index()].cursor(&self.model, input.x, input.y);
         let custom = self.cursors.get(&kind).or_else(|| self.cursors.get(&CursorKind::Normal)).cloned();
         let Some(w) = self.wins[k.index()].as_mut() else { return };
@@ -1014,10 +1088,28 @@ impl App {
         let icon = if into { CursorIcon::Copy } else { CursorIcon::NoDrop };
         let Some(w) = self.wins[WindowKey::Library.index()].as_mut() else { return };
         let Some(top) = w.window.top() else { return };
-        if w.pointer != Some(Pointer::Carry(icon)) {
-            w.pointer = Some(Pointer::Carry(icon));
+        if w.pointer != Some(Pointer::System(icon)) {
+            w.pointer = Some(Pointer::System(icon));
             top.set_cursor(icon);
         }
+    }
+
+    /// Over a border of the library that drags, the cursor shows it; true
+    /// when it does.
+    fn show_resize_cursor(&mut self, input: (i32, i32)) -> bool {
+        let k = WindowKey::Library;
+        let icon = match self.skins[k.index()].library_resizes(&self.model, input.0, input.1) {
+            Some(crate::library::Resize::Across) => CursorIcon::EwResize,
+            Some(crate::library::Resize::Down) => CursorIcon::NsResize,
+            None => return false,
+        };
+        let Some(w) = self.wins[k.index()].as_mut() else { return false };
+        let Some(top) = w.window.top() else { return false };
+        if w.pointer != Some(Pointer::System(icon)) {
+            w.pointer = Some(Pointer::System(icon));
+            top.set_cursor(icon);
+        }
+        true
     }
 
     /// Starts the tooltip timer when the mouse rests on a new control.
@@ -1143,7 +1235,7 @@ impl App {
 
     fn rect(&self, k: WindowKey) -> Option<(i32, i32, i32, i32)> {
         let w = self.win(k)?;
-        if !w.visible {
+        if !w.visible || (k == WindowKey::Library && self.library_maxed) {
             return None;
         }
         Some((w.pos.0, w.pos.1, w.shown.px(w.size.0), w.shown.px(w.size.1)))
@@ -1253,6 +1345,24 @@ impl App {
             self.aside.push(k);
         }
         log::debug!(target: "moves", "set aside {:?}", self.aside);
+    }
+
+    /// Hides the equalizer and the playlist under Wayland while the
+    /// maximized library is in front (`on`), and shows them again.
+    fn cover_companions(&mut self, on: bool) {
+        if self.covered == on {
+            return;
+        }
+        self.covered = on;
+        for k in [WindowKey::Eq, WindowKey::Playlist] {
+            let scale = self.scale(k);
+            let Some(w) = self.win_mut(k).filter(|w| w.visible) else { continue };
+            if on {
+                w.surface.hide((scale.px(w.size.0), scale.px(w.size.1)));
+            } else {
+                self.render(k);
+            }
+        }
     }
 
     /// Shows the windows hidden by `set_aside` where they were on the
@@ -1413,6 +1523,8 @@ impl App {
                 self.capture = Some(k);
                 self.render(k);
             }
+            // A maximized library stays as it is.
+            Out::BeginMove | Out::BeginResize if k == WindowKey::Library && self.library_maxed => {}
             Out::BeginMove => self.begin_move(k),
             Out::BeginResize => {
                 let start = self.cursor_screen(k);
@@ -1426,6 +1538,16 @@ impl App {
             }
         }
         self.after_model(el);
+    }
+
+    /// The middle button on the library sends the track under it to the playlist.
+    fn library_middle(&mut self, el: &ActiveEventLoop) {
+        let k = WindowKey::Library;
+        let input = self.input(k, false, false);
+        if self.skins[k.index()].library_middle(&mut self.model, input.x, input.y) {
+            self.render(k);
+            self.after_model(el);
+        }
     }
 
     fn mouse_down(&mut self, el: &ActiveEventLoop, k: WindowKey, button: MouseButton) {
@@ -1442,6 +1564,9 @@ impl App {
             if self.title_shortcut(el, k, click) {
                 return;
             }
+        }
+        if button == MouseButton::Middle && k == WindowKey::Library {
+            return self.library_middle(el);
         }
         if button != MouseButton::Left && button != MouseButton::Right {
             return;
@@ -1527,7 +1652,7 @@ impl App {
     /// they are let go over; anywhere else, nowhere.
     fn drop_on_playlist(&mut self) {
         let Some(row) = self.playlist_row_under_mouse() else { return };
-        self.model.library_play(AddMode::Insert(row));
+        self.model.library_add(AddMode::Insert(row));
         self.render(WindowKey::Playlist);
     }
 
@@ -1917,6 +2042,12 @@ impl App {
                     self.open_popup(el, items, at, false);
                 }
                 UiReq::Layout => {
+                    if WindowKey::ALL.iter().any(|&k| self.win(k).is_some_and(|w| w.role != self.role(k))) {
+                        self.remake_changed_windows(el);
+                    }
+                    if !self.compositor_maximizes() {
+                        self.covered = false;
+                    }
                     self.update_bar_area();
                     self.apply_layout(WindowKey::Main);
                     self.redraw_all();
@@ -1988,7 +2119,21 @@ impl App {
         let drops = std::mem::take(&mut self.drops);
         let k = drops[0].0;
         let files: Vec<String> = drops.into_iter().map(|(_, f)| f).collect();
+        let picture = |f: &str| {
+            let ext = std::path::Path::new(f).extension().map(|e| e.to_string_lossy().to_ascii_lowercase());
+            matches!(ext.as_deref(), Some("jpg" | "jpeg" | "png" | "gif" | "bmp"))
+        };
         match k {
+            // A picture on a track of the library: its cover.
+            WindowKey::Library if files.len() == 1 && picture(&files[0]) => {
+                let input = self.input(WindowKey::Library, false, false);
+                let targets = self.skins[WindowKey::Library.index()].library_cover_targets(&mut self.model, input.x, input.y);
+                if targets.is_empty() {
+                    self.model.flash("LIBRARY: LET THE PICTURE GO ON A TRACK OR ITS COVER");
+                } else {
+                    self.model.library_cover_dropped(&files[0], targets);
+                }
+            }
             WindowKey::Playlist => {
                 // Insert at the row under the cursor.
                 let input = self.input(WindowKey::Playlist, false, false);
@@ -2016,15 +2161,10 @@ impl App {
         self.model.vis.analyze(&settings, rate);
         self.skins[WindowKey::Main.index()].tick(&self.model, &mut self.fonts);
         self.render(WindowKey::Main);
+        let live = self.tick_library(state);
         if self.last_slow.elapsed() >= Duration::from_millis(500) {
             self.last_slow = Instant::now();
-            self.model.reload_skin_if_changed();
-            if bar::edge(&self.model).is_some() && self.update_bar_area() {
-                self.apply_layout(WindowKey::Main);
-            }
-            if state != PlayState::Stopped || settings.pe_width >= 350 {
-                self.render(WindowKey::Playlist);
-            }
+            self.slow_tick(state, &settings, live);
         } else if settings.pe_width >= 350 && state == PlayState::Playing {
             self.render(WindowKey::Playlist);
         }
@@ -2032,6 +2172,35 @@ impl App {
         // own thread, and nothing else wakes the UI to tell the desktop.
         self.media.update(self.model.media_snapshot());
         self.hotkeys.want(settings.global_hotkeys);
+    }
+
+    /// Twice a second: a changed skin, the bar's screen area, the clocks
+    /// of the playlist and the library, and the library's timed scan.
+    fn slow_tick(&mut self, state: PlayState, settings: &popamp_core::config::Settings, library_drawn: bool) {
+        self.model.reload_skin_if_changed();
+        self.model.library_rescan_if_due(Instant::now());
+        if bar::edge(&self.model).is_some() && self.update_bar_area() {
+            self.apply_layout(WindowKey::Main);
+        }
+        if state != PlayState::Stopped || settings.pe_width >= 350 {
+            self.render(WindowKey::Playlist);
+        }
+        if state != PlayState::Stopped && !library_drawn {
+            self.render(WindowKey::Library); // its clock
+        }
+    }
+
+    /// Draws the library again when its strip moves: a visualizer while
+    /// there is sound or its bars are still falling, a scrolling title.
+    /// True when it was drawn.
+    fn tick_library(&mut self, state: PlayState) -> bool {
+        let k = WindowKey::Library;
+        let scrolled = self.skins[k.index()].tick(&self.model, &mut self.fonts);
+        let vis = self.skins[k.index()].shows_vis(&self.model) && (state == PlayState::Playing || !self.model.vis.at_rest());
+        if scrolled || vis {
+            self.render(k);
+        }
+        scrolled || vis
     }
 }
 
@@ -2160,6 +2329,7 @@ impl ApplicationHandler<AppEvent> for App {
                 }
                 self.render(WindowKey::Main);
                 self.render(WindowKey::Playlist);
+                self.render(WindowKey::Library);
             }
             AppEvent::Meta(id, m) => self.model.on_meta(id, m),
             AppEvent::Expanded { items, mode } => self.model.on_expanded(items, mode),
@@ -2243,6 +2413,14 @@ impl ApplicationHandler<AppEvent> for App {
         }
         let Some(k) = self.kind_of(id) else { return };
         match ev {
+            WindowEvent::Resized(size) if k == WindowKey::Library && self.compositor_maximizes() => {
+                let area = Screen { x: 0, y: 0, w: size.width as i32, h: size.height as i32 };
+                if self.model.library_area != Some(area) && area.w > 0 && area.h > 0 {
+                    self.model.library_area = Some(area);
+                    self.apply_layout(WindowKey::Library);
+                    self.render(WindowKey::Library);
+                }
+            }
             WindowEvent::CursorLeft { .. } => self.tip = None,
             // As after the main window is dragged under Wayland.
             WindowEvent::CursorEntered { .. } => self.mouse_back(),
@@ -2265,6 +2443,13 @@ impl ApplicationHandler<AppEvent> for App {
                 }
             }
             WindowEvent::Focused(f) if self.platform.on_wayland() => {
+                // Hidden while the maximized library has the focus, back
+                // when the main window has it; a dialog changes nothing.
+                match (k, f) {
+                    (WindowKey::Library, true) => self.cover_companions(self.compositor_maximizes()),
+                    (WindowKey::Main, true) => self.cover_companions(false),
+                    _ => {}
+                }
                 self.active = f;
                 if !f && !self.popups.is_empty() {
                     self.popup_focus_check = Some(Instant::now());
@@ -2396,6 +2581,15 @@ fn shape_mask(model: &Model, mode: &Mode, shape: &Shape, size: (i32, i32), scale
 
 /// Screen rectangle of a shown window: x, y, width, height.
 type Rect = (i32, i32, i32, i32);
+
+/// Where the maximized library goes: the usable part of the monitor with
+/// the middle of its own rectangle `normal`, else of the first monitor.
+fn library_area(monitors: &[Screen], work_areas: &[Screen], normal: Rect) -> Option<Screen> {
+    let (cx, cy) = (normal.0 + normal.2 / 2, normal.1 + normal.3 / 2);
+    let on = |m: &&Screen| cx >= m.x && cx < m.x + m.w && cy >= m.y && cy < m.y + m.h;
+    let monitor = monitors.iter().find(on).or(monitors.first())?;
+    Some(bar::usable(*monitor, work_areas, None))
+}
 
 /// The screen a menu opened at `at` is kept on: the one under it where the
 /// desktop counts in points (screens of other densities side by side on a
@@ -2560,6 +2754,17 @@ mod tests {
 
     const MONITOR: [Screen; 1] = [Screen { x: 0, y: 0, w: 1920, h: 1080 }];
     const BELOW_PANEL: [Screen; 1] = [Screen { x: 0, y: 32, w: 1920, h: 1048 }];
+
+    #[test]
+    fn the_maximized_library_fills_its_own_monitor_less_the_panels() {
+        let two = [Screen { x: 0, y: 0, w: 1920, h: 1080 }, Screen { x: 1920, y: 0, w: 1280, h: 1024 }];
+        let work = [Screen { x: 0, y: 32, w: 1920, h: 1048 }, Screen { x: 1920, y: 0, w: 1280, h: 1024 }];
+        assert_eq!(library_area(&two, &work, (100, 100, 550, 348)), Some(work[0]));
+        assert_eq!(library_area(&two, &work, (1800, 100, 550, 348)), Some(work[1]), "where most of it is: its middle");
+        assert_eq!(library_area(&two, &work, (-900, 100, 550, 348)), Some(work[0]), "off every monitor: the first");
+        assert_eq!(library_area(&two, &[], (100, 100, 550, 348)), Some(two[0]), "no work areas known: the monitor");
+        assert_eq!(library_area(&[], &work, (100, 100, 550, 348)), None);
+    }
 
     #[test]
     fn a_docked_group_stops_where_the_window_manager_holds_one_of_it() {

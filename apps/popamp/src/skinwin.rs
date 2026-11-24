@@ -91,6 +91,11 @@ impl SkinWin {
         Some(Current { mode, w, h })
     }
 
+    /// Whether the mode on screen has a visualizer, which moves every frame.
+    pub fn shows_vis(&self, model: &Model) -> bool {
+        self.current(model).is_some_and(|c| c.mode.elements.iter().any(|el| matches!(el.kind, Kind::Vis)))
+    }
+
     /// The pressed element, if it belongs to the mode on screen.
     fn pressed_index(&self, model: &Model) -> Option<usize> {
         let (shade, i) = self.pressed?;
@@ -127,6 +132,16 @@ impl SkinWin {
             .and_then(|i| c.mode.elements.get(i))
             .and_then(|el| el.cursor)
             .unwrap_or(c.mode.cursor)
+    }
+
+    /// Which way the library element under `x`, `y`, or the one held,
+    /// resizes something there: the cursor shows it.
+    pub fn library_resizes(&self, model: &Model, x: i32, y: i32) -> Option<crate::library::Resize> {
+        let i = self.pressed_index(model).or_else(|| self.hit(model, x, y))?;
+        match self.element(model, i)? {
+            (Element { kind: Kind::Library { thumb }, .. }, r) => model.library.resizes_at(place(model, r, &thumb), x, y),
+            _ => None,
+        }
     }
 
     pub fn tooltip(&self, model: &Model, x: i32, y: i32) -> Option<String> {
@@ -324,6 +339,22 @@ impl SkinWin {
         })
     }
 
+    /// The tracks a picture let go at `x`, `y` is the cover of; see
+    /// `LibraryPane::cover_drop_targets`.
+    pub fn library_cover_targets(&mut self, model: &mut Model, x: i32, y: i32) -> Vec<String> {
+        let Some(at) = self.library_place(model) else { return Vec::new() };
+        model.library.cover_drop_targets(at, x, y)
+    }
+
+    /// The middle button on the library: the track under it goes to the
+    /// playlist. False when it is over no track.
+    pub fn library_middle(&mut self, model: &mut Model, x: i32, y: i32) -> bool {
+        let Some(at) = self.library_place(model) else { return false };
+        let Some(c) = model.library.press_middle(at, x, y) else { return false };
+        model.exec(c);
+        true
+    }
+
     /// A key for the library; false when it has no use for it.
     pub fn library_key(&mut self, model: &mut Model, key: crate::widgets::Key, shift: bool) -> bool {
         let Some(at) = self.library_place(model) else { return false };
@@ -435,7 +466,7 @@ impl SkinWin {
                 Kind::EqGraph => draw_eq_graph(model, b, r),
                 Kind::List => self.draw_list(model, &mut fonts.list, b, r, active),
                 Kind::Library { thumb } => {
-                    let playing = model.playlist.current_entry().map(|e| e.location.as_str());
+                    let playing = model.playing_entry().map(|e| e.location.as_str());
                     let at = place(model, r, thumb);
                     model.library.draw(b, &mut fonts.list, at, &skin.pl, active, playing);
                     for (t, held) in model.library.thumbs(at) {
@@ -719,6 +750,7 @@ impl SkinWin {
                 if let Some(c) = model.library.release(place(model, r, &thumb), ev.x, ev.y) {
                     model.exec(c);
                 }
+                model.keep_library_layout();
                 Out::Redraw
             }
             Kind::Slider(s) => {
@@ -922,6 +954,16 @@ mod tests {
         let w = SkinWin::new(WindowKey::Main);
         assert_eq!(w.tooltip(&m, 20, 20).as_deref(), Some("Play"));
         assert_eq!(w.tooltip(&m, 11, 11), None, "the corner is not the button");
+    }
+
+    #[test]
+    fn a_window_with_a_visualizer_shows_it() {
+        let mut m = Model::for_tests();
+        let toml = "[meta]\nname = \"Vis\"\nformat_version = 1\n[[window]]\nkey = \"main\"\nnormal.size = [275, 116]\n\
+            [[window]]\nkey = \"library\"\nnormal.size = [275, 116]\n[[window.normal.element]]\ntype = \"vis\"\nrect = [10, 10, 76, 16]\n";
+        m.skin = popamp_skin::vector::load(&[("skin.toml".to_string(), toml.as_bytes().to_vec())].into(), None).unwrap();
+        assert!(SkinWin::new(WindowKey::Library).shows_vis(&m));
+        assert!(!SkinWin::new(WindowKey::Main).shows_vis(&m), "this main window has none");
     }
 
     #[test]

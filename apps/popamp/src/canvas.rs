@@ -5,6 +5,7 @@
 use crate::font::Font;
 use crate::scale::Scale;
 use popamp_skin::layout::Align;
+use popamp_skin::svg::Placement;
 use popamp_skin::{Bitmap, Rect, Rgba};
 
 pub struct Canvas<'a> {
@@ -58,6 +59,20 @@ impl<'a> Canvas<'a> {
     pub fn overlay(&mut self, src: &Rgba, at: Rect, clip: Rect) {
         let (x, y, _, _) = self.screen(at.x, at.y, at.w, at.h);
         self.bitmap.overlay(src, x, y, self.screen(clip.x, clip.y, clip.w, clip.h));
+    }
+
+    /// Puts `img`, already at screen size, in the middle of skin
+    /// rectangle `r`, pixel for pixel.
+    pub fn picture(&mut self, img: &Bitmap, r: Rect) {
+        let (x, y, w, h) = self.screen(r.x, r.y, r.w, r.h);
+        self.bitmap.blit(img, 0, 0, img.w.min(w), img.h.min(h), x + (w - img.w).max(0) / 2, y + (h - img.h).max(0) / 2);
+    }
+
+    /// Where a picture's area that fills skin rectangle `r` lands on the screen.
+    pub fn placement(&self, r: Rect) -> Placement {
+        let (_, _, w, h) = self.screen(r.x, r.y, r.w, r.h);
+        let s = self.scale;
+        Placement { w, h, pct: s.pct(), dx: s.shift(r.x), dy: s.shift(r.y) }
     }
 
     /// The screen size of skin rectangle `r`.

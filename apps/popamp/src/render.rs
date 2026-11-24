@@ -22,8 +22,7 @@ pub fn picture(b: &mut Canvas, skin: &Skin, pic: Picture, src: Rect, clip: Rect)
         Picture::Sheet(s) => b.blit(skin.sheet(s), src.x, src.y, clip.w.min(src.w), clip.h.min(src.h), clip.x, clip.y),
         Picture::Svg(id) => {
             let at = Rect { x: clip.x, y: clip.y, w: src.w, h: src.h };
-            let (w, h) = b.screen_size(at);
-            if let Some(r) = skin.svgs.raster(id, src, w, h) {
+            if let Some(r) = skin.svgs.raster_placed(id, src, b.placement(at)) {
                 b.overlay(&r, at, clip);
             }
         }

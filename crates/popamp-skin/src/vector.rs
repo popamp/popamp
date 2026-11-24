@@ -543,12 +543,11 @@ impl Builder<'_> {
             },
         };
         if def.key == WindowKey::Library {
-            // Every skin's library can shade, as the playlist's does: a
-            // double click on its title bar, where the skin left that open.
-            def.shade.get_or_insert_with(crate::classic::library_shade);
+            // Every skin's library maximizes on a double click on its
+            // title bar, where the skin left that open.
             for e in &mut def.normal.elements {
                 if let Kind::Drag { double } = &mut e.kind {
-                    double.get_or_insert(Command::ToggleLibraryShade);
+                    double.get_or_insert(Command::ToggleLibraryMaximize);
                 }
             }
         }

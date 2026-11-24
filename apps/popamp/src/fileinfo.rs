@@ -264,7 +264,7 @@ impl AlbumArt {
     /// Shows the cover of the current track if it changed, or its tags did.
     /// Returns whether it did.
     pub fn refresh(&mut self, model: &Model) -> bool {
-        let now = model.playlist.current().and_then(|i| model.playlist.entry(i)).map(|e| (e.location.clone(), model.tags_generation));
+        let now = model.playing_entry().map(|e| (e.location.clone(), model.tags_generation));
         if now == self.shown {
             return false;
         }

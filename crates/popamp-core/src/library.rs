@@ -28,6 +28,9 @@ pub struct Track {
     /// The track number; 0 when the file has none.
     pub number: u32,
     pub length_ms: Option<u64>,
+    pub comment: String,
+    /// 0 when the file does not say.
+    pub bitrate_kbps: u32,
 }
 
 impl Track {
@@ -50,6 +53,8 @@ impl Track {
             year: field(&meta.year),
             number,
             length_ms: meta.length_ms,
+            comment: field(&meta.comment),
+            bitrate_kbps: meta.bitrate_kbps.unwrap_or(0),
             path,
         }
     }
@@ -57,14 +62,29 @@ impl Track {
     fn line(&self) -> String {
         let length = self.length_ms.map(|l| l.to_string()).unwrap_or_default();
         let texts = [&self.path, &self.title, &self.artist, &self.album, &self.genre, &self.year].map(|t| escape(t));
-        format!("T\t{}\t{}\t{}\t{}\t{length}\t{}\n", self.stamp.size, self.stamp.modified, self.added, self.number, texts.join("\t"))
+        let (stamp, bitrate, comment) = (&self.stamp, self.bitrate_kbps, escape(&self.comment));
+        let head = format!("T\t{}\t{}\t{}\t{}\t{length}", stamp.size, stamp.modified, self.added, self.number);
+        format!("{head}\t{}\t{bitrate}\t{comment}\n", texts.join("\t"))
     }
 
+    /// A track line's fields after the `T`. A line from before comments
+    /// and bit rates were kept has the eleven first; its stamp is dropped,
+    /// so the next scan reads the file for them.
     fn parse(fields: &[&str]) -> Option<Track> {
-        let [size, modified, added, number, length, path, title, artist, album, genre, year] = fields else { return None };
+        let (tags, extra) = fields.split_at_checked(11)?;
+        let [size, modified, added, number, length, path, title, artist, album, genre, year] = tags else { return None };
+        let (stamp, bitrate_kbps, comment) = match extra {
+            [bitrate, comment] => {
+                (Stamp { size: size.parse().ok()?, modified: modified.parse().ok()? }, bitrate.parse().ok()?, unescape(comment))
+            }
+            [] => (Stamp::default(), 0, String::new()),
+            _ => return None,
+        };
         Some(Track {
             path: Some(unescape(path)).filter(|p| !p.is_empty())?,
-            stamp: Stamp { size: size.parse().ok()?, modified: modified.parse().ok()? },
+            stamp,
+            bitrate_kbps,
+            comment,
             added: added.parse().ok()?,
             number: number.parse().ok()?,
             length_ms: length.parse().ok(),
@@ -141,6 +161,17 @@ pub enum Sort {
     Added,
     /// The most stars first.
     Rating,
+    /// By track number, then album.
+    Number,
+    /// By the file's name, without its folder.
+    File,
+    Comment,
+    /// The highest first.
+    Bitrate,
+    /// The most played first.
+    Plays,
+    /// The latest played first.
+    LastPlayed,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -194,6 +225,11 @@ fn best_fit(old: &Track, arrived: &[Track], taken: &[bool], test: fn(&Track, &Tr
     let mut fits = (0..arrived.len()).filter(|&a| !taken[a] && test(old, &arrived[a]));
     let first = fits.next()?;
     Some(std::iter::once(first).chain(fits).find(|&a| name(&arrived[a]) == name(old)).unwrap_or(first))
+}
+
+/// The last part of `path`: the file's name.
+pub fn file_name(path: &str) -> &str {
+    path.rsplit(['/', '\\']).next().unwrap_or(path)
 }
 
 fn by_album(a: &Track, b: &Track) -> Ordering {
@@ -285,6 +321,18 @@ impl Library {
                 let stars = |t: &Track| self.stats.get(&t.path).rating;
                 stars(b).cmp(&stars(a)).then_with(|| natural_cmp(&a.artist, &b.artist)).then_with(|| by_album(a, b))
             }
+            Sort::Number => a.number.cmp(&b.number).then_with(|| by_album(a, b)),
+            Sort::File => natural_cmp(file_name(&a.path), file_name(&b.path)).then_with(|| natural_cmp(&a.path, &b.path)),
+            Sort::Comment => natural_cmp(&a.comment, &b.comment).then_with(|| by_album(a, b)),
+            Sort::Bitrate => b.bitrate_kbps.cmp(&a.bitrate_kbps).then_with(|| by_album(a, b)),
+            Sort::Plays => {
+                let plays = |t: &Track| self.stats.get(&t.path).plays;
+                plays(b).cmp(&plays(a)).then_with(|| by_album(a, b))
+            }
+            Sort::LastPlayed => {
+                let last = |t: &Track| self.stats.get(&t.path).last_played;
+                last(b).cmp(&last(a)).then_with(|| by_album(a, b))
+            }
         };
         found.sort_by(|&a, &b| order(&self.tracks[a], &self.tracks[b]).then(a.cmp(&b)));
         if reverse {
@@ -363,15 +411,33 @@ mod tests {
         lib.tracks[0].stamp = Stamp { size: 7, modified: 9 };
         lib.tracks[0].genre = "Rock".into();
         lib.tracks[0].year = "1996".into();
+        lib.tracks[0].comment = "Live\tat home".into();
+        lib.tracks[0].bitrate_kbps = 320;
         assert_eq!(Library::parse(&lib.to_text()), lib);
         assert_eq!(Library::parse("nonsense\nT\t1\t2\nD\t\n"), Library::default(), "broken lines are skipped");
     }
 
     #[test]
+    fn a_track_saved_before_comments_reads_and_is_read_again_at_the_next_scan() {
+        let lib = Library::parse("T\t7\t9\t5\t3\t1000\t/m/a.mp3\tA\tB\tC\tD\t1999\n");
+        let t = &lib.tracks[0];
+        assert_eq!((t.title.as_str(), t.year.as_str(), t.number, t.added), ("A", "1999", 3, 5));
+        assert_eq!((t.comment.as_str(), t.bitrate_kbps), ("", 0));
+        assert_eq!(t.stamp, Stamp::default(), "no file has this stamp, so a scan reads the tags again");
+    }
+
+    #[test]
     fn tags_make_a_track_and_the_file_name_stands_in_for_a_title() {
-        let meta = TrackMeta { artist: Some(" Kangaroo Moon ".into()), track: Some("3/12".into()), ..TrackMeta::default() };
+        let meta = TrackMeta {
+            artist: Some(" Kangaroo Moon ".into()),
+            track: Some("3/12".into()),
+            comment: Some("demo ".into()),
+            bitrate_kbps: Some(256),
+            ..TrackMeta::default()
+        };
         let t = Track::new("/music/Keep Them Warm.flac".into(), Stamp::default(), 5, &meta);
         assert_eq!((t.title.as_str(), t.artist.as_str(), t.number, t.added), ("Keep Them Warm", "Kangaroo Moon", 3, 5));
+        assert_eq!((t.comment.as_str(), t.bitrate_kbps), ("demo", 256));
     }
 
     #[test]
@@ -416,6 +482,26 @@ mod tests {
         (lib.tracks[3].year, lib.tracks[1].genre) = ("1980".into(), "Ambient".into());
         assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Year, true))[0], "One");
         assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Genre, true))[0], "Ten");
+    }
+
+    #[test]
+    fn tracks_sort_by_number_file_comment_and_bitrate() {
+        let mut lib = sample();
+        (lib.tracks[4].comment, lib.tracks[2].bitrate_kbps) = ("zz".into(), 320);
+        let first = |sort| titles(&lib, &lib.find(&Filter::default(), sort, false))[0].clone();
+        assert_eq!(first(Sort::Number), "Loose", "no number comes first");
+        assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Number, true))[0], "Ten");
+        assert_eq!(first(Sort::File), "One", "1.mp3, by the name alone");
+        assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Comment, true))[0], "Loose");
+        assert_eq!(first(Sort::Bitrate), "Nine", "the highest first");
+    }
+
+    #[test]
+    fn tracks_sort_by_plays_and_last_play_the_most_and_latest_first() {
+        let mut lib = sample();
+        lib.stats = crate::stats::Stats::parse("P\t10\t/music/b/1.mp3\nP\t50\t/music/b/1.mp3\nP\t90\t/music/x.mp3\n");
+        assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::Plays, false))[..2], ["One", "Loose"]);
+        assert_eq!(titles(&lib, &lib.find(&Filter::default(), Sort::LastPlayed, false))[..2], ["Loose", "One"]);
     }
 
     #[test]

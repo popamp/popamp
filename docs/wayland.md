@@ -80,7 +80,9 @@ It also has habits of its own that Popamp has to work around.
   dragged, even at the screen's edge. COSMIC reports pointer positions
   against a popup that lag behind the popup once it has moved, and the
   windows ran away at the edge, so Popamp follows the mouse's relative
-  motion while the button is held instead.
+  motion while the button is held instead. A device that gives no
+  relative motion (a graphics tablet, a virtual machine's mouse) is
+  followed where COSMIC reports it.
 - **Snapping of the equalizer and the playlist** to the main window, to
   each other, to the screen's edges and to the desktop's panels.
   COSMIC tells Popamp where its main window is
@@ -129,6 +131,16 @@ It also has habits of its own that Popamp has to work around.
   COSMIC has no known setting to turn corner tiling off. Drop the
   window near the right edge, but not in the corner, and Edge gravity
   puts it against the edge.
+- **Dialogs open under the equalizer and the playlist.** The equalizer
+  and the playlist are popups of the main window, and COSMIC draws a
+  program's popups over all its other windows, the dialogs included. A
+  dialog opened from the media library (File info, for example) can
+  come up partly under them. Popamp cannot place a dialog, so drag it
+  aside by its title bar, each time it opens: it then shows whole.
+
+  <img src="../assets/screenshots/cosmic-file-info-under-eq.png" alt="Pop!_OS, Purple Glow skin, library maximized: the File info dialog opens in the middle of the screen and the equalizer and the playlist cover its right half">
+
+  <img src="../assets/screenshots/cosmic-file-info-moved.png" alt="The same File info dialog dragged to the left: all its fields show, with the equalizer and the playlist to its right">
 - **No position memory, no always on top, no file drops**, as on every
   Wayland desktop (above).
 - **Xwayland is no way out on COSMIC.** Its Xwayland does not let a

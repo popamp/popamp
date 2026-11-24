@@ -96,6 +96,12 @@ pub enum DialogKind {
     ConfirmPhysicalRemove {
         paths: Vec<String>,
     },
+    /// Asks before writing the picture at `image` into `paths` as their
+    /// cover.
+    WriteCover {
+        image: String,
+        paths: Vec<String>,
+    },
     /// Asks before deleting the smart playlist at `index`.
     DeleteSmart {
         index: usize,

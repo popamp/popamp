@@ -105,10 +105,22 @@ pub struct Status {
     pub stream_name: Option<String>,
 }
 
+/// The list the player plays from: its playlist, or the library's own.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Source {
+    Playlist,
+    Library,
+}
+
 pub struct Model {
     pub paths: Paths,
     pub config: Config,
     pub playlist: Playlist,
+    /// What the library plays, apart from the playlist: the tracks it
+    /// showed when one was played there.
+    pub lib_queue: Playlist,
+    /// Which of the two the player plays from.
+    pub source: Source,
     pub engine: Engine,
     pub format: Arc<Format>,
     pub skin: Skin,
@@ -157,6 +169,9 @@ pub struct Model {
     /// What a bar spans: the main window's monitor less the desktop's
     /// panels.
     pub screen: Option<crate::bar::Screen>,
+    /// Where the maximized library goes: its monitor less the desktop's
+    /// panels, in screen pixels; the player finds it.
+    pub library_area: Option<crate::bar::Screen>,
     /// The window system has no place for a bar (Wayland): the main
     /// window is always a window.
     pub no_bar: bool,
@@ -269,6 +284,10 @@ impl Model {
         let mut library = crate::library::LibraryPane::new(lib);
         library.smart = popamp_core::smart::load(&paths.smart_file());
         library.plain = popamp_core::plain::load(&paths.playlists_dir());
+        library.columns = crate::library::Columns::parse(&config.settings.ml_columns);
+        library.left = config.settings.ml_left;
+        library.panes_h = config.settings.ml_panes;
+        library.restore_tree_state(&config.settings.ml_tree, &config.settings.ml_view);
         library.recount();
         let skin = Skin::builtin_vector(Some(&config.settings.skin_colors));
         let mut m = Model {
@@ -276,6 +295,8 @@ impl Model {
             paths,
             config,
             playlist: Playlist::new(),
+            lib_queue: Playlist::new(),
+            source: Source::Playlist,
             engine,
             format,
             skin,
@@ -284,6 +305,7 @@ impl Model {
             status: Status::default(),
             stop_after_current: false,
             screen: None,
+            library_area: None,
             no_bar: false,
             bar_width_given: false,
             transient: None,
@@ -508,6 +530,7 @@ impl Model {
 
     pub fn save_session(&mut self) {
         self.settings_mut().plpos = self.playlist.current().unwrap_or(0) as i32;
+        (self.config.settings.ml_tree, self.config.settings.ml_view) = self.library.tree_state();
         if let Err(e) = self.save_playlist_file(&self.paths.playlist_file()) {
             log::warn!("cannot save playlist: {e}");
         }
@@ -518,11 +541,52 @@ impl Model {
 
     // --- playback -----------------------------------------------------------
 
+    /// The list the player plays from now.
+    pub fn playing_list(&self) -> &Playlist {
+        self.list(self.source)
+    }
+
+    fn list(&self, source: Source) -> &Playlist {
+        match source {
+            Source::Playlist => &self.playlist,
+            Source::Library => &self.lib_queue,
+        }
+    }
+
+    fn list_mut(&mut self, source: Source) -> &mut Playlist {
+        match source {
+            Source::Playlist => &mut self.playlist,
+            Source::Library => &mut self.lib_queue,
+        }
+    }
+
+    /// The track the player is at: playing, paused, or next to play.
+    pub fn playing_entry(&self) -> Option<&Entry> {
+        self.playing_list().current_entry()
+    }
+
+    /// The entry with `id` in either list.
+    fn entry_by_id(&mut self, id: u64) -> Option<&mut Entry> {
+        let in_playlist = self.playlist.index_of_id(id).is_some();
+        if in_playlist {
+            self.playlist.find_mut_by_id(id)
+        } else {
+            self.lib_queue.find_mut_by_id(id)
+        }
+    }
+
     pub fn play_index(&mut self, idx: usize) {
-        let Some(e) = self.playlist.entry(idx) else { return };
+        self.play_in(Source::Playlist, idx);
+    }
+
+    /// Plays entry `idx` of the `source` list, which the player then goes on in.
+    pub fn play_in(&mut self, source: Source, idx: usize) {
+        let Some(e) = self.list(source).entry(idx) else { return };
         let (id, loc) = (e.id, e.location.clone());
-        self.playlist.set_current(Some(idx));
-        self.playlist.cursor = idx;
+        self.source = source;
+        let list = self.list_mut(source);
+        list.set_current(Some(idx));
+        list.cursor = idx;
         self.status.stream_title = None;
         self.status.stream_name = None;
         if self.sources.of_now(&loc).slow() {
@@ -540,7 +604,8 @@ impl Model {
             return;
         }
         let next = if adv && !self.stop_after_current {
-            self.playlist.next_index(shuffle, repeat).and_then(|i| self.playlist.entry(i)).map(|e| (e.id, e.location.clone()))
+            let list = self.list_mut(self.source);
+            list.next_index(shuffle, repeat).and_then(|i| list.entry(i)).map(|e| (e.id, e.location.clone()))
         } else {
             None
         };
@@ -551,9 +616,10 @@ impl Model {
         match self.state() {
             PlayState::Paused => self.engine.send(EngineCmd::Pause(false)),
             _ => {
-                let idx = self.playlist.current().or(if self.playlist.is_empty() { None } else { Some(0) });
+                let list = self.playing_list();
+                let idx = list.current().or(if list.is_empty() { None } else { Some(0) });
                 match idx {
-                    Some(i) => self.play_index(i),
+                    Some(i) => self.play_in(self.source, i),
                     None => self.request_dialog(DialogKind::OpenFiles { play: true }),
                 }
             }
@@ -572,7 +638,7 @@ impl Model {
         let s = self.settings();
         let (shuffle, repeat) = (s.shuffle, s.repeat);
         // Manual "next" always wraps, like the original.
-        if let Some(i) = self.playlist.next_index(shuffle, true).or(if repeat { Some(0) } else { None }) {
+        if let Some(i) = self.list_mut(self.source).next_index(shuffle, true).or(if repeat { Some(0) } else { None }) {
             self.go_to(i);
         }
     }
@@ -580,7 +646,7 @@ impl Model {
     pub fn prev(&mut self) {
         let s = self.settings();
         let shuffle = s.shuffle;
-        if let Some(i) = self.playlist.prev_index(shuffle, true) {
+        if let Some(i) = self.list_mut(self.source).prev_index(shuffle, true) {
             self.go_to(i);
         }
     }
@@ -588,11 +654,12 @@ impl Model {
     /// Plays `i` if something is playing, otherwise just selects it.
     fn go_to(&mut self, i: usize) {
         if self.state() == PlayState::Stopped {
-            self.playlist.set_current(Some(i));
-            self.playlist.cursor = i;
+            let list = self.list_mut(self.source);
+            list.set_current(Some(i));
+            list.cursor = i;
             self.pl_dirty += 1;
         } else {
-            self.play_index(i);
+            self.play_in(self.source, i);
         }
     }
 
@@ -634,9 +701,10 @@ impl Model {
         match ev {
             EngineEvent::Started { id, info, meta, stream } => self.track_started(id, info, meta, stream.and_then(|s| s.name)),
             EngineEvent::TrackChanged { id, info, meta } => {
-                if let Some(i) = self.playlist.index_of_id(id) {
-                    self.playlist.set_current(Some(i));
-                    self.playlist.cursor = i;
+                let list = self.list_mut(self.source);
+                if let Some(i) = list.index_of_id(id) {
+                    list.set_current(Some(i));
+                    list.cursor = i;
                 }
                 self.track_started(id, info, meta, None)
             }
@@ -644,10 +712,12 @@ impl Model {
                 self.stop_after_current = false;
                 self.status.playing_id = None;
                 // At the end of the list the cursor returns to the first entry.
-                if !self.playlist.is_empty() && self.settings().pladv {
-                    let last = self.playlist.current() == Some(self.playlist.len() - 1);
-                    if last && !self.settings().repeat && !self.settings().shuffle {
-                        self.playlist.set_current(Some(0));
+                let (adv, repeat, shuffle) = (self.settings().pladv, self.settings().repeat, self.settings().shuffle);
+                let list = self.list_mut(self.source);
+                if !list.is_empty() && adv {
+                    let last = list.current() == Some(list.len() - 1);
+                    if last && !repeat && !shuffle {
+                        list.set_current(Some(0));
                     }
                 }
                 self.pl_dirty += 1;
@@ -658,14 +728,15 @@ impl Model {
             EngineEvent::Error { id, message } => {
                 self.flash(format!("ERROR: {message}"));
                 self.status.playing_id = None;
-                let len = self.playlist.len();
+                let (source, shuffle, repeat) = (self.source, self.settings().shuffle, self.settings().repeat);
+                let len = self.list(source).len();
                 if self.settings().pladv && self.error_skips < len && len > 1 {
                     self.error_skips += 1;
-                    if let Some(i) = self.playlist.index_of_id(id) {
-                        self.playlist.set_current(Some(i));
-                        let (shuffle, repeat) = (self.settings().shuffle, self.settings().repeat);
-                        if let Some(n) = self.playlist.next_index(shuffle, repeat) {
-                            self.play_index(n);
+                    let list = self.list_mut(source);
+                    if let Some(i) = list.index_of_id(id) {
+                        list.set_current(Some(i));
+                        if let Some(n) = list.next_index(shuffle, repeat) {
+                            self.play_in(source, n);
                         }
                     }
                 }
@@ -687,7 +758,7 @@ impl Model {
         let fmt = self.format.clone();
         let autoload = self.settings().autoload_eq;
         let mut file_name = None;
-        if let Some(e) = self.playlist.find_mut_by_id(id) {
+        if let Some(e) = self.entry_by_id(id) {
             if e.meta.is_none() || e.length_ms.is_none() {
                 e.length_ms = info.length_ms.or(e.length_ms);
                 if !e.is_url() || meta.title.is_some() {
@@ -712,7 +783,7 @@ impl Model {
 
     /// Counts a play of a file heard long enough; streams have no stats.
     fn listened(&mut self, id: u64) {
-        let Some(e) = self.playlist.entries().iter().find(|e| e.id == id) else { return };
+        let Some(e) = self.entry_by_id(id) else { return };
         if !e.is_url() {
             let location = e.location.clone();
             self.library.lib.stats.record_play(&self.paths.stats_file(), &location, history::now());
@@ -721,12 +792,12 @@ impl Model {
     }
 
     pub fn current_title(&self) -> String {
-        let Some(e) = self.playlist.current_entry() else { return String::new() };
+        let Some(e) = self.playing_entry() else { return String::new() };
         let title = match (&self.status.stream_title, self.status.playing_id == Some(e.id)) {
             (Some(t), true) => t.clone(),
             _ => e.display.clone(),
         };
-        let idx = self.playlist.current().unwrap_or(0) + 1;
+        let idx = self.playing_list().current().unwrap_or(0) + 1;
         match e.length_ms {
             Some(l) => format!("{idx}. {title} ({})", format_duration_ms(l)),
             None => format!("{idx}. {title}"),
@@ -934,7 +1005,7 @@ impl Model {
             }
             DialogKind::EqSavePreset { auto } => {
                 let initial = if *auto {
-                    self.playlist.current_entry().map(|e| e.location.rsplit('/').next().unwrap_or("").to_string()).unwrap_or_default()
+                    self.playing_entry().map(|e| e.location.rsplit('/').next().unwrap_or("").to_string()).unwrap_or_default()
                 } else {
                     String::new()
                 };
@@ -982,6 +1053,16 @@ impl Model {
                     "Delete the playlist “{}”?\n\nIts tracks stay in the library.",
                     self.library.plain.get(*index).map_or("", |l| l.name.as_str())
                 ),
+            },
+            DialogKind::WriteCover { image, paths } => Request::Question {
+                title: "Write cover".into(),
+                text: {
+                    let name = |p: &str| popamp_core::library::file_name(p).to_string();
+                    let tracks = if paths.len() == 1 { "1 track".to_string() } else { format!("{} tracks", paths.len()) };
+                    let some: Vec<String> = paths.iter().take(10).map(|p| name(p)).collect();
+                    let more = if paths.len() > 10 { "\n…" } else { "" };
+                    format!("Write “{}” into {tracks} as the cover?\n\n{}{more}", name(image), some.join("\n"))
+                },
             },
             DialogKind::DeleteSmart { index } => Request::Question {
                 title: "Delete smart playlist".into(),
@@ -1169,6 +1250,11 @@ impl Model {
                     self.remove_plugin(&dir, id.as_deref());
                 }
             }
+            DialogKind::WriteCover { image, paths } => {
+                if first.as_deref() == Some("yes") {
+                    self.library_write_cover(&image, paths);
+                }
+            }
             DialogKind::DeleteSmart { index } => {
                 if first.as_deref() == Some("yes") {
                     self.library_smart_remove(index);
@@ -1323,7 +1409,7 @@ impl Model {
                 self.settings_mut().set_eq_default(&p);
             }
             C::AddBookmark => {
-                let current = self.playlist.current_entry().into_iter().cloned().collect::<Vec<_>>();
+                let current = self.playing_entry().into_iter().cloned().collect::<Vec<_>>();
                 self.add_bookmarks(&current);
             }
             C::BookmarkSelected => {
@@ -1348,13 +1434,29 @@ impl Model {
                 self.settings_mut().ml_open = v;
                 self.ui.push(UiReq::Layout);
             }
-            C::LibraryPlay => self.library_play(AddMode::ReplaceAndPlay),
-            C::LibraryEnqueue => self.library_play(AddMode::Append),
-            C::LibraryOpen => self.exec(self.library_open(false)),
-            C::LibraryOpenOther => self.exec(self.library_open(true)),
+            C::LibraryPlay => self.library_play(),
+            C::LibraryEnqueue => self.library_add(AddMode::Append),
+            C::LibraryAudition => self.library_audition(),
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
             C::LibraryRescan => self.library_rescan(),
             C::LibraryRemoveFolder => self.library_remove_folder(),
+            C::LibraryColumnArtist
+            | C::LibraryColumnTitle
+            | C::LibraryColumnAlbum
+            | C::LibraryColumnTime
+            | C::LibraryColumnGenre
+            | C::LibraryColumnYear
+            | C::LibraryColumnRating
+            | C::LibraryColumnNumber
+            | C::LibraryColumnFile
+            | C::LibraryColumnComment
+            | C::LibraryColumnBitrate
+            | C::LibraryColumnPlays
+            | C::LibraryColumnLastPlayed
+            | C::LibraryColumnAdded
+            | C::LibraryColumnsReset => {
+                self.library_column_command(cmd);
+            }
             C::LibraryRate0 => self.library_rate(0),
             C::LibraryRate1 => self.library_rate(1),
             C::LibraryRate2 => self.library_rate(2),
@@ -1507,9 +1609,10 @@ impl Model {
                 self.settings_mut().pe_ws = v;
                 self.ui.push(UiReq::Layout);
             }
-            C::ToggleLibraryShade => {
-                let v = !self.settings().ml_ws;
-                self.settings_mut().ml_ws = v;
+            C::ToggleLibraryMaximize => {
+                let s = self.settings_mut();
+                s.ml_max = !s.ml_max;
+                s.ml_open |= s.ml_max;
                 self.ui.push(UiReq::Layout);
             }
             C::ToggleEqWindow => {
@@ -1956,7 +2059,7 @@ impl Model {
             PlayState::Paused => "Paused",
             PlayState::Stopped => "Stopped",
         };
-        let track = self.playlist.current_entry().map(|e| {
+        let track = self.playing_entry().map(|e| {
             let playing = self.status.playing_id == Some(e.id);
             let meta = e.meta.as_deref();
             let title = match (&self.status.stream_title, playing) {
@@ -2003,7 +2106,7 @@ impl Model {
             PlayState::Stopped => "stopped",
         };
         let s = self.settings();
-        let cur = self.playlist.current_entry();
+        let cur = self.playing_entry();
         format!(
             "{{\"state\":\"{state}\",\"position_ms\":{},\"length_ms\":{},\"volume\":{},\"balance\":{},\"shuffle\":{},\"repeat\":{},\"index\":{},\"count\":{},\"title\":\"{}\",\"location\":\"{}\"}}",
             self.engine.position_ms(),
@@ -2012,8 +2115,8 @@ impl Model {
             s.balance,
             s.shuffle,
             s.repeat,
-            self.playlist.current().map(|i| i.to_string()).unwrap_or_else(|| "null".into()),
-            self.playlist.len(),
+            self.playing_list().current().map(|i| i.to_string()).unwrap_or_else(|| "null".into()),
+            self.playing_list().len(),
             esc(&cur.map(|e| e.display.clone()).unwrap_or_default()),
             esc(&cur.map(|e| e.location.clone()).unwrap_or_default()),
         )
@@ -2251,6 +2354,18 @@ mod tests {
     fn toolbar(m: &Model, label: &str) -> Option<MenuItem> {
         let mode = m.main_menu().into_iter().find(|i| i.label == "Toolbar mode")?;
         mode.sub.into_iter().find(|i| i.label == label)
+    }
+
+    #[test]
+    fn maximizing_the_library_opens_it_whole() {
+        let mut m = Model::for_tests();
+        m.settings_mut().ml_open = false;
+        m.exec(Command::ToggleLibraryMaximize);
+        let s = m.settings();
+        assert!(s.ml_max && s.ml_open, "shown");
+        assert!(matches!(m.ui.last(), Some(UiReq::Layout)));
+        m.exec(Command::ToggleLibraryMaximize);
+        assert!(!m.settings().ml_max && m.settings().ml_open, "back to its own size, still open");
     }
 
     #[test]

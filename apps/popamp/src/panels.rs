@@ -12,7 +12,7 @@ use crate::museum::{self, Fetched, Job};
 use crate::shortcuts;
 use crate::widgets::{Event, Form, PageEntry, Rect, Widget, BUTTON, PAGE_H, ROW_H};
 use popamp_audio::output::Device;
-use popamp_core::config::Settings;
+use popamp_core::config::{Settings, MAX_RESCAN_MINUTES};
 use popamp_core::Command;
 use popamp_skin::Bitmap;
 use std::collections::HashMap;
@@ -381,7 +381,8 @@ pub enum Flag {
     GlobalHotkeys,
     KeepScanOpen,
     CheckUpdates,
-    EnqueueDefault,
+    ScanAtStart,
+    ScanPeriodically,
 }
 
 impl Flag {
@@ -404,7 +405,8 @@ impl Flag {
             Flag::CheckUpdates => "Check for a new version",
             Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
             Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
-            Flag::EnqueueDefault => "Enter and double-click enqueue instead of playing",
+            Flag::ScanAtStart => "Scan the folders at startup",
+            Flag::ScanPeriodically => "Scan the folders periodically",
         }
     }
 
@@ -440,7 +442,8 @@ impl Flag {
             Flag::CheckUpdates => &mut s.update_check,
             Flag::GlobalHotkeys => &mut s.global_hotkeys,
             Flag::KeepScanOpen => &mut s.rg_scan_keep_open,
-            Flag::EnqueueDefault => &mut s.enqueuedef,
+            Flag::ScanAtStart => &mut s.ml_scan_at_start,
+            Flag::ScanPeriodically => &mut s.ml_rescan,
         }
     }
 
@@ -478,6 +481,7 @@ pub enum Field {
     Proxy,
     SoundFont,
     ListenPercent,
+    RescanMinutes,
 }
 
 impl Field {
@@ -491,6 +495,7 @@ impl Field {
             Field::Proxy => "HTTP proxy",
             Field::SoundFont => "MIDI SoundFont",
             Field::ListenPercent => "Count a play after hearing (%)",
+            Field::RescanMinutes => "Scan every (minutes)",
         }
     }
 
@@ -504,6 +509,7 @@ impl Field {
             Field::Proxy => s.proxy.clone(),
             Field::SoundFont => s.soundfont.clone(),
             Field::ListenPercent => s.listen_percent.to_string(),
+            Field::RescanMinutes => s.ml_rescan_minutes.to_string(),
         }
     }
 
@@ -518,6 +524,10 @@ impl Field {
             Field::ListenPercent => match text.trim().parse::<u32>() {
                 Ok(n) if (50..=100).contains(&n) && n % 5 == 0 => Ok(()),
                 _ => Err("Count a play: 50 to 100, in steps of 5".into()),
+            },
+            Field::RescanMinutes => match text.trim().parse::<u32>() {
+                Ok(n) if (1..=MAX_RESCAN_MINUTES).contains(&n) => Ok(()),
+                _ => Err(format!("Scan every: 1 to {MAX_RESCAN_MINUTES} minutes")),
             },
             Field::TitleFormat if text.trim().is_empty() => Err("Title format: must not be empty".into()),
             Field::SoundFont if !text.trim().is_empty() && !std::path::Path::new(text.trim()).is_file() => {
@@ -536,6 +546,7 @@ impl Field {
             Field::CrossfadeMs => model.settings_mut().crossfade_ms = n(),
             Field::BufferMs => model.settings_mut().buffer_ms = n(),
             Field::ListenPercent => model.settings_mut().listen_percent = n(),
+            Field::RescanMinutes => model.settings_mut().ml_rescan_minutes = n(),
             Field::Proxy => model.settings_mut().proxy = text.trim().to_string(),
             Field::SoundFont => model.settings_mut().soundfont = text.trim().to_string(),
             Field::TitleFormat => {
@@ -605,7 +616,7 @@ impl Section {
             }
             Section::Playlist => &[Flag::DimInactive, Flag::ShowNumbers, Flag::ZeroPad],
             Section::Playback => &[Flag::AutoAdvance, Flag::KeepScanOpen],
-            Section::Library => &[Flag::EnqueueDefault],
+            Section::Library => &[Flag::ScanAtStart, Flag::ScanPeriodically],
             Section::Desktop => &[Flag::TrayIcon, Flag::MinimizeToTray, Flag::NotifyTracks, Flag::GlobalHotkeys],
             Section::Internet => &[Flag::CheckUpdates],
             Section::Shortcuts => &[],
@@ -617,7 +628,7 @@ impl Section {
             Section::Playlist => &[Field::FontSize, Field::TitleFormat],
             Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::SoundFont],
             Section::Internet => &[Field::Proxy],
-            Section::Library => &[Field::ListenPercent],
+            Section::Library => &[Field::RescanMinutes, Field::ListenPercent],
             Section::Windows | Section::Desktop | Section::Shortcuts => &[],
         }
     }
@@ -745,6 +756,9 @@ impl ShortcutEditor {
 
 /// Rows the device list shows at once.
 const DEVICE_ROWS: i32 = 4;
+/// The labels of the typed values in Preferences: "Count a play after
+/// hearing (%)" is about 160 wide in a common sans-serif.
+const LABEL_W: i32 = 172;
 
 impl Preferences {
     fn new(model: &Model, mut devices: Vec<Device>, file_types: FileTypes) -> Preferences {
@@ -775,10 +789,11 @@ impl Preferences {
             }
             let mut y = 40 + rows * 22;
             for &f in section.fields() {
-                form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: f.label().into(), dim: false });
+                form.add_on(page, Rect::new(x0 + 4, y, LABEL_W, 24), Widget::Label { text: f.label().into(), dim: false });
                 let text = f.get(s);
                 let cursor = text.chars().count();
-                fields.push((f, form.add_on(page, Rect::new(x0 + 140, y, cw - 140, 24), Widget::Input { text, cursor })));
+                let r = Rect::new(x0 + 4 + LABEL_W, y, cw - 4 - LABEL_W, 24);
+                fields.push((f, form.add_on(page, r, Widget::Input { text, cursor })));
                 y += 30;
             }
             match section {
@@ -788,9 +803,10 @@ impl Preferences {
                         devices.push(Device { label: format!("{} (not found)", s.output_device), name: s.output_device.clone() });
                     }
                     let current = devices.iter().position(|d| d.name == s.output_device);
-                    form.add_on(page, Rect::new(x0 + 4, y, 136, 24), Widget::Label { text: "Output device".into(), dim: false });
+                    form.add_on(page, Rect::new(x0 + 4, y, LABEL_W, 24), Widget::Label { text: "Output device".into(), dim: false });
                     let list = Widget::List { rows: vec![], selected: None, scroll: 0 };
-                    device_list = form.add_on(page, Rect::new(x0 + 140, y, cw - 140, DEVICE_ROWS * ROW_H + 4), list);
+                    let r = Rect::new(x0 + 4 + LABEL_W, y, cw - 4 - LABEL_W, DEVICE_ROWS * ROW_H + 4);
+                    device_list = form.add_on(page, r, list);
                     form.set_rows(device_list, devices.iter().map(|d| d.label.clone()).collect(), current);
                     y += DEVICE_ROWS * ROW_H + 10;
                 }
@@ -1456,13 +1472,13 @@ pub(crate) mod tests {
         let mut m = songs(&[]);
         let mut p = Panel::open(PanelKind::Preferences, &m);
         let snap = check_box(&mut p, &mut m, Flag::Snap);
-        let enqueue = check_box(&mut p, &mut m, Flag::EnqueueDefault);
-        assert_eq!(snap, enqueue, "both are the first box of their section");
+        let dim = check_box(&mut p, &mut m, Flag::DimInactive);
+        assert_eq!(snap, dim, "both are the first box of their section");
         let Panel::Prefs(pr) = &p else { unreachable!() };
-        assert_eq!(pr.form.shown_page(), Section::ALL.iter().position(|&s| s == Section::Library).unwrap());
-        assert!(m.settings().enqueuedef && m.settings().snap);
-        click(&mut p, &mut m, enqueue);
-        assert!(!m.settings().enqueuedef && m.settings().snap, "the box shown is the one ticked");
+        assert_eq!(pr.form.shown_page(), Section::ALL.iter().position(|&s| s == Section::Playlist).unwrap());
+        let before = (m.settings().dim_inactive, m.settings().snap);
+        click(&mut p, &mut m, dim);
+        assert_eq!((m.settings().dim_inactive, m.settings().snap), (!before.0, before.1), "the box shown is the one ticked");
         for section in Section::ALL {
             for &f in section.flags() {
                 let Panel::Prefs(pr) = &p else { unreachable!() };

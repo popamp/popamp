@@ -1,9 +1,8 @@
 //! User-level commands. Discriminants are the original Winamp command ids
 //! so `/COMMAND=<id>` scripts keep working.
 //!
-//! `LibraryOpen` is Enter or a double click in the library: Play, or
-//! Enqueue when `enqueuedef` is on; `LibraryOpenOther` (Shift+Enter) is the
-//! other of the two.
+//! `LibraryAudition` is a plain click on a library track: it plays the
+//! track when the library is what plays.
 
 macro_rules! commands {
     ($( $name:ident = $id:expr ),* $(,)?) => {
@@ -122,10 +121,7 @@ commands! {
     LibraryAddFolder = 50036,
     LibraryRescan = 50037,
     LibraryRemoveFolder = 50038,
-    LibraryOpen = 50039,
-    LibraryOpenOther = 50040,
     ToggleGroupMove = 50041,
-    ToggleLibraryShade = 50042,
     LibraryRate0 = 50043,
     LibraryRate1 = 50044,
     LibraryRate2 = 50045,
@@ -142,6 +138,23 @@ commands! {
     LibraryPlaylistDelete = 50056,
     LibraryPlaylistRemoveTracks = 50057,
     LibraryDropOnPlaylist = 50058,
+    LibraryColumnArtist = 50059,
+    LibraryColumnTitle = 50060,
+    LibraryColumnAlbum = 50061,
+    LibraryColumnTime = 50062,
+    LibraryColumnGenre = 50063,
+    LibraryColumnYear = 50064,
+    LibraryColumnRating = 50065,
+    LibraryColumnNumber = 50066,
+    LibraryColumnFile = 50067,
+    LibraryColumnComment = 50068,
+    LibraryColumnBitrate = 50069,
+    LibraryColumnPlays = 50070,
+    LibraryColumnLastPlayed = 50071,
+    LibraryColumnAdded = 50072,
+    LibraryColumnsReset = 50073,
+    ToggleLibraryMaximize = 50074,
+    LibraryAudition = 50075,
 }
 
 #[cfg(test)]

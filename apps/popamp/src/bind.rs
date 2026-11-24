@@ -185,7 +185,7 @@ pub fn shaded(model: &Model, key: WindowKey) -> bool {
         WindowKey::Main => s.windowshade,
         WindowKey::Eq => s.eq_ws,
         WindowKey::Playlist => s.pe_ws,
-        WindowKey::Library => s.ml_ws,
+        WindowKey::Library => false,
     }
 }
 
@@ -220,7 +220,12 @@ pub fn position(model: &Model, key: WindowKey) -> (i32, i32) {
     }
 }
 
+/// Remembers where the window is; not the maximized library's corner, so
+/// that it goes back to its own place.
 pub fn set_position(model: &mut Model, key: WindowKey, p: (i32, i32)) {
+    if maximized_area(model, key).is_some() {
+        return;
+    }
     let s = model.settings_mut();
     match key {
         WindowKey::Main => (s.wx, s.wy) = p,
@@ -293,8 +298,18 @@ pub fn bar_zoom(model: &Model) -> i32 {
     std::iter::once(chosen).chain(smaller).find(|&pct| bar_fits(model, pct)).unwrap_or(popamp_core::config::ZOOMS[0])
 }
 
+/// The area the library fills when it is maximized.
+pub fn maximized_area(model: &Model, key: WindowKey) -> Option<crate::bar::Screen> {
+    let s = model.settings();
+    (key == WindowKey::Library && s.ml_max).then_some(model.library_area).flatten()
+}
+
 pub fn window_size(model: &Model, key: WindowKey) -> (i32, i32) {
     let Some(def) = model.skin.layout.window(key) else { return (0, 0) };
+    if let Some(a) = maximized_area(model, key) {
+        let s = scale(model, key);
+        return (s.skin(a.w), s.skin(a.h));
+    }
     let mode = def.mode(view(model, key));
     let (sw, sh) = stored_size(model, key);
     let len = |d: Dim, stored: i32| match d {
@@ -310,6 +325,33 @@ mod tests {
     use popamp_core::config::BarEdge;
 
     #[test]
+    fn a_maximized_library_takes_the_area_it_is_given() {
+        let mut m = Model::for_tests();
+        (m.settings_mut().ml_width, m.settings_mut().ml_height) = (550, 348);
+        m.library_area = Some(crate::bar::Screen { x: 0, y: 32, w: 1920, h: 1016 });
+        assert_eq!(window_size(&m, WindowKey::Library), (550, 348), "not maximized");
+        m.settings_mut().ml_max = true;
+        assert_eq!(window_size(&m, WindowKey::Library), (1920, 1016));
+        assert_eq!(stored_size(&m, WindowKey::Library), (550, 348), "its own size is kept for later");
+        (m.settings_mut().dsize, m.settings_mut().zoom) = (true, 200);
+        assert_eq!(window_size(&m, WindowKey::Library), (960, 508), "in skin pixels");
+        m.library_area = None;
+        assert_eq!(window_size(&m, WindowKey::Library), (550, 348), "until the player knows the area");
+    }
+
+    #[test]
+    fn a_maximized_library_keeps_its_own_place() {
+        let mut m = Model::for_tests();
+        (m.settings_mut().ml_wx, m.settings_mut().ml_wy) = (375, 100);
+        (m.settings_mut().ml_max, m.library_area) = (true, Some(crate::bar::Screen { x: 0, y: 0, w: 1280, h: 752 }));
+        set_position(&mut m, WindowKey::Library, (0, 0));
+        assert_eq!(position(&m, WindowKey::Library), (375, 100), "where it goes back to");
+        m.settings_mut().ml_max = false;
+        set_position(&mut m, WindowKey::Library, (10, 20));
+        assert_eq!(position(&m, WindowKey::Library), (10, 20));
+    }
+
+    #[test]
     fn sizes_come_from_the_layout_and_settings() {
         let mut m = Model::for_tests();
         assert_eq!(window_size(&m, WindowKey::Main), (275, 116));
@@ -323,10 +365,6 @@ mod tests {
         m.settings_mut().ml_width = 500;
         m.settings_mut().ml_height = 300;
         assert_eq!(window_size(&m, WindowKey::Library), (500, 300));
-        m.settings_mut().ml_ws = true;
-        assert_eq!(window_size(&m, WindowKey::Library), (500, 14), "shaded: the title bar only");
-        m.exec(Command::ToggleLibraryShade);
-        assert_eq!(window_size(&m, WindowKey::Library), (500, 300), "and back");
     }
 
     #[test]

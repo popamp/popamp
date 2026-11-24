@@ -12,14 +12,16 @@
   others, for the folders you give it. It lists all the music, the newest
   tracks and each folder; artists and albums side by side, each with its
   number of albums or year and tracks, narrow the track table under them,
-  and typing searches every tag and the file path. Play replaces the
-  playlist, Enqueue adds to it; Enter and a double click enqueue, or play
-  when "Enter and double-click enqueue" is off in Preferences > Media
-  Library, and Shift+Enter does the other. Tracks dragged onto the
-  playlist go in where they are let go. The folders are read again in the
-  background at start (and on Rescan); only changed files are read anew,
-  and the audio files themselves are never written. Add folder takes
-  several folders picked together.
+  and typing searches every tag and the file path. A double click or Enter
+  plays in the library, apart from the playlist; while it plays, a click
+  on another track plays that one. A middle click, Shift+Enter or the
+  track menu's Enqueue adds to the playlist. Tracks
+  dragged onto the playlist go in where they are let go. The folders are
+  read again in the background at start (and on Rescan folders, in the
+  menu of the list on the left); only changed files are read anew, and
+  the audio files themselves are never written. Add folder, in the same
+  menu, takes several folders picked together. Maximized (its title's
+  button, or a double click on the title) it fills the screen.
 - **Plays, ratings and playlists in the library:** it counts the plays
   of each track and keeps its 0 to 5 stars, in its own `stats.txt`.
   Smart playlists pick tracks by rules (tags, plays, rating, when added

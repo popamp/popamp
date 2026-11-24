@@ -50,6 +50,13 @@ impl Vis {
         self.samples.iter_mut().for_each(|s| *s = 0.0);
     }
 
+    /// Whether the bars, peaks and scope traces have all come down, so a
+    /// new frame would look like the last one.
+    pub fn at_rest(&self) -> bool {
+        let flat = |v: &[f32]| v.iter().all(|x| *x == 0.0);
+        flat(&self.bars) && flat(&self.peaks) && self.traces.iter().all(|t| flat(t))
+    }
+
     /// Updates bar heights (0..=16) from the current samples.
     pub fn analyze(&mut self, s: &Settings, sample_rate: u32) {
         self.traces.rotate_right(1);
@@ -192,6 +199,25 @@ mod tests {
     use super::*;
     use crate::scale::Scale;
     use popamp_skin::Bitmap;
+
+    #[test]
+    fn it_comes_to_rest_some_frames_after_the_sound_stops() {
+        let s = Settings::default();
+        let mut v = Vis::new();
+        assert!(v.at_rest(), "nothing played yet");
+        for (i, x) in v.samples_mut().iter_mut().enumerate() {
+            *x = (i as f32 * 0.3).sin();
+        }
+        v.analyze(&s, 44_100);
+        assert!(!v.at_rest());
+        v.silence();
+        v.analyze(&s, 44_100);
+        assert!(!v.at_rest(), "the bars fall over several frames");
+        for _ in 0..200 {
+            v.analyze(&s, 44_100);
+        }
+        assert!(v.at_rest());
+    }
 
     /// Colour `n` of the vis palette is `n` itself.
     const COLORS: [u32; 24] = {

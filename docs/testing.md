@@ -107,6 +107,7 @@ All playback checks ran at volume 0 through the real ALSA/PipeWire output.
 | Global hotkeys (X11) | `global_hotkeys=1`, `xdotool key ctrl+alt+<key>` for each key, state through MPRIS | all work but Left/Right, which GNOME's workspace switching takes first |
 | Window icon | `xprop -name Popamp _NET_WM_ICON` | 64×64 icon set |
 | Session persistence | quit, inspect `popamp.ini` / `popamp.m3u8` | settings, positions and playlist saved |
+| Maximized library | VMs (2026-11-23): Windows 11 26300, Linux Mint 22.3 Cinnamon (X11), Pop!_OS 24.04 COSMIC (Wayland); the title's Maximize button and a double click on the title; File info from the track menu | Windows and Mint: it fills the screen above the taskbar or panel and comes back beside the main window; File info opens over it. COSMIC maximizes it itself between the top panel and the dock, the equalizer and playlist hide while it is in front. Under COSMIC its menus open away from the mouse. GNOME on X11 not tried. |
 
 **Not yet tested by hand:**
 - Mouse interaction: dragging, docking and snapping, sliders, pop-up menus,

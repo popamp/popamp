@@ -124,6 +124,8 @@ impl IniValue for Option<BarEdge> {
 }
 
 /// The window sizes offered, in percent.
+/// The longest wait between the library's scans: a day.
+pub const MAX_RESCAN_MINUTES: u32 = 24 * 60;
 pub const ZOOMS: [i32; 7] = [100, 125, 150, 175, 200, 250, 300];
 
 macro_rules! settings {
@@ -179,9 +181,27 @@ settings! {
     ml_width: i32 = 550,
     ml_height: i32 = 348,
     /// The library window is shaded: only its title bar shows.
-    ml_ws: bool = false,
+    ml_max: bool = false,
     /// Look for new and changed files in the library's folders at start.
     ml_scan_at_start: bool = true,
+    /// Look through them again from time to time while Popamp runs: each
+    /// `ml_rescan_minutes`. Off by default, as a scan of a large library
+    /// keeps the disk busy.
+    ml_rescan: bool = false,
+    ml_rescan_minutes: u32 = 60,
+    /// The library table's columns, left to right, with their widths:
+    /// `artist:70,title:90`; empty for the first ones.
+    ml_columns: String = String::new(),
+    /// The width of the library's left panel as dragged, in skin pixels;
+    /// 0 for three tenths of the window.
+    ml_left: i32 = 0,
+    /// The height of its artists and albums over the table as dragged;
+    /// 0 for two fifths of the room the three share.
+    ml_panes: i32 = 0,
+    /// The open nodes of the library's views tree, split by tabs, and the
+    /// view it shows; see `LibraryPane::tree_state`.
+    ml_tree: String = "b:folders\tb:playlists\tb:smart".to_string(),
+    ml_view: String = "all".to_string(),
     /// A play counts once this many percent of the track was heard:
     /// 50..=100 in steps of 5.
     listen_percent: u32 = 50,
@@ -205,7 +225,6 @@ settings! {
     crossfade_ms: u32 = 0,
     /// Enter and a double click in the library add to the playlist
     /// instead of replacing it.
-    enqueuedef: bool = true,
     // Window behaviour.
     snap: bool = true,
     snaplen: i32 = 10,
@@ -322,6 +341,8 @@ impl Settings {
         self.pe_height = self.pe_height.max(116);
         self.ml_width = self.ml_width.max(275);
         self.ml_height = self.ml_height.max(116);
+        self.ml_left = self.ml_left.max(0);
+        self.ml_panes = self.ml_panes.max(0);
         self.pe_fontsize = self.pe_fontsize.clamp(6, 40);
         self.snaplen = self.snaplen.clamp(0, 100);
         self.zoom = self.zoom.clamp(125, 300);
@@ -331,6 +352,7 @@ impl Settings {
         self.buffer_ms = self.buffer_ms.clamp(40, 2000);
         self.crossfade_ms = self.crossfade_ms.min(10_000);
         self.listen_percent = self.listen_percent.clamp(50, 100) / 5 * 5;
+        self.ml_rescan_minutes = self.ml_rescan_minutes.clamp(1, MAX_RESCAN_MINUTES);
         if self.output_device.trim().is_empty() {
             self.output_device = "default".to_string();
         }
@@ -636,6 +658,7 @@ mod tests {
             wsz_scaling: Scaling::Nearest,
             bar_edge: Some(BarEdge::Top),
             bar_zoom: 150,
+            ml_tree: "b:smart\tf:/music/A b\\tc".into(),
             ..Default::default()
         };
         s.set_eq_bands(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 63]);

@@ -6,6 +6,73 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-24
+
+The media library grows toward jetAudio's: a display with the visualizer
+over the list, transport under it, a cover panel, a views tree, and its own
+playing. The skins' new library windows come with skins 2.1.0.
+
+### Added
+
+- **Library display and transport**: the library window has a display
+  under its title (play state, clock, song title, bit rate and a
+  visualizer) and, under the list, a position bar, the transport buttons
+  and the volume. They move like the main window's.
+- **Maximize the library** (Toggle library maximize, a double click on its
+  title, or "Maximized" in its menu): it fills the usable part of its
+  monitor as a window of its own and comes back maximized next time.
+- **The library plays on its own**, apart from the playlist: a double
+  click or Enter plays, a click on another track plays it while the library
+  plays, the middle button adds the track to the playlist (Ctrl+click
+  still picks several).
+- **Cover panel** under the views: the cover of the track at the cursor with
+  its title, artist, album, year, format and bit rate.
+- **More columns** in the library table: track number, file name, comment,
+  bit rate, plays, last played and added. A right click on the header
+  turns them on and off; a border in the header drags.
+- **Views tree**: Playlists, Smart playlists and Folders open and shut, and
+  a library folder opens into its folders, so the table can show any
+  folder inside the library. The tree comes back as it was left.
+- **A picture dropped on tracks becomes their cover**: JPEG, PNG, GIF or
+  BMP onto a row, the picked rows or the cover panel. Popamp asks first and
+  writes only the formats it writes tags into.
+- **Resizable library parts**: the gap right of the left panel and the gap
+  over the table (under the artists and albums) drag, with a resize
+  cursor; a double click gives the size back to the window.
+- **Timed library scan** ([#71](https://github.com/popamp/popamp/issues/71)):
+  Media Library preferences has two check boxes: "Scan the folders at
+  startup" (on by default; until now only in the settings file) and "Scan
+  the folders periodically" (off by default, as a scan of a large library
+  keeps the disk busy), every "Scan every (minutes)", 60 by default.
+  Each scan takes in new and changed files and drops the ones gone from
+  disk; a folder that cannot be read, such as an unplugged drive, keeps its
+  tracks.
+
+### Changed
+
+- The library has no shade mode any more; its title maximizes it instead.
+- The library's button row under the table (Play, Enqueue, Add folder,
+  Rescan) is gone; all of them are in its menus. The "enqueue by default"
+  option is gone with the library's own playing.
+- The labels of typed values in Preferences are wider and no longer cut
+  off.
+
+### Fixed
+
+- **Vector skins at in-between sizes** (such as 1.5x): each part of the
+  picture is drawn at its exact place instead of being stretched to whole
+  pixels, so lines no longer thicken or shift by a pixel between parts.
+- **COSMIC: the equalizer and the playlist drag with a tablet or in a
+  virtual machine.** A pointer that reports only where it is, without
+  how far it moved, left them in place.
+
+### Known issues
+
+- **COSMIC: dialogs open under the equalizer and the playlist.** COSMIC
+  draws them over the program's other windows, so a dialog such as File
+  info can come up partly covered; drag it aside by its title each time
+  ([details](docs/wayland.md#what-does-not-and-why)).
+
 ## [1.1.0] - 2026-11-22
 
 ### Added
@@ -720,7 +787,8 @@ First release.
 - **Packaging:** desktop entry, `.wsz` MIME type, icons and a per-user
   install script.
 
-[Unreleased]: https://github.com/popamp/popamp/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/popamp/popamp/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/popamp/popamp/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/popamp/popamp/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/popamp/popamp/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/popamp/popamp/compare/v1.0.2...v1.0.3

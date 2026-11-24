@@ -46,9 +46,6 @@ const STOPPED: &[Shot] = &[
     (WindowKey::Main, "main-shade", |s| s.windowshade = true),
     (WindowKey::Eq, "eq-shade", |s| s.eq_ws = true),
     (WindowKey::Playlist, "playlist-shade", |s| s.pe_ws = true),
-    // Only the shaded library: the open one draws its lists in a system
-    // font, which differs between machines.
-    (WindowKey::Library, "library-shade", |s| s.ml_ws = true),
     (WindowKey::Playlist, "playlist-small", |s| s.pe_height = 116),
     (WindowKey::Playlist, "playlist-wide", |s| s.pe_width = 450),
 ];
