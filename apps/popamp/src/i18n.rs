@@ -20,16 +20,18 @@ use std::sync::OnceLock;
 pub enum Lang {
     En,
     Ru,
+    Ko,
 }
 
 impl Lang {
-    pub const ALL: [Lang; 2] = [Lang::En, Lang::Ru];
+    pub const ALL: [Lang; 3] = [Lang::En, Lang::Ru, Lang::Ko];
 
     /// Its code, as locale names start with it and the settings keep it.
     pub fn code(self) -> &'static str {
         match self {
             Lang::En => "en",
             Lang::Ru => "ru",
+            Lang::Ko => "ko",
         }
     }
 
@@ -38,6 +40,7 @@ impl Lang {
         match self {
             Lang::En => "English",
             Lang::Ru => "Русский",
+            Lang::Ko => "한국어",
         }
     }
 
@@ -45,6 +48,7 @@ impl Lang {
         match self {
             Lang::En => "",
             Lang::Ru => include_str!("../locales/ru.toml"),
+            Lang::Ko => include_str!("../locales/ko.toml"),
         }
     }
 
@@ -54,6 +58,7 @@ impl Lang {
         match self {
             Lang::En => 2,
             Lang::Ru => 3,
+            Lang::Ko => 1,
         }
     }
 
@@ -67,6 +72,7 @@ impl Lang {
                 (2..=4, h) if !(12..=14).contains(&h) => 1,
                 _ => 2,
             },
+            Lang::Ko => 0,
         }
     }
 
@@ -253,6 +259,7 @@ fn system() -> Option<Lang> {
     match unsafe { windows_sys::Win32::Globalization::GetUserDefaultUILanguage() } & 0x3ff {
         0x09 => Some(Lang::En),
         0x19 => Some(Lang::Ru),
+        0x12 => Some(Lang::Ko),
         _ => None,
     }
 }
@@ -290,12 +297,14 @@ mod tests {
         let forms = [1, 2, 4, 5, 11, 12, 14, 21, 22, 25, 101, 111].map(|n| Lang::Ru.form(n));
         assert_eq!(forms, [0, 1, 1, 2, 2, 2, 2, 0, 1, 2, 0, 2]);
         assert_eq!([0, 1, 2].map(|n| Lang::En.form(n)), [1, 0, 1]);
+        assert_eq!([0, 1, 2, 5].map(|n| Lang::Ko.form(n)), [0, 0, 0, 0]);
     }
 
     #[test]
     fn locale_names_give_their_language() {
         assert_eq!(Lang::of_locale("ru_RU.UTF-8"), Some(Lang::Ru));
         assert_eq!(Lang::of_locale("en-GB"), Some(Lang::En));
+        assert_eq!(Lang::of_locale("ko_KR.UTF-8"), Some(Lang::Ko));
         assert_eq!(Lang::of_locale("de_DE"), None);
         assert_eq!(Lang::of_locale(""), None);
         assert_eq!(apple_languages("(\n    \"de-DE\",\n    \"ru-RU\"\n)"), Some(Lang::Ru));
