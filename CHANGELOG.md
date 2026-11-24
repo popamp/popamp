@@ -55,6 +55,22 @@ playing. The skins' new library windows come with skins 2.1.0.
 - The labels of typed values in Preferences are wider and no longer cut
   off.
 
+### Fixed
+
+- **Vector skins at in-between sizes** (such as 1.5x): each part of the
+  picture is drawn at its exact place instead of being stretched to whole
+  pixels, so lines no longer thicken or shift by a pixel between parts.
+- **COSMIC: the equalizer and the playlist drag with a tablet or in a
+  virtual machine.** A pointer that reports only where it is, without
+  how far it moved, left them in place.
+
+### Known issues
+
+- **COSMIC: dialogs open under the equalizer and the playlist.** COSMIC
+  draws them over the program's other windows, so a dialog such as File
+  info can come up partly covered; drag it aside by its title each time
+  ([details](docs/wayland.md#what-does-not-and-why)).
+
 ## [1.1.0] - 2026-11-22
 
 ### Added
