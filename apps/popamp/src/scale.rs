@@ -29,6 +29,16 @@ impl Scale {
         (n * self.pct + 50).div_euclid(100)
     }
 
+    /// How far point `n` in skin pixels lies past the screen pixel
+    /// `px(n)` puts it on, in hundredths of a pixel.
+    pub fn shift(self, n: i32) -> i32 {
+        n * self.pct - 100 * self.px(n)
+    }
+
+    pub fn pct(self) -> i32 {
+        self.pct
+    }
+
     /// The skin pixel at screen offset `p`.
     pub fn skin(self, p: i32) -> i32 {
         (p * 100).div_euclid(self.pct)

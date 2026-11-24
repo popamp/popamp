@@ -8,8 +8,27 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-/// Picture number, area of it, and the screen size it is drawn at.
-type Key = (u16, Rect, i32, i32);
+/// Picture number, area of it, and how it is drawn.
+type Key = (u16, Rect, Fit);
+
+/// How an area of a picture is drawn: stretched to a size, or placed.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Fit {
+    Stretch(i32, i32),
+    Placed(Placement),
+}
+
+/// Where an area of a picture lands on the screen: in `w` x `h` pixels,
+/// drawn `pct` percent big, its exact top left corner `dx`, `dy`
+/// hundredths of a pixel right of and below the pixel it is rounded to.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct Placement {
+    pub w: i32,
+    pub h: i32,
+    pub pct: i32,
+    pub dx: i32,
+    pub dy: i32,
+}
 
 /// Options under which a picture may only use what it carries inside itself.
 /// A skin can come from anywhere, so its `<image>` must not reach files on disk.
@@ -44,17 +63,22 @@ impl Svgs {
 
     /// Area `src` of picture `id` drawn to fill `w` x `h` pixels.
     pub fn raster(&self, id: u16, src: Rect, w: i32, h: i32) -> Option<Rc<Rgba>> {
-        let key = (id, src, w, h);
+        self.cached((id, src, Fit::Stretch(w, h)))
+    }
+
+    /// Area `src` of picture `id` drawn where `at` puts it. Every area is
+    /// drawn at the same scale and shifted by the part of a pixel its
+    /// corner falls inside, so the pieces of a window line up as in the
+    /// picture they come from, whatever size each one is rounded to.
+    pub fn raster_placed(&self, id: u16, src: Rect, at: Placement) -> Option<Rc<Rgba>> {
+        self.cached((id, src, Fit::Placed(at)))
+    }
+
+    fn cached(&self, key: Key) -> Option<Rc<Rgba>> {
         if let Some(r) = self.cache.borrow().get(&key) {
             return Some(r.clone());
         }
-        let tree = self.trees.get(id as usize)?;
-        let mut pixmap = tiny_skia::Pixmap::new(w.max(1) as u32, h.max(1) as u32)?;
-        let (sx, sy) = (w as f32 / src.w.max(1) as f32, h as f32 / src.h.max(1) as f32);
-        let at = tiny_skia::Transform::from_row(sx, 0.0, 0.0, sy, -src.x as f32 * sx, -src.y as f32 * sy);
-        resvg::render(tree, at, &mut pixmap.as_mut());
-        let px = pixmap.pixels().iter().map(|p| u32::from_be_bytes([p.alpha(), p.red(), p.green(), p.blue()])).collect();
-        let raster = Rc::new(Rgba { w: pixmap.width() as i32, h: pixmap.height() as i32, px });
+        let raster = Rc::new(self.draw(key)?);
         let mut cache = self.cache.borrow_mut();
         // Old scales pile up as the user changes the size; start over then.
         if cache.len() > 2048 {
@@ -63,6 +87,72 @@ impl Svgs {
         cache.insert(key, raster.clone());
         Some(raster)
     }
+
+    fn draw(&self, (id, src, fit): Key) -> Option<Rgba> {
+        let tree = self.trees.get(id as usize)?;
+        let (w, h) = fit.size();
+        let mut pixmap = tiny_skia::Pixmap::new(w.max(1) as u32, h.max(1) as u32)?;
+        resvg::render(tree, fit.transform(src), &mut pixmap.as_mut());
+        let mut px: Vec<u32> = pixmap.pixels().iter().map(|p| u32::from_be_bytes([p.alpha(), p.red(), p.green(), p.blue()])).collect();
+        if let Fit::Placed(at) = fit {
+            fill_edges(&mut px, src, at);
+        }
+        Some(Rgba { w: pixmap.width() as i32, h: pixmap.height() as i32, px })
+    }
+}
+
+impl Fit {
+    fn size(self) -> (i32, i32) {
+        match self {
+            Fit::Stretch(w, h) => (w, h),
+            Fit::Placed(at) => (at.w, at.h),
+        }
+    }
+
+    /// From the picture's units to the pixels area `src` is drawn into.
+    fn transform(self, src: Rect) -> tiny_skia::Transform {
+        let (sx, sy, ox, oy) = match self {
+            Fit::Stretch(w, h) => (w as f32 / src.w.max(1) as f32, h as f32 / src.h.max(1) as f32, 0.0, 0.0),
+            Fit::Placed(at) => {
+                let f = at.pct as f32 / 100.0;
+                (f, f, at.dx as f32 / 100.0, at.dy as f32 / 100.0)
+            }
+        };
+        tiny_skia::Transform::from_row(sx, 0.0, 0.0, sy, ox - src.x as f32 * sx, oy - src.y as f32 * sy)
+    }
+}
+
+/// Gives the pixels at the ends of `px`, area `src` drawn where `at` puts
+/// it, that the area covers only in part the colour of their neighbours.
+fn fill_edges(px: &mut [u32], src: Rect, at: Placement) {
+    let (w, h) = (at.w.max(1) as usize, at.h.max(1) as usize);
+    for (x, from) in edges(at.dx, src.w * at.pct, w) {
+        for y in 0..h {
+            px[y * w + x] = px[y * w + from];
+        }
+    }
+    for (y, from) in edges(at.dy, src.h * at.pct, h) {
+        px.copy_within(from * w..(from + 1) * w, y * w);
+    }
+}
+
+/// The end pixels of `n` that a span `len` long from `start` (both in
+/// hundredths of a pixel) covers only in part, each with the pixel next
+/// to it inward. What is drawn there
+/// partly comes from beyond the area: from the next piece of the picture,
+/// or from nothing.
+fn edges(start: i32, len: i32, n: usize) -> Vec<(usize, usize)> {
+    if n < 2 {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    if start > 0 {
+        out.push((0, 1));
+    }
+    if start + len < n as i32 * 100 {
+        out.push((n - 1, n - 2));
+    }
+    out
 }
 
 #[cfg(test)]
@@ -71,6 +161,39 @@ mod tests {
 
     const HALF_RED: &[u8] = br##"<svg xmlns="http://www.w3.org/2000/svg" width="2" height="1">
         <rect x="0" y="0" width="1" height="1" fill="#ff0000"/></svg>"##;
+
+    /// 30 x 1: a red stripe one unit wide at x = 10, the rest left empty.
+    const STRIPE: &[u8] = br##"<svg xmlns="http://www.w3.org/2000/svg" width="30" height="1">
+        <rect x="10" y="0" width="1" height="1" fill="#ff0000"/></svg>"##;
+
+    fn at_150(s: &Svgs, id: u16, src: Rect, w: i32) -> Vec<u32> {
+        s.raster_placed(id, src, Placement { w, h: 2, pct: 150, dx: 0, dy: 0 }).unwrap().px[..w as usize].to_vec()
+    }
+
+    #[test]
+    fn pieces_of_any_width_draw_what_they_share_alike() {
+        let mut s = Svgs::default();
+        let id = s.add(STRIPE, None).unwrap();
+        // 25 units are 37.5 pixels at 150 %, shown in 38; 12 units are 18.
+        let wide = at_150(&s, id, Rect { x: 0, y: 0, w: 25, h: 1 }, 38);
+        let narrow = at_150(&s, id, Rect { x: 0, y: 0, w: 12, h: 1 }, 18);
+        assert_eq!(wide[..18], narrow[..18]);
+    }
+
+    #[test]
+    fn a_piece_cut_inside_a_pixel_fills_that_pixel_with_its_own_colour() {
+        let red_then_white = br##"<svg xmlns="http://www.w3.org/2000/svg" width="4" height="1">
+            <rect width="3" height="1" fill="#ff0000"/><rect x="3" width="1" height="1" fill="#ffffff"/></svg>"##;
+        let mut s = Svgs::default();
+        let id = s.add(red_then_white, None).unwrap();
+        let red = Rect { x: 0, y: 0, w: 3, h: 1 };
+        // 3 units are 4.5 pixels at 150 %, shown in 5: the last one half covered.
+        let r = s.raster_placed(id, red, Placement { w: 5, h: 2, pct: 150, dx: 0, dy: 0 }).unwrap();
+        assert_eq!(r.px[4], 0xffff0000, "no white from beyond the edge");
+        // Starting half a pixel late, the first one is half covered too.
+        let r = s.raster_placed(id, red, Placement { w: 5, h: 2, pct: 150, dx: 50, dy: 0 }).unwrap();
+        assert_eq!((r.px[0], r.px[4]), (0xffff0000, 0xffff0000));
+    }
 
     #[test]
     fn pictures_render_at_the_asked_size_and_area() {
