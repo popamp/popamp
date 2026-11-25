@@ -133,8 +133,11 @@ fn parse_with(text: &str, file_of: impl Fn(&str) -> PathBuf) -> Sheet {
             }
             "INDEX" => {
                 let mut words = rest.split_whitespace();
-                if let (Some(t), Some("01"), Some(ms)) = (&mut current, words.next(), words.next().and_then(index_ms)) {
+                // The track plays from the file its start is in, which may
+                // follow its TRACK line (a pregap kept in the file before).
+                if let (Some(t), Some("01"), Some(ms), Some(file)) = (&mut current, words.next(), words.next().and_then(index_ms), &file) {
                     t.start_ms = ms;
+                    t.file = file.clone();
                 }
             }
             _ => {}
@@ -185,6 +188,28 @@ FILE \"bonus.flac\" WAVE
         assert_eq!((t[1].performer.as_deref(), t[1].start_ms, t[1].end_ms), (Some("Guest"), 240_493, None));
         assert_eq!(t[1].file, Path::new("/music/live.wav"));
         assert_eq!((t[2].title.as_deref(), t[2].file.as_path(), t[2].end_ms), (Some("Bonus"), Path::new("/music/bonus.flac"), None));
+    }
+
+    /// EAC's "gaps appended to previous": a file per track, and a track's
+    /// pregap (INDEX 00) at the end of the file before its own.
+    #[test]
+    fn a_track_plays_from_the_file_its_start_is_in() {
+        let sheet = "FILE \"01.wav\" WAVE
+  TRACK 01 AUDIO
+    INDEX 01 00:00:00
+  TRACK 02 AUDIO
+    INDEX 00 05:16:05
+FILE \"02.wav\" WAVE
+    INDEX 01 00:00:00
+  TRACK 03 AUDIO
+    INDEX 00 03:59:22
+FILE \"03.wav\" WAVE
+    INDEX 01 00:00:00
+";
+        let t = parse(sheet, Path::new("/m"), &[]).tracks;
+        let got: Vec<_> = t.iter().map(|t| (t.number, t.file.clone(), t.start_ms, t.end_ms)).collect();
+        let want = [(1, "01.wav"), (2, "02.wav"), (3, "03.wav")].map(|(n, f)| (n, Path::new("/m").join(f), 0, None));
+        assert_eq!(got, want);
     }
 
     #[test]
