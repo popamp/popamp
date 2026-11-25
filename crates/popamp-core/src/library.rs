@@ -238,7 +238,8 @@ fn by_album(a: &Track, b: &Track) -> Ordering {
 
 /// How tags are read, saved as the `R` line. A library saved by an older
 /// reading drops the stamps of the tracks it may have read wrong, so the next
-/// scan reads them again. 1: old tags in a legacy code page (EUC-KR, GBK, ...).
+/// scan reads them again. 1: old tags in a legacy code page (EUC-KR, GBK, ...),
+/// and ID3v1 tags, so tracks without a title too.
 const TAG_READING: u32 = 1;
 
 impl Library {
@@ -256,7 +257,9 @@ impl Library {
             }
         }
         if reading < TAG_READING {
-            for t in lib.tracks.iter_mut().filter(|t| [&t.title, &t.artist, &t.album, &t.genre, &t.comment].iter().any(|s| !s.is_ascii())) {
+            let reread =
+                |t: &Track| t.title.is_empty() || [&t.title, &t.artist, &t.album, &t.genre, &t.comment].iter().any(|s| !s.is_ascii());
+            for t in lib.tracks.iter_mut().filter(|t| reread(t)) {
                 t.stamp = Stamp::default();
             }
         }
@@ -417,17 +420,19 @@ mod tests {
     }
 
     #[test]
-    fn a_library_saved_before_code_pages_were_guessed_rereads_its_non_ascii_tags_once() {
+    fn a_library_saved_before_code_pages_and_id3v1_rereads_non_ascii_and_untitled_tracks_once() {
         let mut lib = sample();
         for t in &mut lib.tracks {
             t.stamp = Stamp { size: 7, modified: 9 };
         }
         lib.tracks[0].artist = "¼\u{ad}ÅÂÁö".into();
+        lib.tracks[1].title.clear();
         let old = lib.to_text().lines().filter(|l| !l.starts_with("R\t")).map(|l| format!("{l}\n")).collect::<String>();
 
         let read = Library::parse(&old);
         assert_eq!(read.tracks[0].stamp, Stamp::default(), "the next scan reads the file again");
-        assert!(read.tracks[1..].iter().all(|t| t.stamp == Stamp { size: 7, modified: 9 }), "ASCII tags read the same as before");
+        assert_eq!(read.tracks[1].stamp, Stamp::default(), "an ID3v1 tag may name it now");
+        assert!(read.tracks[2..].iter().all(|t| t.stamp == Stamp { size: 7, modified: 9 }), "ASCII tags read the same as before");
         assert_eq!(Library::parse(&read.to_text()), read, "once saved, it is not read again");
     }
 

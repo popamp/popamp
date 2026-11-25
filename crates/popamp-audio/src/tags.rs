@@ -138,8 +138,7 @@ fn writes(kind: lofty::file::FileType) -> bool {
 /// [`write`] changes: a track or disc as `3/12` when the total is there.
 pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
     let file = lofty::read_from_path(path).map_err(|e| e.to_string())?;
-    let Some(tag) = file.primary_tag().or(file.first_tag()) else { return Ok(Field::ALL.iter().map(|&f| (f, String::new())).collect()) };
-    let value = |f: Field| {
+    let value = |tag: &Tag, f: Field| {
         let (key, second) = f.keys();
         let main = tag.get_string(key).unwrap_or_default();
         match (f, second.and_then(|k| tag.get_string(k))) {
@@ -148,7 +147,11 @@ pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
             _ => main.to_string(),
         }
     };
-    let mut fields: Vec<(Field, String)> = Field::ALL.iter().map(|&f| (f, value(f))).collect();
+    // The main tag first; the others (an MP3's ID3v1) fill what it lacks, as the player shows them.
+    let primary = file.primary_tag();
+    let tags: Vec<&Tag> = primary.into_iter().chain(file.tags().iter().filter(|t| primary.is_none_or(|p| !std::ptr::eq(*t, p)))).collect();
+    let pick = |f: Field| tags.iter().map(|t| value(t, f)).find(|v| !v.is_empty()).unwrap_or_default();
+    let mut fields: Vec<(Field, String)> = Field::ALL.iter().map(|&f| (f, pick(f))).collect();
     // Read as the player shows them, so that saving writes the text and not its mojibake.
     popamp_core::text::redecode_latin1(fields.iter_mut().map(|(_, v)| v));
     Ok(fields)
@@ -393,6 +396,60 @@ mod tests {
         tag.extend([(n >> 21) & 0x7f, (n >> 14) & 0x7f, (n >> 7) & 0x7f, n & 0x7f].map(|b| b as u8));
         tag.extend(body);
         tag
+    }
+
+    /// The 128 bytes of an ID3v1.1 tag, its text in `enc`.
+    fn id3v1(enc: &'static encoding_rs::Encoding, title: &str, artist: &str, album: &str, track: u8, genre: u8) -> Vec<u8> {
+        let field = |s: &str, n: usize| {
+            let mut b = enc.encode(s).0.into_owned();
+            b.resize(n, 0);
+            b
+        };
+        [b"TAG".to_vec(), field(title, 30), field(artist, 30), field(album, 30), b"1992".to_vec(), field("", 28), vec![0, track, genre]]
+            .concat()
+    }
+
+    /// The silent MP3 with no ID3v2 tag in front: its fixture has an empty one.
+    fn bare_mp3(name: &str) -> PathBuf {
+        let path = fixture("mp3", name);
+        let bytes = std::fs::read(&path).unwrap();
+        assert_eq!(&bytes[..10], b"ID3\x04\0\0\0\0\0\x0a", "the fixture's tag is ten bytes");
+        std::fs::write(&path, &bytes[20..]).unwrap();
+        path
+    }
+
+    #[test]
+    fn a_file_with_only_an_id3v1_tag_is_named_by_it_in_the_player_and_the_editor() {
+        let path = bare_mp3("id3v1");
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [audio, id3v1(encoding_rs::EUC_KR, "난 알아요", "서태지와 아이들", "1집", 3, 17)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        let shown = [&meta.title, &meta.artist, &meta.album, &meta.year, &meta.track, &meta.genre].map(|v| v.as_deref());
+        assert_eq!(shown, [Some("난 알아요"), Some("서태지와 아이들"), Some("1집"), Some("1992"), Some("3"), Some("Rock")]);
+        assert!(meta.length_ms.is_some(), "the tag is not taken for audio");
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!((get(Field::Title), get(Field::Artist)), (Some("난 알아요"), Some("서태지와 아이들")));
+    }
+
+    #[test]
+    fn an_id3v2_tag_wins_over_id3v1_and_v1_fills_what_v2_lacks() {
+        let path = bare_mp3("both");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "New title")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1252, "Old title", "Old artist", "", 0, 255)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("New title"), Some("Old artist")));
+        assert_eq!((meta.track.as_deref(), meta.genre.as_deref()), (None, None), "track 0 and genre 255 mean none");
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!(
+            (get(Field::Title), get(Field::Artist)),
+            (Some("New title"), Some("Old artist")),
+            "the editor shows what the player does"
+        );
     }
 
     #[test]

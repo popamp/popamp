@@ -3127,6 +3127,7 @@ dependencies = [
  "rustysynth",
  "serde_json",
  "symphonia",
+ "symphonia-metadata",
  "ureq 2.12.1",
  "windows",
 ]

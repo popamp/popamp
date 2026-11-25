@@ -12,6 +12,7 @@ homepage.workspace = true
 [dependencies]
 popamp-core.workspace = true
 symphonia.workspace = true
+symphonia-metadata.workspace = true
 lofty.workspace = true
 crossbeam-channel.workspace = true
 parking_lot.workspace = true

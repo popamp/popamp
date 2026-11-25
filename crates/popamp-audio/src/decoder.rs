@@ -8,8 +8,8 @@ use symphonia::core::audio::SampleBuffer;
 use symphonia::core::codecs::{CodecRegistry, DecoderOptions, CODEC_TYPE_NULL};
 use symphonia::core::errors::Error as SymError;
 use symphonia::core::formats::{FormatOptions, FormatReader, SeekMode, SeekTo, Track};
-use symphonia::core::io::{MediaSource, MediaSourceStream};
-use symphonia::core::meta::{MetadataOptions, MetadataRevision, StandardTagKey};
+use symphonia::core::io::{BufReader, MediaSource, MediaSourceStream};
+use symphonia::core::meta::{MetadataBuilder, MetadataOptions, MetadataRevision, StandardTagKey};
 use symphonia::core::probe::Hint;
 use symphonia::core::units::Time;
 
@@ -86,6 +86,26 @@ pub(crate) fn hint_for(ext: Option<&str>) -> Hint {
     hint
 }
 
+/// The ID3v1 tag in the last 128 bytes of the file, which symphonia does
+/// not look for. Old MP3s often have no other; after an ID3v2 tag it only
+/// fills what that one lacks. Track 0 stands for none.
+fn id3v1(path: &Path) -> Option<MetadataRevision> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut file = std::fs::File::open(path).ok()?;
+    file.seek(SeekFrom::End(-128)).ok()?;
+    let mut tail = [0; 128];
+    file.read_exact(&mut tail).ok()?;
+    let mut read = MetadataBuilder::new();
+    symphonia_metadata::id3v1::read_id3v1(&mut BufReader::new(&tail), &mut read).ok()?;
+    let mut kept = MetadataBuilder::new();
+    for tag in read.metadata().tags() {
+        if !(tag.std_key == Some(StandardTagKey::TrackNumber) && tag.value.to_string() == "0") {
+            kept.add_tag(tag.clone());
+        }
+    }
+    Some(kept.metadata())
+}
+
 fn apply_tags(meta: &mut TrackMeta, rev: &MetadataRevision) {
     for tag in rev.tags() {
         let value = tag.value.to_string();
@@ -126,7 +146,11 @@ impl Decoder {
     pub fn open_file(path: &Path) -> Result<(Decoder, TrackMeta), String> {
         let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
         let ext = path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase);
-        Self::open_source(Box::new(file), ext.as_deref(), true)
+        let (dec, mut meta) = Self::open_source(Box::new(file), ext.as_deref(), true)?;
+        if let Some(rev) = id3v1(path) {
+            apply_tags(&mut meta, &rev);
+        }
+        Ok((dec, meta))
     }
 
     pub fn open_source(source: Box<dyn MediaSource>, ext: Option<&str>, seekable: bool) -> Result<(Decoder, TrackMeta), String> {
