@@ -19,7 +19,8 @@
   <a href="docs/features.md">Features</a> ·
   <a href="docs/usage.md">Usage</a> ·
   <a href="docs/skin-format.md">Make a skin</a> ·
-  <a href="docs/ROADMAP.md">Roadmap</a>
+  <a href="docs/ROADMAP.md">Roadmap</a> ·
+  <a href="#support">Support</a>
 </p>
 
 Popamp is a desktop music player in the spirit of Winamp 2: a main
@@ -130,6 +131,12 @@ about it:
 - [COSMIC (Pop!_OS) and Wayland](docs/wayland.md): what works as a Wayland program, and why some things cannot.
 - [Ubuntu](docs/ubuntu.md): toolbar mode beside Ubuntu's dock, and a bar smaller than the size you chose.
 - [KDE Plasma](docs/kde.md): toolbar mode at the top covers the desktop icons.
+
+## Support
+
+Popamp is free, with no ads, no tracking and no paid features. If you
+like it, you can [buy the project a coffee on Ko-fi](https://ko-fi.com/popamp):
+it pays for hosting, test hardware and signed builds.
 
 ## License
 

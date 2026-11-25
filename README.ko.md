@@ -100,6 +100,11 @@ cargo build --release                      # popamp-plus는 --features plus 추�
 - [플러그인](docs/plugins.md)과 [스킨 형식](docs/skin-format.md): 직접 만들어 보세요.
 - [기여하기](CONTRIBUTING.md), [변경 기록](CHANGELOG.md), [로드맵](docs/ROADMAP.md).
 
+## 후원
+
+Popamp는 광고, 추적, 유료 기능이 없는 무료 프로그램입니다. 마음에 드신다면
+[Ko-fi에서 커피 한 잔을 후원](https://ko-fi.com/popamp)해 주세요. 호스팅, 테스트 장비, 서명된 빌드에 쓰입니다.
+
 ## 라이선스
 
 Popamp는 자유 소프트웨어이며, [MIT](LICENSE-MIT) 또는

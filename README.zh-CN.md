@@ -96,6 +96,11 @@ cargo build --release                      # 加上 --features plus 即为 popam
 - [插件](docs/plugins.md)和[皮肤格式](docs/skin-format.md)：制作你自己的插件和皮肤。
 - [参与贡献](CONTRIBUTING.md)、[更新日志](CHANGELOG.md)、[路线图](docs/ROADMAP.md)。
 
+## 支持
+
+Popamp 免费，没有广告、没有跟踪、没有付费功能。如果你喜欢它，可以
+[在 Ko-fi 上请项目喝杯咖啡](https://ko-fi.com/popamp)：这些钱用于服务器、测试设备和签名版本。
+
 ## 许可证
 
 Popamp 是自由软件，你可以任选 [MIT](LICENSE-MIT) 或
