@@ -407,6 +407,12 @@ mod tests {
         None
     }
 
+    /// The source with each comment line blanked, its lines kept: a
+    /// `tr!("…")` that a comment quotes translates nothing.
+    fn without_comment_lines(src: &str) -> String {
+        src.split_inclusive('\n').map(|line| if line.trim_start().starts_with("//") { "\n" } else { line }).collect()
+    }
+
     /// Every `tr!` and `trn!` text in the `.rs` files under `dir`.
     fn keys(dir: &Path, out: &mut Vec<Key>) {
         for entry in std::fs::read_dir(dir).unwrap().flatten() {
@@ -414,7 +420,7 @@ mod tests {
             if path.is_dir() {
                 keys(&path, out);
             } else if path.extension().is_some_and(|e| e == "rs") && !path.ends_with("i18n.rs") {
-                let src = std::fs::read_to_string(&path).unwrap();
+                let src = without_comment_lines(&std::fs::read_to_string(&path).unwrap());
                 let name = path.file_name().unwrap().to_string_lossy().into_owned();
                 let at = |pos: usize| format!("{name}:{}", src[..pos].lines().count());
                 // A macro name of its own: not the end of a longer one.

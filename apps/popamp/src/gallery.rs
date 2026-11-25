@@ -108,7 +108,7 @@ impl Sort {
     fn label(self) -> &'static str {
         match self {
             Sort::Popular => tr!("Popular"),
-            Sort::Rating => "Top rated",
+            Sort::Rating => tr!("Top rated"),
             Sort::New => tr!("New"),
         }
     }
