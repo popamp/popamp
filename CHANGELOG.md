@@ -43,6 +43,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- **Windows on the right edge of the screen stay on it** when they grow
+  or shrink (Larger Size, Options → Size): docked windows snapped to the
+  right edge went past it as they grew. They move back left; one that is
+  still too tall after the playlist is cut moves up. Windows the user
+  left hanging over an edge stay where they are.
+- **A change of the desktop's scale while Popamp runs** (X11, Windows):
+  the windows grew or shrank with it and were drawn cut off or with a
+  black margin; they keep their size now. The docked windows may need
+  arranging again (Ctrl+Shift+Left/Right) after it.
 - **Gallery**: the Top rated sort button is translated.
 - **Library**: the Folders branch is there before any folder is added.
 - **CUE sheets from EAC with gaps appended to the previous track**: when a

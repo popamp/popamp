@@ -54,6 +54,9 @@ struct SkinWindow {
     shape_sig: Option<(usize, i32, i32)>,
     /// The cursor last set on this window.
     pointer: Option<Pointer>,
+    /// A size the window manager gave the window against the one Popamp
+    /// asked for, and how many times it was asked back.
+    refused: Option<Refused>,
 }
 
 /// What a window's cursor shows.
@@ -408,6 +411,7 @@ impl App {
             frame: Bitmap::new(w, h, 0),
             shape_sig: None,
             pointer: None,
+            refused: None,
         });
         self.store_pos(k, pos);
         true
@@ -793,7 +797,8 @@ impl App {
     /// stored size changed.
     fn keep_grip_on_screen(&mut self, key: WindowKey, old: Option<Rect>, pos: (i32, i32)) -> bool {
         let Some(old) = old.filter(|_| crate::bind::maximized_area(&self.model, key).is_none()) else { return false };
-        let (Some(def), Some(area)) = (self.model.skin.layout.window(key), self.usable_area_at(key, pos)) else { return false };
+        // The monitor it was on: the new place may be off every screen.
+        let (Some(def), Some(area)) = (self.model.skin.layout.window(key), self.usable_area_at(key, (old.0, old.1))) else { return false };
         let scale = self.scale(key);
         let stored = crate::bind::stored_size(&self.model, key);
         let fitted = (
@@ -2544,6 +2549,24 @@ impl ApplicationHandler<AppEvent> for App {
                     self.render(WindowKey::Library);
                 }
             }
+            // An X11 window manager may resize a skin window of its own
+            // accord (Mutter as the desktop's scale changes): it gets its
+            // size back, and is drawn again.
+            WindowEvent::Resized(size) if !self.platform.on_wayland() && !platform::DESKTOP_IN_POINTS => {
+                let ((lw, lh), scale) = (self.logical_size(k), self.scale(k));
+                let want = (scale.px(lw) as u32, scale.px(lh) as u32);
+                let Some(w) = self.win_mut(k) else { return };
+                let got = (size.width, size.height);
+                let (ask, refused) = size_back(want, got, w.refused);
+                w.refused = refused;
+                if ask {
+                    log::debug!(target: "moves", "{k:?} resized to {got:?} by the window manager; asking {want:?} back");
+                    if let Some(top) = w.window.top() {
+                        let _ = top.request_inner_size(platform::size(want.0 as i32, want.1 as i32));
+                    }
+                    w.window.request_redraw();
+                }
+            }
             WindowEvent::CursorLeft { .. } => self.tip = None,
             // As after the main window is dragged under Wayland.
             WindowEvent::CursorEntered { .. } => self.mouse_back(),
@@ -2554,9 +2577,12 @@ impl ApplicationHandler<AppEvent> for App {
                 }
                 self.render(k)
             }
-            WindowEvent::ScaleFactorChanged { scale_factor, mut inner_size_writer } if self.platform.on_wayland() => {
+            WindowEvent::ScaleFactorChanged { scale_factor, mut inner_size_writer } if !platform::DESKTOP_IN_POINTS => {
                 // The window keeps its size in screen pixels, and the
-                // windows that are parts of it go where that puts them.
+                // windows that are parts of it go where that puts them:
+                // left alone, winit grows the window by the new factor
+                // while Popamp draws it at its own scale (an X11 desktop
+                // that changes its scale, a Windows monitor of other DPI).
                 let (scale, (w, h)) = (self.scale(k), self.logical_size(k));
                 let _ = inner_size_writer.request_inner_size(PhysicalSize::new(scale.px(w) as u32, scale.px(h) as u32));
                 self.platform.set_scale(scale_factor);
@@ -2705,6 +2731,24 @@ fn shape_mask(model: &Model, mode: &Mode, shape: &Shape, size: (i32, i32), scale
 /// Screen rectangle of a shown window: x, y, width, height.
 type Rect = (i32, i32, i32, i32);
 
+/// How many times a window asks back for its size against the same size
+/// from the window manager: Mutter, rescaling, gives its size more than
+/// once; one that holds windows to its own sizes would be asked for ever.
+const ASK_BACK: u8 = 3;
+
+/// A size the window manager gave a window, and the times it was asked back.
+type Refused = ((u32, u32), u8);
+
+/// Whether a window the window manager resized to `got` asks for `want`
+/// back, and the refused size to remember with the times asked.
+fn size_back(want: (u32, u32), got: (u32, u32), refused: Option<Refused>) -> (bool, Option<Refused>) {
+    match refused {
+        _ if got == want || got.0 == 0 || got.1 == 0 => (false, None),
+        Some((size, n)) if size == got => (n < ASK_BACK, Some((size, n.saturating_add(1).min(ASK_BACK)))),
+        _ => (true, Some((got, 1))),
+    }
+}
+
 /// Whether two windows are docked: one edge on the other's, give or take
 /// a pixel, and overlapping along it.
 fn touching(a: Rect, b: Rect) -> bool {
@@ -2717,9 +2761,10 @@ fn touching(a: Rect, b: Rect) -> bool {
 /// Moves each docked group that fitted its usable area (`area` of a
 /// window's corner) before, at the `old` rectangles, back inside it where
 /// the new `sizes` at `pos` take it past the right or the bottom edge: a
-/// group snapped to an edge stays on it as the windows grow. It never goes
-/// past the left or the top edge; a group already over an edge stays.
-/// The bottom is left alone unless `up`.
+/// group snapped to an edge stays on it as the windows grow. One snapped
+/// to the right edge stays on it as they shrink, too. It never goes past
+/// the left or the top edge; a group already over an edge stays. The
+/// bottom is left alone unless `up`.
 fn keep_inside(old: &[Option<Rect>], sizes: &[(i32, i32)], pos: &mut [(i32, i32)], up: bool, area: impl Fn((i32, i32)) -> Option<Screen>) {
     let mut done = vec![false; old.len()];
     for root in 0..old.len() {
@@ -2752,7 +2797,8 @@ fn keep_inside(old: &[Option<Rect>], sizes: &[(i32, i32)], pos: &mut [(i32, i32)
                 0
             }
         };
-        let dx = back(was_x, now_x, area.x, area.x + area.w);
+        let right = area.x + area.w;
+        let dx = if was_x.1 == right && now_x.1 < right { now_x.1 - right } else { back(was_x, now_x, area.x, right) };
         let dy = if up { back(was_y, now_y, area.y, area.y + area.h) } else { 0 };
         for &k in &group {
             pos[k] = (pos[k].0 - dx, pos[k].1 - dy);
@@ -3088,6 +3134,19 @@ mod tests {
     }
 
     #[test]
+    fn a_window_resized_by_the_window_manager_asks_its_size_back_once() {
+        let want = (275, 116);
+        let small = (138, 58);
+        assert_eq!(size_back(want, want, None), (false, None));
+        assert_eq!(size_back(want, small, None), (true, Some((small, 1))));
+        assert_eq!(size_back(want, small, Some((small, 2))), (true, Some((small, 3))), "given again: asked again");
+        assert_eq!(size_back(want, small, Some((small, 3))), (false, Some((small, 3))), "and then kept");
+        assert_eq!(size_back(want, (200, 80), Some((small, 3))), (true, Some(((200, 80), 1))), "another size: asked");
+        assert_eq!(size_back(want, want, Some((small, 3))), (false, None), "back to its size: forgotten");
+        assert_eq!(size_back(want, (0, 0), None), (false, None), "minimized");
+    }
+
+    #[test]
     fn a_group_at_the_right_edge_stays_inside_as_it_grows() {
         let area = |_: (i32, i32)| Some(Screen { x: 0, y: 0, w: 1280, h: 752 });
         // Main and EQ snapped to the right edge, the playlist apart; x1 to x2.
@@ -3096,6 +3155,12 @@ mod tests {
         let mut pos = vec![(1005, 100), (1005, 332), (100, 100), (0, 0)];
         keep_inside(&old, &sizes, &mut pos, false, area);
         assert_eq!(pos, [(730, 100), (730, 332), (100, 100), (0, 0)], "the playlist was not docked");
+        // And back to x1: still on the edge.
+        let old = [Some((730, 100, 550, 232)), Some((730, 332, 550, 232)), None, None];
+        let small = [(275, 116), (275, 116), (0, 0), (0, 0)];
+        let mut pos = vec![(730, 100), (730, 216), (0, 0), (0, 0)];
+        keep_inside(&old, &small, &mut pos, false, area);
+        assert_eq!(pos[..2], [(1005, 100), (1005, 216)]);
         // A group that ends up over the bottom goes up, never past the top.
         let old = [Some((0, 500, 275, 116)), Some((0, 616, 275, 116)), None, None];
         let mut pos = vec![(0, 500), (0, 732), (0, 0), (0, 0)];

@@ -32,9 +32,27 @@ plain X11 session, was checked the same way from its live image. The bar's
 strut works there as it is, at the top and the bottom, and the desktop
 icons move out of the bar's way.
 
+For 1.3.0 (2026-11-25) the windows docked against the right edge of the
+screen were checked as they grow and shrink (Larger Size, Ctrl+D) on
+Windows 11 (by hand), Ubuntu 26.04.1, Kubuntu 26.04.1, Linux Mint 22.3
+Cinnamon and Linux Mint 22.3 Xfce (Xfwm4 4.18): the group stays on the
+edge, the playlist is cut to the bottom, and everything is drawn again at
+the new size. On Ubuntu the desktop's scale was changed while Popamp ran
+(150% and 133% to 100%): the windows keep their size, but Mutter moves
+them apart, so they need arranging again. Pop!_OS (COSMIC) was checked
+on a real machine instead.
+Arrange windows (Ctrl+Shift+Left/Right) was checked on the same four Linux
+desktops at 1280x768 and 1280x1024: at the normal size the windows fill
+the screen to its edges and panels. At 2x on a screen 1280 pixels wide the
+library does not fit beside the main window even at its narrowest (800 +
+550 pixels): GNOME, KDE and Cinnamon push it back over the main window's
+side, Xfce leaves it 70 pixels past the edge. Popamp cannot bring the main
+window over it: the docked windows are transient for it (owned on
+Windows), and the window manager keeps them on top.
+
 **Not tested:**
 - Other distributions and desktops; Ubuntu, Kubuntu and Mint only from live images.
-- Plain X11 sessions other than Cinnamon.
+- Plain X11 sessions other than Cinnamon and Xfce.
 - PulseAudio-only or pure-ALSA systems.
 - Non-x86_64 CPUs.
 - HiDPI scaling, and dialogs and menus at a display scaling above 100%
