@@ -291,7 +291,7 @@ impl SmartEditor {
     fn add_row(&self, form: &mut Form<Act>, i: usize) -> RowControls {
         let row = &self.draft.rows[i];
         let (x, y) = (14 + row.depth as i32 * INDENT, RULES_Y + 4 + i as i32 * ROW);
-        let remove = Rect::new(W - 14 - 64, y, 64, 24);
+        let remove = Rect::new(W - 14 - BUTTON.0, y, BUTTON.0, BUTTON.1);
         form.add_on(0, remove, Widget::Button { label: tr!("common.remove").into(), action: Act::SmartRemove(i), default: false });
         match &row.item {
             Item::Test { field, op, value } => {
