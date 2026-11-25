@@ -1,486 +1,1187 @@
 # 简体中文翻译 (Simplified Chinese translation of the Popamp interface, made with AI: corrections welcome).
-# Key: the English text in the program; value: its translation.
+# Above each line: its English text from en.toml.
 # Counted texts have one form in Chinese: ["{n} 首"].
 
-" (installed)" = "（已安装）"
-" (update)" = "（可更新）"
-" and " = "、"
-"(no album)" = "（无专辑）"
-"(no artist)" = "（无艺术家）"
-"(none)" = "（无）"
-", turn it on in Options > ReplayGain" = "，请在“选项 > ReplayGain”中开启"
-", {b} kbps" = "，{b} kbps"
-", {failed} failed" = "，失败 {failed} 个"
-", {n} to update" = "，{n} 个可更新"
-"10 tracks back" = "后退 10 首"
-"10 tracks fwd" = "前进 10 首"
-"; {n} plug-ins need Popamp Plus" = ["；{n} 个插件需要 Popamp Plus"]
-"A click, or the wheel, over a title bar (full size or shaded):" = "在标题栏上单击或滚动滚轮："
-"A PLAYLIST IS CALLED {name} ALREADY" = "已有名为 {name} 的播放列表"
-"A stream's tags cannot be changed." = "无法修改网络流的标签。"
-"About Popamp…" = "关于 Popamp…"
-"About {name}" = "关于 {name}"
-"Action" = "操作"
-"Add a folder with music." = "请添加音乐文件夹。"
-"Add current as bookmark" = "将当前曲目加入书签"
-"Add folders to the media library" = "向媒体库添加文件夹"
-"Add folder…" = "添加文件夹…"
-"Add group" = "+ 分组"
-"Add rule" = "+ 规则"
-"Added" = "添加日期"
-"Advance to next track" = "跳到下一首"
-"Album" = "专辑"
-"Album art" = "专辑封面"
-"Album artist" = "专辑艺术家"
-"Album gain" = "按专辑"
-"Albums" = "专辑"
-"all" = "全部"
-"All ({n} albums)" = ["全部（{n} 张专辑）"]
-"All ({n} artists)" = ["全部（{n} 位艺术家）"]
-"All files" = "所有文件"
-"All music" = "全部音乐"
-"Always on top" = "窗口置顶"
-"Always On Top" = "窗口置顶"
-"any" = "任一"
-"Any text" = "任意文本"
-"Artist" = "艺术家"
-"Artist - Album - ## - Title" = "艺术家 - 专辑 - ## - 标题"
-"Artist - Title" = "艺术家 - 标题"
-"As the system ({language})" = "跟随系统（{language}）"
-"ascending" = "升序"
-"Asks for no permissions." = "不需要任何权限。"
-"Assign" = "设置"
-"Audio files" = "音频文件"
-"Auto-load presets" = "自动加载预设"
-"Auto-load preset…" = "自动加载预设…"
-"Autoscroll song name" = "自动滚动歌曲名"
-"Back 5 seconds" = "后退 5 秒"
-"BALANCE: CENTER" = "声道平衡：居中"
-"BALANCE: {pct}% LEFT" = "声道平衡：左 {pct}%"
-"BALANCE: {pct}% RIGHT" = "声道平衡：右 {pct}%"
-"Bit rate" = "比特率"
-"Bookmark" = "书签"
-"Bookmark item(s)" = "加入书签"
-"Bookmarks" = "书签"
-"Bottom of the screen" = "屏幕底部"
-"Broken: {e}" = "已损坏：{e}"
-"Cancel" = "取消"
-"Cancelled: nothing was saved" = "已取消：未保存任何内容"
-"Cancelling: finishing the tracks under way" = "正在取消：完成进行中的曲目"
-"CANNOT OPEN JOURNAL: {file}" = "无法打开记录：{file}"
-"CANNOT OPEN THE BROWSER" = "无法打开浏览器"
-"CANNOT REMOVE PLUG-IN: {e}" = "无法删除插件：{e}"
-"Change…" = "更改…"
-"Check for a new version" = "检查新版本"
-"Choose a cover picture" = "选择封面图片"
-"Choose Popamp in Finder: Get Info, then Open with." = "在访达中选中 Popamp，打开“显示简介”，在“打开方式”中设置。"
-"Close" = "关闭"
-"Codec" = "编解码器"
-"Colours" = "颜色"
-"Comment" = "注释"
-"Composer" = "作曲"
-"Connect to {address}" = "连接到 {address}"
-"Connect to {address} ({why})" = "连接到 {address}（{why}）"
-"CONNECTING…" = "正在连接…"
-"contains" = "包含"
-"Count a play after hearing (%)" = "听完多少计为播放 (%)"
-"Count a play: 50 to 100, in steps of 5" = "计为播放：50 到 100，步长 5"
-"Crop item(s)" = "仅保留所选"
-"Crossfade" = "交叉淡入淡出"
-"Crossfade (ms)" = "交叉淡化 (ms)"
-"Date added" = "添加日期"
-"Decoder plug-in" = "解码器插件"
-"Default" = "默认"
-"Default apps" = "默认应用"
-"Delete" = "删除"
-"Delete files" = "删除文件"
-"Delete playlist" = "删除播放列表"
-"Delete smart playlist" = "删除智能播放列表"
-"Delete the playlist “{name}”?\n\nIts tracks stay in the library." = "删除播放列表“{name}”？\n\n其中的曲目仍保留在媒体库中。"
-"Delete the smart playlist “{name}”?" = "删除智能播放列表“{name}”？"
-"Delete “{name}”" = "删除“{name}”"
-"descending" = "降序"
-"Desktop" = "桌面"
-"Did not load: {e}" = "未能加载：{e}"
-"Dim inactive playlist" = "非活动播放列表变暗"
-"Disc" = "碟片"
-"Done: {done} of {n} tracks scanned" = ["完成：已扫描 {done}/{n} 首"]
-"Double size" = "双倍大小"
-"Double Size" = "双倍大小"
-"Download & use" = "下载并使用"
-"Downloading {name}…" = "正在下载 {name}…"
-"Download…" = "下载…"
-"DSP plug-in" = "DSP 插件"
-"Each is a folder in {dir}." = "每个都是 {dir} 中的一个文件夹。"
-"Easy move" = "随处拖动窗口"
-"EasyMove" = "随处拖动窗口"
-"Edit playlist entry" = "编辑播放列表项"
-"Edit “{name}”…" = "编辑“{name}”…"
-"EMPTY EQ FILE" = "EQ 文件为空"
-"Enabled" = "启用"
-"End of list" = "列表末尾"
-"Enqueue" = "加入队列"
-"Enter a URL to open (a stream or a playlist):" = "输入要打开的 URL（网络流或播放列表）："
-"EQ FILE ERROR: {e}" = "EQ 文件错误：{e}"
-"EQ presets" = "EQ 预设"
-"EQ: {db} DB" = "EQ：{db} DB"
-"Equalizer" = "均衡器"
-"ERROR: {message}" = "错误：{message}"
-"Exit" = "退出"
-"Fade-out" = "淡出"
-"Fade-out (ms)" = "淡出 (ms)"
-"Fast-forward 5 seconds" = "快进 5 秒"
-"Favourites (smart playlist)" = "我的收藏"
-"File info" = "文件信息"
-"File info…" = "文件信息…"
-"File name" = "文件名"
-"File path" = "文件路径"
-"File types: cannot add Popamp to the menu: {e}" = "文件类型：无法将 Popamp 添加到菜单：{e}"
-"File types: cannot write {file}: {e}" = "文件类型：无法写入 {file}：{e}"
-"File…" = "文件…"
-"Fire style" = "火焰样式"
-"Folders" = "文件夹"
-"Folders it may read, separated by ; (~ is your whole home):" = "允许读取的文件夹，用 ; 分隔（~ 表示整个主目录）："
-"Folder…" = "文件夹…"
-"Font size" = "字号"
-"Forget them now" = "立即清除"
-"Forgot the plays and ratings of {n} missing files." = ["已清除 {n} 个丢失文件的播放记录和评分。"]
-"Format" = "格式"
-"Forward 5 seconds" = "前进 5 秒"
-"From EQF…" = "从 EQF 导入…"
-"Full width, under side panels" = "全宽，位于侧边面板下方"
-"Fwd 5 seconds" = "前进 5 秒"
-"Gallery (popamp.app)…" = "资源库 (popamp.app)…"
-"Gallery: {e}" = "资源库：{e}"
-"Gallery…" = "资源库…"
-"Generate HTML playlist" = "生成 HTML 播放列表"
-"Generate HTML playlist…" = "生成 HTML 播放列表…"
-"Genre" = "流派"
-"Global hotkeys (Ctrl+Alt)" = "全局快捷键 (Ctrl+Alt)"
-"Hidden folders and the player's own stay closed." = "隐藏文件夹和播放器自身的文件夹不可访问。"
-"History" = "历史"
-"History…" = "历史…"
-"HTTP proxy" = "HTTP 代理"
-"Icon in the system tray" = "在系统托盘显示图标"
-"in the last (days)" = "最近（天）"
-"Install" = "安装"
-"INSTALL FAILED: {e}" = "安装失败：{e}"
-"Install from file…" = "从文件安装…"
-"Install skin" = "安装皮肤"
-"Installed" = "已安装"
-"Installed as a package (popamp-plugin-{folder}): remove it with your package manager." = "以软件包形式安装 (popamp-plugin-{folder})：请用包管理器删除。"
-"Internet" = "网络"
-"is" = "等于"
-"is empty" = "为空"
-"is less than" = "小于"
-"is more than" = "大于"
-"ISO bands (31Hz-16kHz)" = "ISO 频段 (31Hz-16kHz)"
-"Journal" = "记录"
-"Jump" = "跳转"
-"Jump to (m:ss), track length {len}:" = "跳转到 (m:ss)，曲目长度 {len}："
-"Jump to file" = "跳转到文件"
-"Jump to file…" = "跳转到文件…"
-"Jump to time" = "跳转到时间"
-"Jump to time…" = "跳转到时间…"
-"Kbps" = "Kbps"
-"Keep the ReplayGain scan window open" = "保持 ReplayGain 扫描窗口打开"
-"Keep this window open when the scan ends" = "扫描结束后保持此窗口打开"
-"Keep windows on screen" = "窗口不超出屏幕"
-"Language" = "语言"
-"Last played" = "上次播放"
-"Last played (smart playlist)" = "最近播放"
-"Length" = "时长"
-"Length (seconds)" = "时长（秒）"
-"LIBRARY: COVER WRITTEN TO {n} FILES" = ["媒体库：已为 {n} 个文件写入封面"]
-"LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED" = ["媒体库：已为 {n} 个文件写入封面，失败 {failed} 个"]
-"LIBRARY: NO COVER CAN GO INTO THESE FILES" = "媒体库：这些文件无法写入封面"
-"LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE" = "媒体库：不是 JPEG、PNG、GIF 或 BMP 图片"
-"LIBRARY: THE FOLDER IS THERE ALREADY" = "媒体库：该文件夹已存在"
-"LIBRARY: THE FOLDERS ARE THERE ALREADY" = "媒体库：这些文件夹已存在"
-"LIBRARY: {n} TRACKS TO THE PLAYLIST" = ["媒体库：{n} 首已加入播放列表"]
-"License: {license}" = "许可证：{license}"
-"Limit" = "数量上限"
-"Limiter (prevents clipping)" = "限幅器（防止削波）"
-"Line style" = "线条样式"
-"Load" = "加载"
-"Load EQ preset file" = "加载 EQ 预设文件"
-"Load playlist" = "加载播放列表"
-"Loading preview…" = "正在加载预览…"
-"Loading the catalog…" = "正在加载目录…"
-"Loading the preview…" = "正在加载预览…"
-"Loading…" = "正在加载…"
-"Location" = "位置"
-"Location:" = "位置："
-"Main" = "主窗口"
-"Main Window" = "主窗口"
-"MANUAL ADVANCE: OFF" = "手动切换：关"
-"MANUAL ADVANCE: ON" = "手动切换：开"
-"Manual playlist advance" = "手动切换下一首"
-"Maximized" = "最大化"
-"May connect to {hosts}" = "可连接到 {hosts}"
-"May read the folders you allow" = "可读取你允许的文件夹"
-"May run {programs}" = "可运行 {programs}"
-"Media files" = "媒体文件"
-"Media Library" = "媒体库"
-"MEDIA LIBRARY" = "媒体库"
-"Middle Mouse" = "鼠标中键"
-"MIDI SoundFont" = "MIDI 音色库"
-"MIDI SoundFont: no such file (leave it empty for the system's)" = "MIDI 音色库：文件不存在（留空则使用系统默认）"
-"Minimize to the tray" = "最小化到托盘"
-"Minutes" = "分钟"
-"More" = "更多"
-"Most played (smart playlist)" = "最常播放"
-"Mouse" = "鼠标"
-"Move docked windows together" = "吸附的窗口一起移动"
-"Museum: {e}" = "皮肤博物馆：{e}"
-"Name:" = "名称："
-"Nearest pixel" = "最近邻像素"
-"Never played (smart playlist)" = "从未播放"
-"New" = "新建"
-"New playlist" = "新建播放列表"
-"New playlist…" = "新建播放列表…"
-"New smart playlist" = "新建智能播放列表"
-"New smart playlist…" = "新建智能播放列表…"
-"Next" = "下一首"
-"Next track" = "下一首"
-"No cover" = "无封面"
-"No file selected." = "未选择文件。"
-"No limit" = "不限"
-"No preview" = "无预览"
-"No preview: {e}" = "无预览：{e}"
-"No rating" = "无评分"
-"Normal style" = "普通样式"
-"Not rated yet" = "尚无评分"
-"Not saved: {e}" = "未保存：{e}"
-"Nothing found" = "未找到"
-"Nothing found." = "未找到任何内容。"
-"NOTHING TO ADD" = "没有可添加的内容"
-"Nothing to play" = "没有可播放的内容"
-"Notify of each new track" = "每首新曲目都通知"
-"Now playing" = "正在播放"
-"of these rules:" = "以下规则："
-"of these:" = "以下条件："
-"Off" = "关"
-"OK" = "确定"
-"OK keeps what you chose; Cancel forgets it." = "“确定”保存所选内容，“取消”放弃更改。"
-"On" = "开"
-"Open file(s)" = "打开文件"
-"Open file…" = "打开文件…"
-"Open folder" = "打开文件夹"
-"Open folder…" = "打开文件夹…"
-"Open URL" = "打开 URL"
-"Open URL…" = "打开 URL…"
-"Open with Popamp" = "用 Popamp 打开"
-"Options" = "选项"
-"Order by" = "排序"
-"Oscilloscope" = "示波器"
-"Output buffer" = "输出缓冲"
-"Output buffer (ms)" = "输出缓冲 (ms)"
-"Output device" = "输出设备"
-"Pause" = "暂停"
-"Pause/Unpause" = "暂停/继续"
-"Paused" = "已暂停"
-"Permanently delete {n} files from disk?\n\n{files}" = ["从磁盘永久删除 {n} 个文件？\n\n{files}"]
-"Permissions" = "权限"
-"Physically remove selected file(s)…" = "从磁盘删除所选文件…"
-"Play" = "播放"
-"Play item" = "播放"
-"Play/restart" = "播放/从头播放"
-"Playback" = "播放控制"
-"Playlist" = "播放列表"
-"Playlist Editor" = "播放列表"
-"Playlist entry…" = "播放列表项…"
-"Playlist font size" = "播放列表字号"
-"Playlist name:" = "播放列表名称："
-"Playlists" = "播放列表"
-"Plays" = "播放次数"
-"Plays and ratings of missing files are kept {n} days." = ["丢失文件的播放记录和评分保留 {n} 天。"]
-"Plug-in" = "插件"
-"PLUG-IN {name} STOPPED: {why}" = "插件 {name} 已停止：{why}"
-"Plug-ins" = "插件"
-"Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on." = "插件可为 Popamp 增加音源、文件类型、音效和可视化效果。插件默认关闭，需要手动启用。"
-"Plug-ins need Popamp Plus" = "插件需要 Popamp Plus"
-"Plug-ins…" = "插件…"
-"Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files." = "Popamp 可以修改 MP3、FLAC、Ogg Vorbis 和 MP4 文件的标签。"
-"Popamp cannot read this file: it may be damaged or still downloading." = "Popamp 无法读取此文件：文件可能已损坏或仍在下载中。"
-"Popamp Equalizer" = "Popamp 均衡器"
-"Popamp Gallery" = "Popamp 资源库"
-"Popamp Media Library" = "Popamp 媒体库"
-"Popamp Playlist Editor" = "Popamp 播放列表"
-"Popamp Preferences" = "Popamp 首选项"
-"Popamp {version} is out" = "Popamp {version} 已发布"
-"POPAMP {version} IS OUT, SEE THE MAIN MENU" = "POPAMP {version} 已发布，请查看主菜单"
-"Popular" = "热门"
-"Position" = "位置"
-"PREAMP: {db} DB" = "前置放大：{db} DB"
-"Preferences…" = "首选项…"
-"Preset" = "预设"
-"Preset name:" = "预设名称："
-"Preset…" = "预设…"
-"Previous" = "上一首"
-"Previous track" = "上一首"
-"Random" = "随机"
-"Random 50 (smart playlist)" = "随机 50 首"
-"Randomize list" = "随机排列列表"
-"Rate" = "评分"
-"Rated {rating} of 5 by {n}" = "评分 {rating}/5（{n} 人）"
-"Rating" = "评分"
-"Rating (stars)" = "评分（星）"
-"Recently added (smart playlist)" = "最近添加"
-"Remove" = "删除"
-"Remove bookmark" = "删除书签"
-"Remove bookmark…" = "删除书签…"
-"Remove from “{name}”" = "从“{name}”中移除"
-"Remove item(s)" = "移除所选"
-"Remove missing files" = "移除丢失的文件"
-"Remove plug-in" = "删除插件"
-"Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}" = "删除插件 {name}？\n\n将删除其文件夹：\n{folder}"
-"Remove “{name}” from the library" = "从媒体库中移除“{name}”"
-"Rename playlist" = "重命名播放列表"
-"Rename “{name}”…" = "重命名“{name}”…"
-"Repeat" = "循环"
-"Repeat on/off" = "循环开/关"
-"ReplayGain" = "ReplayGain"
-"ReplayGain is off: turn it on in Options > ReplayGain" = "ReplayGain 已关闭：请在“选项 > ReplayGain”中开启"
-"ReplayGain scan" = "ReplayGain 扫描"
-"ReplayGain: scan cancelled" = "ReplayGain：扫描已取消"
-"ReplayGain: select the tracks to scan" = "ReplayGain：请选择要扫描的曲目"
-"ReplayGain: {done} of {total} scanned" = "ReplayGain：已扫描 {done}/{total}"
-"Rescan folders" = "重新扫描文件夹"
-"Reset columns" = "重置列"
-"Reset to flat" = "重置为平直"
-"Reverse list" = "倒序排列列表"
-"Rewind 5 seconds" = "后退 5 秒"
-"Right Mouse" = "鼠标右键"
-"Rule {n}: {e}." = "规则 {n}：{e}。"
-"Save" = "保存"
-"Save EQ preset" = "保存 EQ 预设"
-"Save EQ preset file" = "保存 EQ 预设文件"
-"SAVE FAILED: {e}" = "保存失败：{e}"
-"Save playlist" = "保存播放列表"
-"Save search as smart playlist…" = "将搜索保存为智能播放列表…"
-"Saved to {file}" = "已保存到 {file}"
-"Scan every (minutes)" = "扫描间隔（分钟）"
-"Scan every: 1 to {max} minutes" = "扫描间隔：1 到 {max} 分钟"
-"Scan ReplayGain" = "扫描 ReplayGain"
-"Scan the folders at startup" = "启动时扫描文件夹"
-"Scan the folders periodically" = "定期扫描文件夹"
-"Scanning: {done}" = "正在扫描：{done}"
-"Scanning: {done} of {n} tracks" = ["正在扫描：{done}/{n} 首"]
-"Scope: afterglow" = "示波器：余辉"
-"Scope: dots" = "示波器：点"
-"Scope: lines" = "示波器：线"
-"Scope: solid" = "示波器：实心"
-"Scroll Down" = "滚轮向下"
-"Scroll song title" = "滚动歌曲标题"
-"Scroll Up" = "滚轮向上"
-"Search" = "搜索"
-"Search for:" = "搜索："
-"Search: type here" = "搜索：在此输入"
-"Settings" = "设置"
-"Sharp scaling" = "锐利缩放"
-"Shortcuts" = "快捷操作"
-"Show peaks" = "显示峰值"
-"Show playlist numbers" = "显示播放列表编号"
-"Show Popamp" = "显示 Popamp"
-"Show the commands it runs" = "查看它运行的命令"
-"Shuffle" = "随机播放"
-"Shuffle on/off" = "随机播放开/关"
-"Size" = "大小"
-"Skin" = "皮肤"
-"Skin browser" = "皮肤浏览器"
-"Skin browser…" = "皮肤浏览器…"
-"SKIN ERROR: {e}" = "皮肤错误：{e}"
-"Skin Museum (online)…" = "皮肤博物馆（在线）…"
-"Skins" = "皮肤"
-"Skins from skins.webamp.org belong to their authors." = "skins.webamp.org 上的皮肤版权归各自作者所有。"
-"Skip this version" = "跳过此版本"
-"Smart playlist" = "智能播放列表"
-"Smart playlists" = "智能播放列表"
-"Snap windows together" = "窗口相互吸附"
-"Sort" = "排序"
-"Sort list by filename" = "按文件名排序"
-"Sort list by path and filename" = "按路径和文件名排序"
-"Sort list by title" = "按标题排序"
-"Source plug-in" = "音源插件"
-"Spectrum analyzer" = "频谱分析器"
-"Start of list" = "列表开头"
-"Station" = "电台"
-"Stop" = "停止"
-"Stop after current" = "播完当前曲目后停止"
-"STOP AFTER CURRENT: OFF" = "播完当前后停止：关"
-"STOP AFTER CURRENT: ON" = "播完当前后停止：开"
-"Stop w/ fadeout" = "淡出后停止"
-"Stopped" = "已停止"
-"Stopped after failing: {why}. OK starts it again." = "因出错而停止：{why}。点“确定”重新启动。"
-"The file is not there." = "文件不存在。"
-"The library is empty." = "媒体库为空。"
-"The limit needs a whole number above 0." = "上限必须是大于 0 的整数。"
-"The playlist needs a name." = "播放列表需要名称。"
-"then by" = "然后按"
-"There are none yet in {dir}." = "{dir} 中还没有。"
-"Thick bands" = "粗频带"
-"This track is part of a whole-disc image; its tags are in the CUE sheet." = "此曲目属于整盘镜像，其标签保存在 CUE 文件中。"
-"Time" = "时间"
-"Time elapsed" = "已播放时间"
-"Time remaining" = "剩余时间"
-"Title" = "标题"
-"Title format" = "标题格式"
-"Title format: must not be empty" = "标题格式：不能为空"
-"To EQF…" = "导出为 EQF…"
-"To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it." = "要启用插件，请在左侧列表中选中它，阅读它的功能和权限，然后勾选“启用”。设置项位于下方。"
-"Today {time}" = "今天 {time}"
-"Toolbar mode" = "工具栏模式"
-"Top of the screen" = "屏幕顶部"
-"Top rated" = "评分最高"
-"Track" = "音轨"
-"Track gain" = "按曲目"
-"Track number" = "音轨号"
-"Tracks" = "曲目"
-"Tracks that match" = "匹配条件"
-"Update" = "更新"
-"Update through your package manager" = "请通过包管理器更新"
-"URL…" = "URL…"
-"Use" = "使用"
-"Use skin cursors" = "使用皮肤光标"
-"Using {name}." = "正在使用 {name}。"
-"View file info…" = "文件信息…"
-"Visual plug-in" = "可视化插件"
-"Visualization" = "可视化"
-"Visualizations" = "可视化"
-"Vol Down" = "音量减小"
-"Vol Up" = "音量增大"
-"Volume down" = "音量减小"
-"Volume up" = "音量增大"
-"VOLUME: {pct}%" = "音量：{pct}%"
-"Whole multiples only" = "仅整数倍"
-"Winamp bands (60Hz-16kHz)" = "Winamp 频段 (60Hz-16kHz)"
-"Winamp Skin Museum" = "Winamp 皮肤博物馆"
-"Window" = "窗口"
-"Windows" = "窗口"
-"Windows lets you choose the default player in its Settings." = "可以在 Windows 设置中选择默认播放器。"
-"Windowshade" = "折叠模式"
-"Write cover" = "写入封面"
-"Write “{image}” into {n} tracks as the cover?\n\n{files}" = ["将“{image}”作为封面写入 {n} 首曲目？\n\n{files}"]
-"Year" = "年份"
-"Yesterday {time}" = "昨天 {time}"
-"Zero-pad numbers" = "编号前补零"
-"{device} (not found)" = "{device}（未找到）"
-"{file} is not a JPEG, PNG, GIF or BMP picture." = "{file} 不是 JPEG、PNG、GIF 或 BMP 图片。"
-"{gain} dB (track)" = "{gain} dB（曲目）"
-"{id} is already in {folder}; the gallery leaves it alone." = "{id} 已在 {folder} 中，资源库不会改动它。"
-"{kind} plug-in" = "{kind}插件"
-"{kind}, {b} kbps" = "{kind}，{b} kbps"
-"{name} (removed)" = "{name}（已删除）"
-"{name} is installed. Turn it on in Options > Plug-ins." = "{name} 已安装。请在“选项 > 插件”中启用。"
-"{name} is removed." = "{name} 已删除。"
-"{n} BOOKMARKS ADDED" = ["已添加 {n} 个书签"]
-"{n} in the gallery" = "资源库中有 {n} 个"
-"{n} missing files keep their plays and ratings {days} days." = ["{n} 个丢失文件的播放记录和评分保留 {days} 天。"]
-"{n} skins." = ["{n} 个皮肤。"]
-"{n} tracks" = ["{n} 首"]
-"{rated}, {n} downloads" = ["{rated}，下载 {n} 次"]
-"{r} Hz, {n} channels{bitrate}" = ["{r} Hz，{n} 声道{bitrate}"]
-"{title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}" = "{title}\n\n一款用 Rust 编写的 Winamp 风格音频播放器，支持 macOS、Linux 和 Windows。\n解码：Symphonia。支持经典 (.wsz) 和矢量 (.psz) 皮肤。\n\n配置文件：{config}"
-"{what} by {author}" = "{what}，作者：{author}"
-"{what}: enter a whole number" = "{what}：请输入整数"
+[common]
+# OK
+ok = "确定"
+# Cancel
+cancel = "取消"
+# Remove
+remove = "删除"
+# Save
+save = "保存"
+# Close
+close = "关闭"
+# Search
+search = "搜索"
+# Loading…
+loading = "正在加载…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Popamp 均衡器"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Popamp 播放列表"
+# Popamp Media Library
+popampMediaLibrary = "Popamp 媒体库"
+# Jump to file
+jumpToFile = "跳转到文件"
+# File info
+fileInfo = "文件信息"
+# Popamp Preferences
+popampPreferences = "Popamp 首选项"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp 皮肤博物馆"
+# Popamp Gallery
+popampGallery = "Popamp 资源库"
+# Album art
+albumArt = "专辑封面"
+# Skin browser
+skinBrowser = "皮肤浏览器"
+# History
+history = "历史"
+# ReplayGain scan
+replayGainScan = "ReplayGain 扫描"
+# Smart playlist
+smartPlaylist = "智能播放列表"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "媒体库"
+# NOTHING TO ADD
+nothingToAdd = "没有可添加的内容"
+# CONNECTING…
+connecting = "正在连接…"
+# VOLUME: {pct}%
+volumePct = "音量：{pct}%"
+# BALANCE: CENTER
+balanceCenter = "声道平衡：居中"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "声道平衡：左 {pct}%"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "声道平衡：右 {pct}%"
+# ERROR: {message}
+error = "错误：{message}"
+# EQ: {db} DB
+eqBandDb = "EQ：{db} DB"
+# PREAMP: {db} DB
+preampDb = "前置放大：{db} DB"
+# SKIN ERROR: {e}
+skinError = "皮肤错误：{e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "播完当前后停止：开"
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "播完当前后停止：关"
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "手动切换：关"
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "手动切换：开"
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\n一款用 Rust 编写的 Winamp 风格音频播放器，支持 macOS、Linux 和 Windows。\n解码：Symphonia。支持经典 (.wsz) 和矢量 (.psz) 皮肤。\n\n配置文件：{config}"
+# About {name}
+aboutName = "关于 {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "关于 Popamp…"
+  # Play
+  play = "播放"
+  # File…
+  file = "文件…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "文件夹…"
+  # View file info…
+  viewFileInfo = "文件信息…"
+  # Album art
+  albumArt = "专辑封面"
+  # History…
+  history = "历史…"
+  # Bookmarks
+  bookmarks = "书签"
+  # Main Window
+  mainWindow = "主窗口"
+  # Playlist Editor
+  playlistEditor = "播放列表"
+  # Equalizer
+  equalizer = "均衡器"
+  # Media Library
+  mediaLibrary = "媒体库"
+  # Colours
+  colours = "颜色"
+  # On
+  on = "开"
+  # Off
+  off = "关"
+  # Position
+  position = "位置"
+  # Top of the screen
+  topOfScreen = "屏幕顶部"
+  # Bottom of the screen
+  bottomOfScreen = "屏幕底部"
+  # Size
+  size = "大小"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "全宽，位于侧边面板下方"
+  # Toolbar mode
+  toolbarMode = "工具栏模式"
+  # Options
+  options = "选项"
+  # Playback
+  playback = "播放控制"
+  # Previous
+  previous = "上一首"
+  # Pause
+  pause = "暂停"
+  # Stop
+  stop = "停止"
+  # Next
+  next = "下一首"
+  # Stop w/ fadeout
+  stopWithFadeout = "淡出后停止"
+  # Stop after current
+  stopAfterCurrent = "播完当前曲目后停止"
+  # Back 5 seconds
+  back5Seconds = "后退 5 秒"
+  # Fwd 5 seconds
+  fwd5Seconds = "前进 5 秒"
+  # Start of list
+  startOfList = "列表开头"
+  # End of list
+  endOfList = "列表末尾"
+  # 10 tracks back
+  n10TracksBack = "后退 10 首"
+  # 10 tracks fwd
+  n10TracksFwd = "前进 10 首"
+  # Jump to time…
+  jumpToTime = "跳转到时间…"
+  # Jump to file…
+  jumpToFile = "跳转到文件…"
+  # Visualization
+  visualization = "可视化"
+  # Skins
+  skins = "皮肤"
+  # Exit
+  exit = "退出"
+
+  [menu.options]
+  # Preferences…
+  preferences = "首选项…"
+  # Plug-ins…
+  plugIns = "插件…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "资源库 (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "已播放时间"
+  # Time remaining
+  timeRemaining = "剩余时间"
+  # Always On Top
+  alwaysOnTop = "窗口置顶"
+  # Double Size
+  doubleSize = "双倍大小"
+  # Size
+  size = "大小"
+  # EasyMove
+  easyMove = "随处拖动窗口"
+  # Move docked windows together
+  moveDockedWindowsTogether = "吸附的窗口一起移动"
+  # Windowshade
+  windowshade = "折叠模式"
+  # Repeat
+  repeat = "循环"
+  # Shuffle
+  shuffle = "随机播放"
+  # Manual playlist advance
+  manualPlaylistAdvance = "手动切换下一首"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "关"
+  # Track gain
+  trackGain = "按曲目"
+  # Album gain
+  albumGain = "按专辑"
+  # Title format
+  titleFormat = "标题格式"
+  # Artist - Title
+  artistTitle = "艺术家 - 标题"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "艺术家 - 专辑 - ## - 标题"
+  # Title
+  title = "标题"
+  # File name
+  fileName = "文件名"
+  # Equalizer
+  equalizer = "均衡器"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Winamp 频段 (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "ISO 频段 (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "限幅器（防止削波）"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "皮肤浏览器…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "资源库 (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "皮肤博物馆（在线）…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "频谱分析器"
+  # Oscilloscope
+  oscilloscope = "示波器"
+  # Off
+  off = "关"
+  # Normal style
+  normalStyle = "普通样式"
+  # Fire style
+  fireStyle = "火焰样式"
+  # Line style
+  lineStyle = "线条样式"
+  # Show peaks
+  showPeaks = "显示峰值"
+  # Thick bands
+  thickBands = "粗频带"
+  # Scope: dots
+  scopeDots = "示波器：点"
+  # Scope: lines
+  scopeLines = "示波器：线"
+  # Scope: solid
+  scopeSolid = "示波器：实心"
+  # Scope: afterglow
+  scopeAfterglow = "示波器：余辉"
+
+  [menu.equalizer]
+  # (none)
+  none = "（无）"
+  # Load
+  load = "加载"
+  # Auto-load presets
+  autoLoadPresets = "自动加载预设"
+  # Default
+  default = "默认"
+  # From EQF…
+  fromEQF = "从 EQF 导入…"
+  # Preset…
+  preset = "预设…"
+  # Auto-load preset…
+  autoLoadPreset = "自动加载预设…"
+  # To EQF…
+  toEQF = "导出为 EQF…"
+  # Delete
+  delete = "删除"
+  # Reset to flat
+  resetToFlat = "重置为平直"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "锐利缩放"
+  # Whole multiples only
+  wholeMultiplesOnly = "仅整数倍"
+  # Nearest pixel
+  nearestPixel = "最近邻像素"
+
+  [menu.playlist]
+  # Play item
+  playItem = "播放"
+  # Remove item(s)
+  removeItems = "移除所选"
+  # Crop item(s)
+  cropItems = "仅保留所选"
+  # View file info…
+  viewFileInfo = "文件信息…"
+  # Playlist entry…
+  playlistEntry = "播放列表项…"
+  # Bookmark item(s)
+  bookmarkItems = "加入书签"
+  # Scan ReplayGain
+  scanReplayGain = "扫描 ReplayGain"
+  # Sort
+  sort = "排序"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "生成 HTML 播放列表…"
+  # Options
+  options = "选项"
+  # Sort list by title
+  sortListByTitle = "按标题排序"
+  # Sort list by filename
+  sortListByFilename = "按文件名排序"
+  # Sort list by path and filename
+  sortListByPath = "按路径和文件名排序"
+  # Reverse list
+  reverseList = "倒序排列列表"
+  # Randomize list
+  randomizeList = "随机排列列表"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "移除丢失的文件"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "从磁盘删除所选文件…"
+  # Previous
+  previous = "上一首"
+  # Start of list
+  startOfList = "列表开头"
+  # Rewind 5 seconds
+  rewind5Seconds = "后退 5 秒"
+  # Play/restart
+  playRestart = "播放/从头播放"
+  # Open URL…
+  openURL = "打开 URL…"
+  # Open file…
+  openFile = "打开文件…"
+  # Pause/Unpause
+  pauseUnpause = "暂停/继续"
+  # Stop
+  stop = "停止"
+  # Stop w/ fadeout
+  stopWithFadeout = "淡出后停止"
+  # Stop after current
+  stopAfterCurrent = "播完当前曲目后停止"
+  # Next
+  next = "下一首"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "快进 5 秒"
+  # End of list
+  endOfList = "列表末尾"
+  # Open folder…
+  openFolder = "打开文件夹…"
+  # Jump to time…
+  jumpToTime = "跳转到时间…"
+  # Forward 5 seconds
+  forward5Seconds = "前进 5 秒"
+  # Repeat
+  repeat = "循环"
+  # Manual playlist advance
+  manualPlaylistAdvance = "手动切换下一首"
+  # Shuffle
+  shuffle = "随机播放"
+  # Time elapsed
+  timeElapsed = "已播放时间"
+  # Time remaining
+  timeRemaining = "剩余时间"
+  # View file info…
+  viewFileInfo = "文件信息…"
+  # Jump to file…
+  jumpToFile = "跳转到文件…"
+  # Autoscroll song name
+  autoscrollSongName = "自动滚动歌曲名"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["已添加 {n} 个书签"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "将当前曲目加入书签"
+  # Remove bookmark…
+  removeBookmark = "删除书签…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "显示 Popamp"
+  # Previous
+  previous = "上一首"
+  # Play
+  play = "播放"
+  # Pause
+  pause = "暂停"
+  # Stop
+  stop = "停止"
+  # Next
+  next = "下一首"
+  # Shuffle
+  shuffle = "随机播放"
+  # Repeat
+  repeat = "循环"
+  # Exit
+  exit = "退出"
+
+  [menu.update]
+  # Download…
+  download = "下载…"
+  # Update through your package manager
+  throughPackageManager = "请通过包管理器更新"
+  # Skip this version
+  skipThisVersion = "跳过此版本"
+  # Popamp {version} is out
+  popampVersionIsOut = "Popamp {version} 已发布"
+
+[dialog]
+# Media files
+mediaFiles = "媒体文件"
+# All files
+allFiles = "所有文件"
+# Open file(s)
+openFiles = "打开文件"
+# Open folder
+openFolder = "打开文件夹"
+# Add folders to the media library
+addLibraryFolders = "向媒体库添加文件夹"
+# Open URL
+openURL = "打开 URL"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "输入要打开的 URL（网络流或播放列表）："
+# Load playlist
+loadPlaylist = "加载播放列表"
+# Save playlist
+savePlaylist = "保存播放列表"
+# Generate HTML playlist
+generateHtmlPlaylist = "生成 HTML 播放列表"
+# Jump to time
+jumpToTime = "跳转到时间"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "跳转到 (m:ss)，曲目长度 {len}："
+# Edit playlist entry
+editPlaylistEntry = "编辑播放列表项"
+# Location:
+location = "位置："
+# Remove bookmark
+removeBookmark = "删除书签"
+# Bookmark
+bookmark = "书签"
+# EQ presets
+eqPresets = "EQ 预设"
+# Preset
+preset = "预设"
+# Save EQ preset
+saveEQPreset = "保存 EQ 预设"
+# Preset name:
+presetName = "预设名称："
+# Load EQ preset file
+loadEQPresetFile = "加载 EQ 预设文件"
+# Save EQ preset file
+saveEQPresetFile = "保存 EQ 预设文件"
+# Install skin
+installSkin = "安装皮肤"
+# Choose a cover picture
+chooseCoverPicture = "选择封面图片"
+# Remove plug-in
+removePlugIn = "删除插件"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "删除插件 {name}？\n\n将删除其文件夹：\n{folder}"
+# New playlist
+newPlaylist = "新建播放列表"
+# Playlist name:
+playlistName = "播放列表名称："
+# Rename playlist
+renamePlaylist = "重命名播放列表"
+# Delete playlist
+deletePlaylist = "删除播放列表"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "删除播放列表“{name}”？\n\n其中的曲目仍保留在媒体库中。"
+# Write cover
+writeCover = "写入封面"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["将“{image}”作为封面写入 {n} 首曲目？\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "删除智能播放列表"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "删除智能播放列表“{name}”？"
+# Delete files
+deleteFiles = "删除文件"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["从磁盘永久删除 {n} 个文件？\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "保存失败：{e}"
+# EMPTY EQ FILE
+emptyEqFile = "EQ 文件为空"
+# EQ FILE ERROR: {e}
+eqFileError = "EQ 文件错误：{e}"
+# INSTALL FAILED: {e}
+installFailed = "安装失败：{e}"
+
+[nowPlaying]
+# Stopped
+stopped = "已停止"
+# Paused
+paused = "已暂停"
+
+[fileInfo]
+# No cover
+noCover = "无封面"
+# Change…
+change = "更改…"
+# Not saved: {e}
+notSaved = "未保存：{e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} 不是 JPEG、PNG、GIF 或 BMP 图片。"
+# A stream's tags cannot be changed.
+streamTagsFixed = "无法修改网络流的标签。"
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "此曲目属于整盘镜像，其标签保存在 CUE 文件中。"
+# The file is not there.
+fileIsNotThere = "文件不存在。"
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp 无法读取此文件：文件可能已损坏或仍在下载中。"
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp 可以修改 MP3、FLAC、Ogg Vorbis 和 MP4 文件的标签。"
+# Location
+location = "位置"
+# Nothing to play
+nothingToPlay = "没有可播放的内容"
+# No file selected.
+noFileSelected = "未选择文件。"
+# Title
+title = "标题"
+# Station
+station = "电台"
+# Now playing
+nowPlaying = "正在播放"
+# Artist
+artist = "艺术家"
+# Album
+album = "专辑"
+# Album artist
+albumArtist = "专辑艺术家"
+# Year
+year = "年份"
+# Track
+track = "音轨"
+# Disc
+disc = "碟片"
+# Genre
+genre = "流派"
+# Composer
+composer = "作曲"
+# Comment
+comment = "注释"
+# Codec
+codec = "编解码器"
+# Length
+length = "时长"
+# , {b} kbps
+bitrateKbps = "，{b} kbps"
+# Format
+format = "格式"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz，{n} 声道{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB（曲目）"
+
+[library]
+# Playlists
+playlists = "播放列表"
+# Smart playlists
+smartPlaylists = "智能播放列表"
+# Folders
+folders = "文件夹"
+# All music
+allMusic = "全部音乐"
+# Scanning: {done}
+scanningDone = "正在扫描：{done}"
+# {n} track | {n} tracks
+nTracks = ["{n} 首"]
+# No cover
+noCover = "无封面"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["全部（{n} 位艺术家）"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["全部（{n} 张专辑）"]
+# (no artist)
+noArtist = "（无艺术家）"
+# (no album)
+noAlbum = "（无专辑）"
+# Search: type here
+searchTypeHere = "搜索：在此输入"
+# The library is empty.
+libraryIsEmpty = "媒体库为空。"
+# Add a folder with music.
+addFolderWithMusic = "请添加音乐文件夹。"
+# Recently added
+smartRecentlyAdded = "最近添加"
+# Last played
+smartLastPlayed = "最近播放"
+# Most played
+smartMostPlayed = "最常播放"
+# Never played
+smartNeverPlayed = "从未播放"
+# Random 50
+smartRandom50 = "随机 50 首"
+# Favourites
+smartFavourites = "我的收藏"
+# No rating
+noRating = "无评分"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "媒体库：不是 JPEG、PNG、GIF 或 BMP 图片"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "媒体库：这些文件无法写入封面"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["媒体库：已为 {n} 个文件写入封面"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["媒体库：已为 {n} 个文件写入封面，失败 {failed} 个"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "媒体库：该文件夹已存在"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "媒体库：这些文件夹已存在"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["媒体库：{n} 首已加入播放列表"]
+# New smart playlist
+newSmartPlaylist = "新建智能播放列表"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "已有名为 {name} 的播放列表"
+
+  [library.column]
+  # Artist
+  artist = "艺术家"
+  # Title
+  title = "标题"
+  # Album
+  album = "专辑"
+  # Time
+  time = "时间"
+  # Genre
+  genre = "流派"
+  # Year
+  year = "年份"
+  # Rating
+  rating = "评分"
+  # Track number
+  trackNumber = "音轨号"
+  # File name
+  fileName = "文件名"
+  # Comment
+  comment = "注释"
+  # Kbps
+  kbps = "Kbps"
+  # Bit rate
+  bitRate = "比特率"
+  # Plays
+  plays = "播放次数"
+  # Last played
+  lastPlayed = "上次播放"
+  # Added
+  added = "添加日期"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}，{b} kbps"
+  # Albums
+  albums = "专辑"
+  # Tracks
+  tracks = "曲目"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "重置列"
+  # Play
+  play = "播放"
+  # Enqueue
+  enqueue = "加入队列"
+  # Rate
+  rate = "评分"
+  # File info…
+  fileInfo = "文件信息…"
+  # Remove from “{name}”
+  removeFromName = "从“{name}”中移除"
+  # New playlist…
+  newPlaylist = "新建播放列表…"
+  # Rename “{name}”…
+  renameName = "重命名“{name}”…"
+  # Delete “{name}”
+  deleteName = "删除“{name}”"
+  # New smart playlist…
+  newSmartPlaylist = "新建智能播放列表…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "将搜索保存为智能播放列表…"
+  # Edit “{name}”…
+  editName = "编辑“{name}”…"
+  # Add folder…
+  addFolder = "添加文件夹…"
+  # Rescan folders
+  rescanFolders = "重新扫描文件夹"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "从媒体库中移除“{name}”"
+  # Maximized
+  maximized = "最大化"
+
+[smartPlaylist]
+# all
+all = "全部"
+# any
+any = "任一"
+# No limit
+noLimit = "不限"
+# Tracks
+tracks = "曲目"
+# Minutes
+minutes = "分钟"
+# Any text
+anyText = "任意文本"
+# Title
+title = "标题"
+# Artist
+artist = "艺术家"
+# Album
+album = "专辑"
+# Genre
+genre = "流派"
+# Year
+year = "年份"
+# Track number
+trackNumber = "音轨号"
+# Length (seconds)
+lengthSeconds = "时长（秒）"
+# File path
+filePath = "文件路径"
+# Rating (stars)
+ratingStars = "评分（星）"
+# Plays
+plays = "播放次数"
+# Last played
+lastPlayed = "上次播放"
+# Date added
+dateAdded = "添加日期"
+# is
+is = "等于"
+# contains
+contains = "包含"
+# is less than
+isLessThan = "小于"
+# is more than
+isMoreThan = "大于"
+# is empty
+isEmpty = "为空"
+# in the last (days)
+inLastDays = "最近（天）"
+# Random
+random = "随机"
+# Rule {n}: {e}.
+ruleError = "规则 {n}：{e}。"
+# The playlist needs a name.
+playlistNeedsName = "播放列表需要名称。"
+# The limit needs a whole number above 0.
+limitNeedsNumber = "上限必须是大于 0 的整数。"
+# Name:
+name = "名称："
+# Tracks that match
+tracksThatMatch = "匹配条件"
+# of these rules:
+ofTheseRules = "以下规则："
+# Add rule
+addRule = "+ 规则"
+# Add group
+addGroup = "+ 分组"
+# Order by
+orderBy = "排序"
+# then by
+thenBy = "然后按"
+# ascending
+ascending = "升序"
+# descending
+descending = "降序"
+# Limit
+limit = "数量上限"
+# of these:
+ofThese = "以下条件："
+
+[jumpToFile]
+# Search for:
+searchFor = "搜索："
+# Jump
+jump = "跳转"
+
+[history]
+# Search for:
+searchFor = "搜索："
+# Play
+play = "播放"
+# Today {time}
+todayTime = "今天 {time}"
+# Yesterday {time}
+yesterdayTime = "昨天 {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device}（未找到）"
+# Output device
+outputDevice = "输出设备"
+# Open with Popamp
+openWithPopamp = "用 Popamp 打开"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "可以在 Windows 设置中选择默认播放器。"
+# Default apps
+defaultApps = "默认应用"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "在访达中选中 Popamp，打开“显示简介”，在“打开方式”中设置。"
+# Forget them now
+forgetThemNow = "立即清除"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["已清除 {n} 个丢失文件的播放记录和评分。"]
+
+  [prefs.page]
+  # Windows
+  windows = "窗口"
+  # Playlist
+  playlist = "播放列表"
+  # Playback
+  playback = "播放控制"
+  # Media Library
+  mediaLibrary = "媒体库"
+  # Desktop
+  desktop = "桌面"
+  # Internet
+  internet = "网络"
+  # Shortcuts
+  shortcuts = "快捷操作"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "窗口相互吸附"
+  # Easy move
+  easyMove = "随处拖动窗口"
+  # Keep windows on screen
+  keepWindowsOnScreen = "窗口不超出屏幕"
+  # Always on top
+  alwaysOnTop = "窗口置顶"
+  # Double size
+  doubleSize = "双倍大小"
+  # Use skin cursors
+  useSkinCursors = "使用皮肤光标"
+  # Scroll song title
+  scrollSongTitle = "滚动歌曲标题"
+  # Dim inactive playlist
+  dimInactivePlaylist = "非活动播放列表变暗"
+  # Show playlist numbers
+  showPlaylistNumbers = "显示播放列表编号"
+  # Zero-pad numbers
+  zeroPadNumbers = "编号前补零"
+  # Advance to next track
+  advanceToNextTrack = "跳到下一首"
+  # Icon in the system tray
+  iconInSystemTray = "在系统托盘显示图标"
+  # Minimize to the tray
+  minimizeToTray = "最小化到托盘"
+  # Notify of each new track
+  notifyOfEachNewTrack = "每首新曲目都通知"
+  # Check for a new version
+  checkForNewVersion = "检查新版本"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "全局快捷键 (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "保持 ReplayGain 扫描窗口打开"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "启动时扫描文件夹"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "定期扫描文件夹"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "播放列表字号"
+  # Title format
+  titleFormat = "标题格式"
+  # Fade-out (ms)
+  fadeOutMs = "淡出 (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "交叉淡化 (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "输出缓冲 (ms)"
+  # HTTP proxy
+  httpProxy = "HTTP 代理"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI 音色库"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "听完多少计为播放 (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "扫描间隔（分钟）"
+  # {what}: enter a whole number
+  wholeNumber = "{what}：请输入整数"
+  # Font size
+  fontSize = "字号"
+  # Fade-out
+  fadeOut = "淡出"
+  # Crossfade
+  crossfade = "交叉淡入淡出"
+  # Output buffer
+  outputBuffer = "输出缓冲"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "计为播放：50 到 100，步长 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "扫描间隔：1 到 {max} 分钟"
+  # Title format: must not be empty
+  titleFormatEmpty = "标题格式：不能为空"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI 音色库：文件不存在（留空则使用系统默认）"
+  # Language
+  language = "语言"
+  # As the system ({language})
+  systemLanguage = "跟随系统（{language}）"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["丢失文件的播放记录和评分保留 {n} 天。"]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} 个丢失文件的播放记录和评分保留 {days} 天。"]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "在标题栏上单击或滚动滚轮："
+  # Window
+  window = "窗口"
+  # Mouse
+  mouse = "鼠标"
+  # Action
+  action = "操作"
+  # Assign
+  assign = "设置"
+  # Main
+  main = "主窗口"
+  # Equalizer
+  equalizer = "均衡器"
+  # Playlist
+  playlist = "播放列表"
+  # Right Mouse
+  rightMouse = "鼠标右键"
+  # Middle Mouse
+  middleMouse = "鼠标中键"
+  # Scroll Up
+  scrollUp = "滚轮向上"
+  # Scroll Down
+  scrollDown = "滚轮向下"
+  # Previous track
+  previousTrack = "上一首"
+  # Next track
+  nextTrack = "下一首"
+  # Pause
+  pause = "暂停"
+  # Stop
+  stop = "停止"
+  # Shuffle on/off
+  shuffleOnOff = "随机播放开/关"
+  # Repeat on/off
+  repeatOnOff = "循环开/关"
+  # Vol Up
+  volUp = "音量增大"
+  # Vol Down
+  volDown = "音量减小"
+
+[fileTypes]
+# Audio files
+audioFiles = "音频文件"
+# Playlists
+playlists = "播放列表"
+# Skins
+skins = "皮肤"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "文件类型：无法将 Popamp 添加到菜单：{e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "文件类型：无法写入 {file}：{e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain：请选择要扫描的曲目"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain：扫描已取消"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain：已扫描 {done}/{total}"
+# , turn it on in Options > ReplayGain
+turnItOn = "，请在“选项 > ReplayGain”中开启"
+# Cancelling: finishing the tracks under way
+cancelling = "正在取消：完成进行中的曲目"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["正在扫描：{done}/{n} 首"]
+# Cancelled: nothing was saved
+cancelled = "已取消：未保存任何内容"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["完成：已扫描 {done}/{n} 首"]
+# , {failed} failed
+nFailed = "，失败 {failed} 个"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain 已关闭：请在“选项 > ReplayGain”中开启"
+# Saved to {file}
+savedToFile = "已保存到 {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "扫描结束后保持此窗口打开"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "从文件安装…"
+# Gallery…
+gallery = "资源库…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "skins.webamp.org 上的皮肤版权归各自作者所有。"
+# More
+more = "更多"
+# Download & use
+downloadAndUse = "下载并使用"
+# Loading preview…
+loadingPreview = "正在加载预览…"
+# Downloading {name}…
+downloadingName = "正在下载 {name}…"
+# Using {name}.
+usingName = "正在使用 {name}。"
+# Museum: {e}
+loadError = "皮肤博物馆：{e}"
+# No preview: {e}
+noPreviewError = "无预览：{e}"
+# Nothing found.
+nothingFound = "未找到任何内容。"
+# {n} skin. | {n} skins.
+nSkins = ["{n} 个皮肤。"]
+
+[gallery]
+# Skins
+skins = "皮肤"
+# Plug-ins
+plugIns = "插件"
+# Visualizations
+visualizations = "可视化"
+# Popular
+popular = "热门"
+# Top rated
+topRated = "评分最高"
+# New
+new = "新建"
+# May run {programs}
+mayRunPrograms = "可运行 {programs}"
+# " and "
+andJoin = "、"
+# May connect to {hosts}
+mayConnectToHosts = "可连接到 {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "可读取你允许的文件夹"
+# Install
+install = "安装"
+# Update
+update = "更新"
+# Use
+use = "使用"
+# Installed
+installed = "已安装"
+# Loading the catalog…
+loadingCatalog = "正在加载目录…"
+# " (update)"
+updateMark = "（可更新）"
+# " (installed)"
+installedMark = "（已安装）"
+# Loading the preview…
+loadingPreview = "正在加载预览…"
+# No preview
+noPreview = "无预览"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "插件需要 Popamp Plus"
+# Nothing found
+nothingFound = "未找到"
+# Using {name}.
+usingName = "正在使用 {name}。"
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} 已安装。请在“选项 > 插件”中启用。"
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} 已在 {folder} 中，资源库不会改动它。"
+# Downloading {name}…
+downloadingName = "正在下载 {name}…"
+# {n} in the gallery
+nInGallery = "资源库中有 {n} 个"
+# , {n} to update
+nToUpdate = "，{n} 个可更新"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["；{n} 个插件需要 Popamp Plus"]
+# Gallery: {e}
+loadError = "资源库：{e}"
+# Skin
+skin = "皮肤"
+# Plug-in
+plugIn = "插件"
+# DSP plug-in
+dspPlugIn = "DSP 插件"
+# Source plug-in
+sourcePlugIn = "音源插件"
+# Decoder plug-in
+decoderPlugIn = "解码器插件"
+# Visual plug-in
+visualPlugIn = "可视化插件"
+# {kind} plug-in
+kindPlugIn = "{kind}插件"
+# {what} by {author}
+whatByAuthor = "{what}，作者：{author}"
+# Asks for no permissions.
+asksForNoPermissions = "不需要任何权限。"
+# License: {license}
+licenseLicense = "许可证：{license}"
+# Not rated yet
+notRatedYet = "尚无评分"
+# Rated {rating} of 5 by {n}
+ratedBy = "评分 {rating}/5（{n} 人）"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}，下载 {n} 次"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "无法删除插件：{e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "插件 {name} 已停止：{why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "插件可为 Popamp 增加音源、文件类型、音效和可视化效果。插件默认关闭，需要手动启用。"
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "要启用插件，请在左侧列表中选中它，阅读它的功能和权限，然后勾选“启用”。设置项位于下方。"
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "“确定”保存所选内容，“取消”放弃更改。"
+# Plug-ins
+plugIns = "插件"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "{dir} 中还没有。"
+# Each is a folder in {dir}.
+eachIsFolderInDir = "每个都是 {dir} 中的一个文件夹。"
+# {name} is removed.
+nameIsRemoved = "{name} 已删除。"
+# {name} (removed)
+nameRemoved = "{name}（已删除）"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "以软件包形式安装 (popamp-plugin-{folder})：请用包管理器删除。"
+# Enabled
+enabled = "启用"
+# Show the commands it runs
+showCommandsItRuns = "查看它运行的命令"
+# Settings
+settings = "设置"
+# Permissions
+permissions = "权限"
+# Connect to {address} ({why})
+connectToAddressWhy = "连接到 {address}（{why}）"
+# Connect to {address}
+connectToAddress = "连接到 {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "允许读取的文件夹，用 ; 分隔（~ 表示整个主目录）："
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "隐藏文件夹和播放器自身的文件夹不可访问。"
+# Journal
+journal = "记录"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "无法打开记录：{file}"
+# Broken: {e}
+broken = "已损坏：{e}"
+# Did not load: {e}
+didNotLoad = "未能加载：{e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "因出错而停止：{why}。点“确定”重新启动。"
+
+[hotkeys]
+# Play
+play = "播放"
+# Pause
+pause = "暂停"
+# Stop
+stop = "停止"
+# Previous track
+previousTrack = "上一首"
+# Next track
+nextTrack = "下一首"
+# Volume up
+volumeUp = "音量增大"
+# Volume down
+volumeDown = "音量减小"
+# Back 5 seconds
+back5Seconds = "后退 5 秒"
+# Forward 5 seconds
+forward5Seconds = "前进 5 秒"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "POPAMP {version} 已发布，请查看主菜单"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "无法打开浏览器"

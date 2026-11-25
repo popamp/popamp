@@ -456,7 +456,7 @@ impl Model {
     pub fn on_expanded(&mut self, items: Vec<Item>, mode: AddMode) {
         let entries: Vec<Entry> = items.into_iter().map(Item::into_entry).collect();
         if entries.is_empty() {
-            self.flash(tr!("NOTHING TO ADD"));
+            self.flash(tr!("player.nothingToAdd"));
             return;
         }
         for e in &entries {
@@ -592,7 +592,7 @@ impl Model {
         self.status.stream_title = None;
         self.status.stream_name = None;
         if self.sources.of_now(&loc).slow() {
-            self.flash(tr!("CONNECTING…"));
+            self.flash(tr!("player.connecting"));
         }
         self.engine.send(EngineCmd::Open { id, location: loc, start_ms: 0 });
         self.pl_dirty += 1;
@@ -684,7 +684,7 @@ impl Model {
         let v = v.clamp(0, 255);
         self.settings_mut().volume = v;
         self.engine.send(EngineCmd::Volume(v as u8));
-        self.flash(tr!("VOLUME: {pct}%", pct = (v * 100 + 127) / 255));
+        self.flash(tr!("player.volumePct", pct = (v * 100 + 127) / 255));
     }
 
     pub fn set_balance(&mut self, b: i32) {
@@ -693,9 +693,9 @@ impl Model {
         self.engine.send(EngineCmd::Balance(b as i8));
         let pct = (b.abs() * 100 + 63) / 127;
         self.flash(match b {
-            0 => tr!("BALANCE: CENTER").to_string(),
-            b if b < 0 => tr!("BALANCE: {pct}% LEFT", pct),
-            _ => tr!("BALANCE: {pct}% RIGHT", pct),
+            0 => tr!("player.balanceCenter").to_string(),
+            b if b < 0 => tr!("player.balancePctLeft", pct),
+            _ => tr!("player.balancePctRight", pct),
         });
     }
 
@@ -728,7 +728,7 @@ impl Model {
                 self.status.playing_id = None;
             }
             EngineEvent::Error { id, message } => {
-                self.flash(tr!("ERROR: {message}", message));
+                self.flash(tr!("player.error", message));
                 self.status.playing_id = None;
                 let (source, shuffle, repeat) = (self.source, self.settings().shuffle, self.settings().repeat);
                 let len = self.list(source).len();
@@ -813,13 +813,13 @@ impl Model {
         bands[band] = value.clamp(0, 63) as u8;
         self.settings_mut().set_eq_bands(&bands);
         self.push_eq();
-        self.flash(tr!("EQ: {db} DB", db = format!("{:+.1}", eqf::value_to_db(bands[band]))));
+        self.flash(tr!("player.eqBandDb", db = format!("{:+.1}", eqf::value_to_db(bands[band]))));
     }
 
     pub fn set_preamp(&mut self, value: i32) {
         self.settings_mut().preamp = value.clamp(0, 63);
         self.push_eq();
-        self.flash(tr!("PREAMP: {db} DB", db = format!("{:+.1}", eqf::value_to_db(value.clamp(0, 63) as u8))));
+        self.flash(tr!("player.preampDb", db = format!("{:+.1}", eqf::value_to_db(value.clamp(0, 63) as u8))));
     }
 
     pub fn apply_preset(&mut self, p: &Preset) {
@@ -852,7 +852,7 @@ impl Model {
         }
         self.bookmarks.extend(plformats::items_from_entries(entries));
         self.save_bookmarks();
-        self.flash(trn!(entries.len(), "BOOKMARK ADDED", "{n} BOOKMARKS ADDED"));
+        self.flash(trn!(entries.len(), "menu.bookmarks.nBookmarksAdded"));
     }
 
     pub fn remove_bookmark(&mut self, i: usize) {
@@ -872,8 +872,8 @@ impl Model {
     pub fn bookmarks_menu(&self) -> Vec<MenuItem> {
         use Command as C;
         let mut v = vec![
-            MenuItem::cmd(tr!("Add current as bookmark"), "Alt+I", C::AddBookmark),
-            MenuItem::cmd(tr!("Remove bookmark…"), "Ctrl+Alt+I", C::RemoveBookmark),
+            MenuItem::cmd(tr!("menu.bookmarks.addCurrentAsBookmark"), "Alt+I", C::AddBookmark),
+            MenuItem::cmd(tr!("menu.bookmarks.removeBookmark"), "Ctrl+Alt+I", C::RemoveBookmark),
         ];
         if !self.bookmarks.is_empty() {
             v.push(MenuItem::sep());
@@ -899,7 +899,7 @@ impl Model {
             Some(p) => match self.load_skin(p) {
                 Ok(s) => self.skin = s,
                 Err(e) => {
-                    self.flash(tr!("SKIN ERROR: {e}", e));
+                    self.flash(tr!("player.skinError", e));
                     return;
                 }
             },
@@ -940,7 +940,7 @@ impl Model {
             }
             Err(e) => {
                 log::warn!("{e}");
-                self.flash(tr!("SKIN ERROR: {e}", e));
+                self.flash(tr!("player.skinError", e));
             }
         }
     }
@@ -966,50 +966,42 @@ impl Model {
         let start = self.start_dir();
         let req = match &kind {
             DialogKind::OpenFiles { .. } => {
-                Request::Files { title: tr!("Open file(s)").into(), multiple: true, filter: media_filter, start }
+                Request::Files { title: tr!("dialog.openFiles").into(), multiple: true, filter: media_filter, start }
             }
-            DialogKind::OpenFolder { .. } => Request::Folder { title: tr!("Open folder").into(), multiple: true, start },
-            DialogKind::LibraryFolder => Request::Folder {
-                title: tr!("Add folders to the media library").into(),
-                multiple: true,
-                start: self.library_start().or(start),
-            },
-            DialogKind::OpenUrl { .. } => Request::Entry {
-                title: tr!("Open URL").into(),
-                text: tr!("Enter a URL to open (a stream or a playlist):").into(),
-                initial: String::new(),
-            },
+            DialogKind::OpenFolder { .. } => Request::Folder { title: tr!("dialog.openFolder").into(), multiple: true, start },
+            DialogKind::LibraryFolder => {
+                Request::Folder { title: tr!("dialog.addLibraryFolders").into(), multiple: true, start: self.library_start().or(start) }
+            }
+            DialogKind::OpenUrl { .. } => {
+                Request::Entry { title: tr!("dialog.openURL").into(), text: tr!("dialog.openUrlPrompt").into(), initial: String::new() }
+            }
             DialogKind::LoadPlaylist => Request::Files {
-                title: tr!("Load playlist").into(),
+                title: tr!("dialog.loadPlaylist").into(),
                 multiple: false,
                 filter: ["*.m3u", "*.m3u8", "*.pls", "*.xspf"].map(String::from).to_vec(),
                 start,
             },
-            DialogKind::SavePlaylist => Request::Save { title: tr!("Save playlist").into(), name: "playlist.m3u8".into(), start },
-            DialogKind::SaveHtml => Request::Save { title: tr!("Generate HTML playlist").into(), name: "playlist.html".into(), start },
+            DialogKind::SavePlaylist => Request::Save { title: tr!("dialog.savePlaylist").into(), name: "playlist.m3u8".into(), start },
+            DialogKind::SaveHtml => Request::Save { title: tr!("dialog.generateHtmlPlaylist").into(), name: "playlist.html".into(), start },
             DialogKind::JumpToTime => {
                 let len = self.engine.shared().length_ms().map(format_duration_ms).unwrap_or_else(|| "?".into());
-                Request::Entry {
-                    title: tr!("Jump to time").into(),
-                    text: tr!("Jump to (m:ss), track length {len}:", len),
-                    initial: String::new(),
-                }
+                Request::Entry { title: tr!("dialog.jumpToTime").into(), text: tr!("dialog.jumpToTimePrompt", len), initial: String::new() }
             }
             DialogKind::EditEntry { id } => {
                 let loc =
                     self.playlist.index_of_id(*id).and_then(|i| self.playlist.entry(i)).map(|e| e.location.clone()).unwrap_or_default();
-                Request::Entry { title: tr!("Edit playlist entry").into(), text: tr!("Location:").into(), initial: loc }
+                Request::Entry { title: tr!("dialog.editPlaylistEntry").into(), text: tr!("dialog.location").into(), initial: loc }
             }
             DialogKind::RemoveBookmark => Request::List {
-                title: tr!("Remove bookmark").into(),
-                column: tr!("Bookmark").into(),
+                title: tr!("dialog.removeBookmark").into(),
+                column: tr!("dialog.bookmark").into(),
                 rows: self.bookmarks.iter().map(bookmark_label).collect(),
             },
             DialogKind::EqLoadPreset { auto } | DialogKind::EqDeletePreset { auto } => {
                 let list = if *auto { &self.eq_auto } else { &self.eq_presets };
                 Request::List {
-                    title: tr!("EQ presets").into(),
-                    column: tr!("Preset").into(),
+                    title: tr!("dialog.eqPresets").into(),
+                    column: tr!("dialog.preset").into(),
                     rows: list.iter().map(|p| p.name.clone()).collect(),
                 }
             }
@@ -1019,17 +1011,17 @@ impl Model {
                 } else {
                     String::new()
                 };
-                Request::Entry { title: tr!("Save EQ preset").into(), text: tr!("Preset name:").into(), initial }
+                Request::Entry { title: tr!("dialog.saveEQPreset").into(), text: tr!("dialog.presetName").into(), initial }
             }
             DialogKind::EqImport => Request::Files {
-                title: tr!("Load EQ preset file").into(),
+                title: tr!("dialog.loadEQPresetFile").into(),
                 multiple: false,
                 filter: vec!["*.eqf".into(), "*.q1".into()],
                 start,
             },
-            DialogKind::EqExport => Request::Save { title: tr!("Save EQ preset file").into(), name: "preset.eqf".into(), start },
+            DialogKind::EqExport => Request::Save { title: tr!("dialog.saveEQPresetFile").into(), name: "preset.eqf".into(), start },
             DialogKind::InstallSkin => Request::Files {
-                title: tr!("Install skin").into(),
+                title: tr!("dialog.installSkin").into(),
                 multiple: false,
                 filter: popamp_skin::ARCHIVE_EXTENSIONS
                     .iter()
@@ -1042,63 +1034,49 @@ impl Model {
             // A message carries its own text: see `C::About`.
             DialogKind::Info => return,
             DialogKind::PickCover { dir } => Request::Files {
-                title: tr!("Choose a cover picture").into(),
+                title: tr!("dialog.chooseCoverPicture").into(),
                 multiple: false,
                 filter: ["jpg", "jpeg", "png", "gif", "bmp"].iter().map(|e| format!("*.{e}")).collect(),
                 start: dir.clone(),
             },
             #[cfg(feature = "plugins")]
             DialogKind::RemovePlugin { dir, name, .. } => Request::Question {
-                title: tr!("Remove plug-in").into(),
-                text: tr!("Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}", name, folder = dir.display()),
+                title: tr!("dialog.removePlugIn").into(),
+                text: tr!("dialog.removePlugInAsk", name, folder = dir.display()),
             },
             DialogKind::NewPlaylist => {
-                Request::Entry { title: tr!("New playlist").into(), text: tr!("Playlist name:").into(), initial: String::new() }
+                Request::Entry { title: tr!("dialog.newPlaylist").into(), text: tr!("dialog.playlistName").into(), initial: String::new() }
             }
             DialogKind::RenamePlaylist { index } => Request::Entry {
-                title: tr!("Rename playlist").into(),
-                text: tr!("Playlist name:").into(),
+                title: tr!("dialog.renamePlaylist").into(),
+                text: tr!("dialog.playlistName").into(),
                 initial: self.library.plain.get(*index).map_or(String::new(), |l| l.name.clone()),
             },
             DialogKind::DeletePlaylist { index } => Request::Question {
-                title: tr!("Delete playlist").into(),
-                text: tr!(
-                    "Delete the playlist “{name}”?\n\nIts tracks stay in the library.",
-                    name = self.library.plain.get(*index).map_or("", |l| l.name.as_str())
-                ),
+                title: tr!("dialog.deletePlaylist").into(),
+                text: tr!("dialog.deletePlaylistAsk", name = self.library.plain.get(*index).map_or("", |l| l.name.as_str())),
             },
             DialogKind::WriteCover { image, paths } => Request::Question {
-                title: tr!("Write cover").into(),
+                title: tr!("dialog.writeCover").into(),
                 text: {
                     let name = |p: &str| popamp_core::library::file_name(p).to_string();
                     let some: Vec<String> = paths.iter().take(10).map(|p| name(p)).collect();
                     let more = if paths.len() > 10 { "\n…" } else { "" };
                     let files = format!("{}{more}", some.join("\n"));
                     let image = name(image);
-                    trn!(
-                        paths.len(),
-                        "Write “{image}” into {n} track as the cover?\n\n{files}",
-                        "Write “{image}” into {n} tracks as the cover?\n\n{files}",
-                        image,
-                        files
-                    )
+                    trn!(paths.len(), "dialog.writeCoverAsk", image, files)
                 },
             },
             DialogKind::DeleteSmart { index } => Request::Question {
-                title: tr!("Delete smart playlist").into(),
+                title: tr!("dialog.deleteSmartPlaylist").into(),
                 text: tr!(
-                    "Delete the smart playlist “{name}”?",
+                    "dialog.deleteSmartPlaylistAsk",
                     name = self.library.smart.get(*index).map_or("", |l| crate::library::smart_name(&l.name))
                 ),
             },
             DialogKind::ConfirmPhysicalRemove { paths } => Request::Question {
-                title: tr!("Delete files").into(),
-                text: trn!(
-                    paths.len(),
-                    "Permanently delete {n} file from disk?\n\n{files}",
-                    "Permanently delete {n} files from disk?\n\n{files}",
-                    files = paths.iter().take(10).cloned().collect::<Vec<_>>().join("\n")
-                ),
+                title: tr!("dialog.deleteFiles").into(),
+                text: trn!(paths.len(), "dialog.deleteFilesAsk", files = paths.iter().take(10).cloned().collect::<Vec<_>>().join("\n")),
             },
         };
         self.ui.push(UiReq::Dialog(kind, req));
@@ -1133,20 +1111,20 @@ impl Model {
     }
 
     pub fn file_info_fields(&self) -> Vec<(String, String)> {
-        let Some(e) = self.info_entry() else { return vec![("".into(), tr!("No file selected.").into())] };
-        let mut rows = vec![(tr!("Location").to_string(), e.location.clone())];
+        let Some(e) = self.info_entry() else { return vec![("".into(), tr!("fileInfo.noFileSelected").into())] };
+        let mut rows = vec![(tr!("fileInfo.location").to_string(), e.location.clone())];
         match (&e.meta, &e.file_title) {
             (Some(m), _) => rows.extend(meta_rows(m)),
-            (None, Some(t)) => rows.push((tr!("Title").into(), t.clone())),
+            (None, Some(t)) => rows.push((tr!("fileInfo.title").into(), t.clone())),
             (None, None) => {}
         }
         let mut push = |k: &str, v: String| rows.push((k.to_string(), v));
         if self.status.playing_id == Some(e.id) {
             if let Some(n) = &self.status.stream_name {
-                push(tr!("Station"), n.clone());
+                push(tr!("fileInfo.station"), n.clone());
             }
             if let Some(t) = &self.status.stream_title {
-                push(tr!("Now playing"), t.clone());
+                push(tr!("fileInfo.nowPlaying"), t.clone());
             }
         }
         rows
@@ -1171,7 +1149,7 @@ impl Model {
                         p.set_extension("m3u8");
                     }
                     if let Err(e) = self.save_playlist_file(&p) {
-                        self.flash(tr!("SAVE FAILED: {e}", e));
+                        self.flash(tr!("dialog.saveFailed", e));
                     }
                 }
             }
@@ -1183,7 +1161,7 @@ impl Model {
                     }
                     let html = plformats::html(&plformats::items_from_entries(self.playlist.entries()));
                     if let Err(e) = std::fs::write(&p, html) {
-                        self.flash(tr!("SAVE FAILED: {e}", e));
+                        self.flash(tr!("dialog.saveFailed", e));
                     }
                 }
             }
@@ -1242,8 +1220,8 @@ impl Model {
                 if let Some(f) = first {
                     match eqf::read_file(Path::new(&f)) {
                         Ok(presets) if !presets.is_empty() => self.apply_preset(&presets[0]),
-                        Ok(_) => self.flash(tr!("EMPTY EQ FILE")),
-                        Err(e) => self.flash(tr!("EQ FILE ERROR: {e}", e)),
+                        Ok(_) => self.flash(tr!("dialog.emptyEqFile")),
+                        Err(e) => self.flash(tr!("dialog.eqFileError", e)),
                     }
                 }
             }
@@ -1255,7 +1233,7 @@ impl Model {
                     }
                     let name = p.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
                     if let Err(e) = eqf::write_file(&p, &[self.current_preset(&name)]) {
-                        self.flash(tr!("SAVE FAILED: {e}", e));
+                        self.flash(tr!("dialog.saveFailed", e));
                     }
                 }
             }
@@ -1328,7 +1306,7 @@ impl Model {
         let res = std::fs::create_dir_all(&dir).and_then(|_| if src != dest { std::fs::copy(src, &dest).map(|_| ()) } else { Ok(()) });
         match res {
             Ok(()) => self.set_skin(Some(dest)),
-            Err(e) => self.flash(tr!("INSTALL FAILED: {e}", e)),
+            Err(e) => self.flash(tr!("dialog.installFailed", e)),
         }
     }
 
@@ -1351,7 +1329,7 @@ impl Model {
             C::StopFadeout => self.engine.send(EngineCmd::StopFade),
             C::StopAfterCurrent => {
                 self.stop_after_current = !self.stop_after_current;
-                self.flash(if self.stop_after_current { tr!("STOP AFTER CURRENT: ON") } else { tr!("STOP AFTER CURRENT: OFF") });
+                self.flash(if self.stop_after_current { tr!("player.stopAfterCurrentOn") } else { tr!("player.stopAfterCurrentOff") });
                 self.update_next();
             }
             C::Next => self.next(),
@@ -1392,7 +1370,7 @@ impl Model {
             C::ToggleManualAdvance => {
                 let v = !self.settings().pladv;
                 self.settings_mut().pladv = v;
-                self.flash(if v { tr!("MANUAL ADVANCE: OFF") } else { tr!("MANUAL ADVANCE: ON") });
+                self.flash(if v { tr!("player.manualAdvanceOff") } else { tr!("player.manualAdvanceOn") });
                 self.update_next();
             }
             C::OpenFile => self.request_dialog(DialogKind::OpenFiles { play: true }),
@@ -1661,12 +1639,8 @@ impl Model {
             }
             C::ToggleVis => self.exec(C::CycleVisMode),
             C::About => {
-                let text = tr!(
-                    "{title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}",
-                    title = crate::edition::title(),
-                    config = self.config.path().display()
-                );
-                let title = tr!("About {name}", name = crate::edition::NAME);
+                let text = tr!("player.aboutText", title = crate::edition::title(), config = self.config.path().display());
+                let title = tr!("player.aboutName", name = crate::edition::NAME);
                 self.ui.push(UiReq::Dialog(DialogKind::Info, Request::Info { title, text }));
             }
         }
@@ -1777,80 +1751,83 @@ impl Model {
         let st = self.state();
         let mut items: Vec<MenuItem> = self.update_menu().into_iter().collect();
         items.extend([
-            MenuItem::cmd(tr!("About Popamp…"), "Ctrl+F1", C::About),
+            MenuItem::cmd(tr!("menu.main.aboutPopamp"), "Ctrl+F1", C::About),
             MenuItem::sep(),
             MenuItem::sub(
-                tr!("Play"),
+                tr!("menu.main.play"),
                 vec![
-                    MenuItem::cmd(tr!("File…"), "L", C::OpenFile),
-                    MenuItem::cmd(tr!("URL…"), "Ctrl+L", C::OpenUrl),
-                    MenuItem::cmd(tr!("Folder…"), "Shift+L", C::OpenFolder),
+                    MenuItem::cmd(tr!("menu.main.file"), "L", C::OpenFile),
+                    MenuItem::cmd(tr!("menu.main.url"), "Ctrl+L", C::OpenUrl),
+                    MenuItem::cmd(tr!("menu.main.folder"), "Shift+L", C::OpenFolder),
                 ],
             ),
-            MenuItem::cmd(tr!("View file info…"), "Alt+3", C::FileInfo),
-            MenuItem::cmd(tr!("Album art"), "Alt+A", C::AlbumArt),
-            MenuItem::cmd(tr!("History…"), "Ctrl+H", C::History),
-            MenuItem::sub(tr!("Bookmarks"), self.bookmarks_menu()),
+            MenuItem::cmd(tr!("menu.main.viewFileInfo"), "Alt+3", C::FileInfo),
+            MenuItem::cmd(tr!("menu.main.albumArt"), "Alt+A", C::AlbumArt),
+            MenuItem::cmd(tr!("menu.main.history"), "Ctrl+H", C::History),
+            MenuItem::sub(tr!("menu.main.bookmarks"), self.bookmarks_menu()),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Main Window"), "Alt+W", C::ToggleMainWindow),
-            MenuItem::cmd(tr!("Playlist Editor"), "Alt+E", C::TogglePlaylistWindow).checked(s.pe_open),
-            MenuItem::cmd(tr!("Equalizer"), "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
-            MenuItem::cmd(tr!("Media Library"), "Alt+L", C::ToggleLibraryWindow).checked(s.ml_open),
+            MenuItem::cmd(tr!("menu.main.mainWindow"), "Alt+W", C::ToggleMainWindow),
+            MenuItem::cmd(tr!("menu.main.playlistEditor"), "Alt+E", C::TogglePlaylistWindow).checked(s.pe_open),
+            MenuItem::cmd(tr!("menu.main.equalizer"), "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
+            MenuItem::cmd(tr!("menu.main.mediaLibrary"), "Alt+L", C::ToggleLibraryWindow).checked(s.ml_open),
         ]);
         if self.skin.color_sets.len() > 1 {
             let set = |(i, name): (usize, &String)| {
                 MenuItem::action(name, "", MenuAction::SkinColors(name.clone())).checked(i == self.skin.color_set)
             };
-            items.push(MenuItem::sub(tr!("Colours"), self.skin.color_sets.iter().enumerate().map(set).collect()));
+            items.push(MenuItem::sub(tr!("menu.main.colours"), self.skin.color_sets.iter().enumerate().map(set).collect()));
         }
         if let Some(edge) = crate::bar::chosen_edge(self) {
             let mut mode = Vec::new();
             // A skin with a window too lets the bar be turned off.
             if self.skin.layout.window(WindowKey::Main).is_some_and(|w| w.bar.is_some()) {
                 let on = |label: &str, bar: bool| MenuItem::action(label, "", MenuAction::MainAsBar(bar)).checked(s.main_bar == bar);
-                mode.extend([on(tr!("On"), true), on(tr!("Off"), false), MenuItem::sep()]);
+                mode.extend([on(tr!("menu.main.on"), true), on(tr!("menu.main.off"), false), MenuItem::sep()]);
             }
             let at = |label: &str, e: BarEdge| MenuItem::action(label, "", MenuAction::BarEdge(e)).checked(edge == e);
             mode.push(MenuItem::sub(
-                tr!("Position"),
-                vec![at(tr!("Top of the screen"), BarEdge::Top), at(tr!("Bottom of the screen"), BarEdge::Bottom)],
+                tr!("menu.main.position"),
+                vec![at(tr!("menu.main.topOfScreen"), BarEdge::Top), at(tr!("menu.main.bottomOfScreen"), BarEdge::Bottom)],
             ));
-            mode.push(MenuItem::sub(tr!("Size"), zooms(&crate::bind::bar_zooms(self), crate::bind::bar_zoom(self), MenuAction::BarZoom)));
+            mode.push(MenuItem::sub(
+                tr!("menu.main.size"),
+                zooms(&crate::bind::bar_zooms(self), crate::bind::bar_zoom(self), MenuAction::BarZoom),
+            ));
             if !self.bar_width_given {
-                let under = MenuItem::action(tr!("Full width, under side panels"), "", MenuAction::BarUnderSidePanels);
+                let under = MenuItem::action(tr!("menu.main.fullWidthUnderSidePanels"), "", MenuAction::BarUnderSidePanels);
                 mode.push(under.checked(s.bar_under_side_panels));
             }
-            items.push(MenuItem::sub(tr!("Toolbar mode"), mode));
+            items.push(MenuItem::sub(tr!("menu.main.toolbarMode"), mode));
         }
         items.extend([
             MenuItem::sep(),
-            MenuItem::sub(tr!("Options"), self.options_menu()),
+            MenuItem::sub(tr!("menu.main.options"), self.options_menu()),
             MenuItem::sub(
-                tr!("Playback"),
+                tr!("menu.main.playback"),
                 vec![
-                    MenuItem::cmd(tr!("Previous"), "Z", C::Previous),
-                    MenuItem::cmd(tr!("Play"), "X", C::Play),
-                    MenuItem::cmd(tr!("Pause"), "C", C::Pause).checked(st == PlayState::Paused),
-                    MenuItem::cmd(tr!("Stop"), "V", C::Stop),
-                    MenuItem::cmd(tr!("Next"), "B", C::Next),
+                    MenuItem::cmd(tr!("menu.main.previous"), "Z", C::Previous),
+                    MenuItem::cmd(tr!("menu.main.play"), "X", C::Play),
+                    MenuItem::cmd(tr!("menu.main.pause"), "C", C::Pause).checked(st == PlayState::Paused),
+                    MenuItem::cmd(tr!("menu.main.stop"), "V", C::Stop),
+                    MenuItem::cmd(tr!("menu.main.next"), "B", C::Next),
                     MenuItem::sep(),
-                    MenuItem::cmd(tr!("Stop w/ fadeout"), "Shift+V", C::StopFadeout),
-                    MenuItem::cmd(tr!("Stop after current"), "Ctrl+V", C::StopAfterCurrent).checked(self.stop_after_current),
-                    MenuItem::cmd(tr!("Back 5 seconds"), "Left", C::Back5s),
-                    MenuItem::cmd(tr!("Fwd 5 seconds"), "Right", C::Fwd5s),
-                    MenuItem::cmd(tr!("Start of list"), "Ctrl+Z", C::StartOfList),
-                    MenuItem::cmd(tr!("End of list"), "Ctrl+B", C::EndOfList),
-                    MenuItem::cmd(tr!("10 tracks back"), "Num 1", C::TenTracksBack),
-                    MenuItem::cmd(tr!("10 tracks fwd"), "Num 3", C::TenTracksForward),
+                    MenuItem::cmd(tr!("menu.main.stopWithFadeout"), "Shift+V", C::StopFadeout),
+                    MenuItem::cmd(tr!("menu.main.stopAfterCurrent"), "Ctrl+V", C::StopAfterCurrent).checked(self.stop_after_current),
+                    MenuItem::cmd(tr!("menu.main.back5Seconds"), "Left", C::Back5s),
+                    MenuItem::cmd(tr!("menu.main.fwd5Seconds"), "Right", C::Fwd5s),
+                    MenuItem::cmd(tr!("menu.main.startOfList"), "Ctrl+Z", C::StartOfList),
+                    MenuItem::cmd(tr!("menu.main.endOfList"), "Ctrl+B", C::EndOfList),
+                    MenuItem::cmd(tr!("menu.main.n10TracksBack"), "Num 1", C::TenTracksBack),
+                    MenuItem::cmd(tr!("menu.main.n10TracksFwd"), "Num 3", C::TenTracksForward),
                     MenuItem::sep(),
-                    MenuItem::cmd(tr!("Jump to time…"), "Ctrl+J", C::JumpToTime),
-                    MenuItem::cmd(tr!("Jump to file…"), "J", C::JumpToFile),
+                    MenuItem::cmd(tr!("menu.main.jumpToTime"), "Ctrl+J", C::JumpToTime),
+                    MenuItem::cmd(tr!("menu.main.jumpToFile"), "J", C::JumpToFile),
                 ],
             ),
-            MenuItem::sub(tr!("Visualization"), self.vis_menu()),
-            MenuItem::sub(tr!("Skins"), self.skins_menu()),
+            MenuItem::sub(tr!("menu.main.visualization"), self.vis_menu()),
+            MenuItem::sub(tr!("menu.main.skins"), self.skins_menu()),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Exit"), "Alt+F4", C::Exit),
+            MenuItem::cmd(tr!("menu.main.exit"), "Alt+F4", C::Exit),
         ]);
         items
     }
@@ -1862,9 +1839,9 @@ impl Model {
         let mut items = zooms(&popamp_core::config::ZOOMS, if s.dsize { s.zoom } else { 100 }, MenuAction::Zoom);
         items.push(MenuItem::sep());
         let modes = [
-            (Scaling::Sharp, tr!("Sharp scaling")),
-            (Scaling::Integer, tr!("Whole multiples only")),
-            (Scaling::Nearest, tr!("Nearest pixel")),
+            (Scaling::Sharp, tr!("menu.size.sharpScaling")),
+            (Scaling::Integer, tr!("menu.size.wholeMultiplesOnly")),
+            (Scaling::Nearest, tr!("menu.size.nearestPixel")),
         ];
         items.extend(modes.map(|(m, label)| MenuItem::action(label, "", MenuAction::Scaling(m)).checked(s.wsz_scaling == m)));
         items
@@ -1875,54 +1852,54 @@ impl Model {
         let s = self.settings();
         let fmt = |label: &str, f: &str| MenuItem::action(label, "", MenuAction::TitleFormat(f.to_string())).checked(s.titlefmt == f);
         vec![
-            MenuItem::cmd(tr!("Preferences…"), "Ctrl+P", C::Preferences),
+            MenuItem::cmd(tr!("menu.options.preferences"), "Ctrl+P", C::Preferences),
             #[cfg(feature = "plugins")]
-            MenuItem::cmd(tr!("Plug-ins…"), "", C::Plugins),
-            MenuItem::cmd(tr!("Gallery (popamp.app)…"), "", C::Gallery),
+            MenuItem::cmd(tr!("menu.options.plugIns"), "", C::Plugins),
+            MenuItem::cmd(tr!("menu.options.galleryPopampApp"), "", C::Gallery),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Time elapsed"), "Ctrl+T", C::TimeElapsed).checked(!s.timeleftmode),
-            MenuItem::cmd(tr!("Time remaining"), "Ctrl+T", C::TimeRemaining).checked(s.timeleftmode),
+            MenuItem::cmd(tr!("menu.options.timeElapsed"), "Ctrl+T", C::TimeElapsed).checked(!s.timeleftmode),
+            MenuItem::cmd(tr!("menu.options.timeRemaining"), "Ctrl+T", C::TimeRemaining).checked(s.timeleftmode),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Always On Top"), "Ctrl+A", C::ToggleAlwaysOnTop).checked(s.aot),
-            MenuItem::cmd(tr!("Double Size"), "Ctrl+D", C::ToggleDoubleSize).checked(s.dsize),
-            MenuItem::sub(tr!("Size"), self.size_menu()),
-            MenuItem::cmd(tr!("EasyMove"), "Ctrl+E", C::ToggleEasyMove).checked(s.easymove),
-            MenuItem::cmd(tr!("Move docked windows together"), "", C::ToggleGroupMove).checked(s.groupmove),
-            MenuItem::cmd(tr!("Windowshade"), "Ctrl+W", C::ToggleWindowshade).checked(s.windowshade),
+            MenuItem::cmd(tr!("menu.options.alwaysOnTop"), "Ctrl+A", C::ToggleAlwaysOnTop).checked(s.aot),
+            MenuItem::cmd(tr!("menu.options.doubleSize"), "Ctrl+D", C::ToggleDoubleSize).checked(s.dsize),
+            MenuItem::sub(tr!("menu.options.size"), self.size_menu()),
+            MenuItem::cmd(tr!("menu.options.easyMove"), "Ctrl+E", C::ToggleEasyMove).checked(s.easymove),
+            MenuItem::cmd(tr!("menu.options.moveDockedWindowsTogether"), "", C::ToggleGroupMove).checked(s.groupmove),
+            MenuItem::cmd(tr!("menu.options.windowshade"), "Ctrl+W", C::ToggleWindowshade).checked(s.windowshade),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Repeat"), "R", C::ToggleRepeat).checked(s.repeat),
-            MenuItem::cmd(tr!("Shuffle"), "S", C::ToggleShuffle).checked(s.shuffle),
-            MenuItem::cmd(tr!("Manual playlist advance"), "Shift+R", C::ToggleManualAdvance).checked(!s.pladv),
+            MenuItem::cmd(tr!("menu.options.repeat"), "R", C::ToggleRepeat).checked(s.repeat),
+            MenuItem::cmd(tr!("menu.options.shuffle"), "S", C::ToggleShuffle).checked(s.shuffle),
+            MenuItem::cmd(tr!("menu.options.manualPlaylistAdvance"), "Shift+R", C::ToggleManualAdvance).checked(!s.pladv),
             MenuItem::sep(),
             MenuItem::sub(
-                tr!("ReplayGain"),
+                tr!("menu.options.replayGain"),
                 vec![
-                    MenuItem::action(tr!("Off"), "", MenuAction::ReplayGain(None)).checked(!s.replaygain),
-                    MenuItem::action(tr!("Track gain"), "", MenuAction::ReplayGain(Some(0)))
+                    MenuItem::action(tr!("menu.options.off"), "", MenuAction::ReplayGain(None)).checked(!s.replaygain),
+                    MenuItem::action(tr!("menu.options.trackGain"), "", MenuAction::ReplayGain(Some(0)))
                         .checked(s.replaygain && s.replaygain_mode == 0),
-                    MenuItem::action(tr!("Album gain"), "", MenuAction::ReplayGain(Some(1)))
+                    MenuItem::action(tr!("menu.options.albumGain"), "", MenuAction::ReplayGain(Some(1)))
                         .checked(s.replaygain && s.replaygain_mode == 1),
                 ],
             ),
             MenuItem::sub(
-                tr!("Title format"),
+                tr!("menu.options.titleFormat"),
                 vec![
-                    fmt(tr!("Artist - Title"), popamp_core::config::DEFAULT_TITLE_FORMAT),
+                    fmt(tr!("menu.options.artistTitle"), popamp_core::config::DEFAULT_TITLE_FORMAT),
                     fmt(
-                        tr!("Artist - Album - ## - Title"),
+                        tr!("menu.options.artistAlbumNumberTitle"),
                         "[%artist% - ][%album% - ][$num(%track%,2) - ]$if2(%title%,$filepart(%filename%))",
                     ),
-                    fmt(tr!("Title"), "$if2(%title%,$filepart(%filename%))"),
-                    fmt(tr!("File name"), "$filepart(%filename%)"),
+                    fmt(tr!("menu.options.title"), "$if2(%title%,$filepart(%filename%))"),
+                    fmt(tr!("menu.options.fileName"), "$filepart(%filename%)"),
                 ],
             ),
             MenuItem::sub(
-                tr!("Equalizer"),
+                tr!("menu.options.equalizer"),
                 vec![
-                    MenuItem::action(tr!("Winamp bands (60Hz-16kHz)"), "", MenuAction::EqBands(false)).checked(s.eq_frequencies == 0),
-                    MenuItem::action(tr!("ISO bands (31Hz-16kHz)"), "", MenuAction::EqBands(true)).checked(s.eq_frequencies == 1),
+                    MenuItem::action(tr!("menu.options.winampBands"), "", MenuAction::EqBands(false)).checked(s.eq_frequencies == 0),
+                    MenuItem::action(tr!("menu.options.isoBands"), "", MenuAction::EqBands(true)).checked(s.eq_frequencies == 1),
                     MenuItem::sep(),
-                    MenuItem::action(tr!("Limiter (prevents clipping)"), "", MenuAction::EqLimiter).checked(s.eq_limiter),
+                    MenuItem::action(tr!("menu.options.limiterPreventsClipping"), "", MenuAction::EqLimiter).checked(s.eq_limiter),
                 ],
             ),
         ]
@@ -1932,20 +1909,20 @@ impl Model {
         let s = self.settings();
         #[cfg_attr(not(feature = "visualizers"), allow(unused_mut))]
         let mut items = vec![
-            MenuItem::action(tr!("Spectrum analyzer"), "", MenuAction::VisMode(1)).checked(s.sa == 1),
-            MenuItem::action(tr!("Oscilloscope"), "", MenuAction::VisMode(2)).checked(s.sa == 2),
-            MenuItem::action(tr!("Off"), "", MenuAction::VisMode(0)).checked(s.sa == 0),
+            MenuItem::action(tr!("menu.visualization.spectrumAnalyzer"), "", MenuAction::VisMode(1)).checked(s.sa == 1),
+            MenuItem::action(tr!("menu.visualization.oscilloscope"), "", MenuAction::VisMode(2)).checked(s.sa == 2),
+            MenuItem::action(tr!("menu.visualization.off"), "", MenuAction::VisMode(0)).checked(s.sa == 0),
             MenuItem::sep(),
-            MenuItem::action(tr!("Normal style"), "", MenuAction::SaStyle(0)).checked(s.sa_style == 0),
-            MenuItem::action(tr!("Fire style"), "", MenuAction::SaStyle(1)).checked(s.sa_style == 1),
-            MenuItem::action(tr!("Line style"), "", MenuAction::SaStyle(2)).checked(s.sa_style == 2),
-            MenuItem::action(tr!("Show peaks"), "", MenuAction::SaPeaks).checked(s.sa_peaks),
-            MenuItem::action(tr!("Thick bands"), "", MenuAction::SaThick).checked(s.sa_thick),
+            MenuItem::action(tr!("menu.visualization.normalStyle"), "", MenuAction::SaStyle(0)).checked(s.sa_style == 0),
+            MenuItem::action(tr!("menu.visualization.fireStyle"), "", MenuAction::SaStyle(1)).checked(s.sa_style == 1),
+            MenuItem::action(tr!("menu.visualization.lineStyle"), "", MenuAction::SaStyle(2)).checked(s.sa_style == 2),
+            MenuItem::action(tr!("menu.visualization.showPeaks"), "", MenuAction::SaPeaks).checked(s.sa_peaks),
+            MenuItem::action(tr!("menu.visualization.thickBands"), "", MenuAction::SaThick).checked(s.sa_thick),
             MenuItem::sep(),
-            MenuItem::action(tr!("Scope: dots"), "", MenuAction::OscStyle(0)).checked(s.osc_style == 0),
-            MenuItem::action(tr!("Scope: lines"), "", MenuAction::OscStyle(1)).checked(s.osc_style == 1),
-            MenuItem::action(tr!("Scope: solid"), "", MenuAction::OscStyle(2)).checked(s.osc_style == 2),
-            MenuItem::action(tr!("Scope: afterglow"), "", MenuAction::OscStyle(3)).checked(s.osc_style == 3),
+            MenuItem::action(tr!("menu.visualization.scopeDots"), "", MenuAction::OscStyle(0)).checked(s.osc_style == 0),
+            MenuItem::action(tr!("menu.visualization.scopeLines"), "", MenuAction::OscStyle(1)).checked(s.osc_style == 1),
+            MenuItem::action(tr!("menu.visualization.scopeSolid"), "", MenuAction::OscStyle(2)).checked(s.osc_style == 2),
+            MenuItem::action(tr!("menu.visualization.scopeAfterglow"), "", MenuAction::OscStyle(3)).checked(s.osc_style == 3),
         ];
         #[cfg(feature = "visualizers")]
         items.extend(self.visualizer_items());
@@ -1954,9 +1931,9 @@ impl Model {
 
     pub fn skins_menu(&self) -> Vec<MenuItem> {
         let mut items = vec![
-            MenuItem::cmd(tr!("Skin browser…"), "Alt+S", Command::SkinBrowser),
-            MenuItem::cmd(tr!("Gallery (popamp.app)…"), "", Command::Gallery),
-            MenuItem::cmd(tr!("Skin Museum (online)…"), "", Command::SkinMuseum),
+            MenuItem::cmd(tr!("menu.skins.skinBrowser"), "Alt+S", Command::SkinBrowser),
+            MenuItem::cmd(tr!("menu.skins.galleryPopampApp"), "", Command::Gallery),
+            MenuItem::cmd(tr!("menu.skins.skinMuseumOnline"), "", Command::SkinMuseum),
             MenuItem::sep(),
         ];
         items.push(MenuItem::action("Popamp Default", "", MenuAction::Skin(None)).checked(self.skin_path.is_none()));
@@ -1974,76 +1951,84 @@ impl Model {
             let mut v: Vec<MenuItem> =
                 list.iter().enumerate().take(40).map(|(i, p)| MenuItem::action(&p.name, "", MenuAction::EqPreset(i, auto))).collect();
             if v.is_empty() {
-                v.push(MenuItem::label(tr!("(none)")));
+                v.push(MenuItem::label(tr!("menu.equalizer.none")));
             }
             v
         };
         vec![
-            MenuItem::sub(tr!("Load"), {
+            MenuItem::sub(tr!("menu.equalizer.load"), {
                 let mut v = presets(false);
                 v.push(MenuItem::sep());
-                v.push(MenuItem::sub(tr!("Auto-load presets"), presets(true)));
-                v.push(MenuItem::cmd(tr!("Default"), "", Command::EqLoadDefault));
-                v.push(MenuItem::cmd(tr!("From EQF…"), "", Command::EqImportEqf));
+                v.push(MenuItem::sub(tr!("menu.equalizer.autoLoadPresets"), presets(true)));
+                v.push(MenuItem::cmd(tr!("menu.equalizer.default"), "", Command::EqLoadDefault));
+                v.push(MenuItem::cmd(tr!("menu.equalizer.fromEQF"), "", Command::EqImportEqf));
                 v
             }),
             MenuItem::sub(
-                tr!("Save"),
+                tr!("common.save"),
                 vec![
-                    MenuItem::cmd(tr!("Preset…"), "", Command::EqPresetSave),
-                    MenuItem::action(tr!("Auto-load preset…"), "", MenuAction::EqDialog(DialogKind::EqSavePreset { auto: true })),
-                    MenuItem::cmd(tr!("Default"), "", Command::EqSaveDefault),
+                    MenuItem::cmd(tr!("menu.equalizer.preset"), "", Command::EqPresetSave),
+                    MenuItem::action(
+                        tr!("menu.equalizer.autoLoadPreset"),
+                        "",
+                        MenuAction::EqDialog(DialogKind::EqSavePreset { auto: true }),
+                    ),
+                    MenuItem::cmd(tr!("menu.equalizer.default"), "", Command::EqSaveDefault),
                     MenuItem::sep(),
-                    MenuItem::cmd(tr!("To EQF…"), "", Command::EqExportEqf),
+                    MenuItem::cmd(tr!("menu.equalizer.toEQF"), "", Command::EqExportEqf),
                 ],
             ),
             MenuItem::sub(
-                tr!("Delete"),
+                tr!("menu.equalizer.delete"),
                 vec![
-                    MenuItem::cmd(tr!("Preset…"), "", Command::EqPresetDelete),
-                    MenuItem::action(tr!("Auto-load preset…"), "", MenuAction::EqDialog(DialogKind::EqDeletePreset { auto: true })),
+                    MenuItem::cmd(tr!("menu.equalizer.preset"), "", Command::EqPresetDelete),
+                    MenuItem::action(
+                        tr!("menu.equalizer.autoLoadPreset"),
+                        "",
+                        MenuAction::EqDialog(DialogKind::EqDeletePreset { auto: true }),
+                    ),
                 ],
             ),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Reset to flat"), "", Command::EqReset),
+            MenuItem::cmd(tr!("menu.equalizer.resetToFlat"), "", Command::EqReset),
         ]
     }
 
     pub fn playlist_row_menu(&self) -> Vec<MenuItem> {
         use Command as C;
         vec![
-            MenuItem::action(tr!("Play item"), "Enter", MenuAction::PlaySelected),
+            MenuItem::action(tr!("menu.playlist.playItem"), "Enter", MenuAction::PlaySelected),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Remove item(s)"), "Del", C::PlRemoveSelected),
-            MenuItem::cmd(tr!("Crop item(s)"), "Ctrl+Del", C::PlCropSelected),
+            MenuItem::cmd(tr!("menu.playlist.removeItems"), "Del", C::PlRemoveSelected),
+            MenuItem::cmd(tr!("menu.playlist.cropItems"), "Ctrl+Del", C::PlCropSelected),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("View file info…"), "Alt+3", C::FileInfo),
-            MenuItem::cmd(tr!("Playlist entry…"), "Ctrl+E", C::EditPlaylistEntry),
-            MenuItem::cmd(tr!("Bookmark item(s)"), "Alt+I", C::BookmarkSelected),
-            MenuItem::cmd(tr!("Scan ReplayGain"), "", C::ScanReplayGain),
+            MenuItem::cmd(tr!("menu.playlist.viewFileInfo"), "Alt+3", C::FileInfo),
+            MenuItem::cmd(tr!("menu.playlist.playlistEntry"), "Ctrl+E", C::EditPlaylistEntry),
+            MenuItem::cmd(tr!("menu.playlist.bookmarkItems"), "Alt+I", C::BookmarkSelected),
+            MenuItem::cmd(tr!("menu.playlist.scanReplayGain"), "", C::ScanReplayGain),
             MenuItem::sep(),
-            MenuItem::sub(tr!("Sort"), self.sort_menu()),
+            MenuItem::sub(tr!("menu.playlist.sort"), self.sort_menu()),
         ]
     }
 
     /// The playlist's MISC > Misc options menu.
     pub fn playlist_misc_menu(&self) -> Vec<MenuItem> {
         vec![
-            MenuItem::cmd(tr!("Generate HTML playlist…"), "", Command::PlGenerateHtml),
+            MenuItem::cmd(tr!("menu.playlist.generateHtmlPlaylist"), "", Command::PlGenerateHtml),
             MenuItem::sep(),
-            MenuItem::sub(tr!("Options"), self.options_menu()),
+            MenuItem::sub(tr!("menu.playlist.options"), self.options_menu()),
         ]
     }
 
     pub fn sort_menu(&self) -> Vec<MenuItem> {
         use Command as C;
         vec![
-            MenuItem::cmd(tr!("Sort list by title"), "Ctrl+Shift+1", C::SortByTitle),
-            MenuItem::cmd(tr!("Sort list by filename"), "Ctrl+Shift+2", C::SortByFileName),
-            MenuItem::cmd(tr!("Sort list by path and filename"), "Ctrl+Shift+3", C::SortByPath),
+            MenuItem::cmd(tr!("menu.playlist.sortListByTitle"), "Ctrl+Shift+1", C::SortByTitle),
+            MenuItem::cmd(tr!("menu.playlist.sortListByFilename"), "Ctrl+Shift+2", C::SortByFileName),
+            MenuItem::cmd(tr!("menu.playlist.sortListByPath"), "Ctrl+Shift+3", C::SortByPath),
             MenuItem::sep(),
-            MenuItem::cmd(tr!("Reverse list"), "Ctrl+R", C::ReverseList),
-            MenuItem::cmd(tr!("Randomize list"), "Ctrl+Shift+R", C::RandomizeList),
+            MenuItem::cmd(tr!("menu.playlist.reverseList"), "Ctrl+R", C::ReverseList),
+            MenuItem::cmd(tr!("menu.playlist.randomizeList"), "Ctrl+Shift+R", C::RandomizeList),
         ]
     }
 
@@ -2169,17 +2154,17 @@ pub fn meta_rows(m: &TrackMeta) -> Vec<(String, String)> {
     let mut rows = Vec::new();
     let mut push = |k: &str, v: String| rows.push((k.to_string(), v));
     let fields = [
-        (tr!("Title"), &m.title),
-        (tr!("Artist"), &m.artist),
-        (tr!("Album"), &m.album),
-        (tr!("Album artist"), &m.album_artist),
-        (tr!("Year"), &m.year),
-        (tr!("Track"), &m.track),
-        (tr!("Disc"), &m.disc),
-        (tr!("Genre"), &m.genre),
-        (tr!("Composer"), &m.composer),
-        (tr!("Comment"), &m.comment),
-        (tr!("Codec"), &m.codec),
+        (tr!("fileInfo.title"), &m.title),
+        (tr!("fileInfo.artist"), &m.artist),
+        (tr!("fileInfo.album"), &m.album),
+        (tr!("fileInfo.albumArtist"), &m.album_artist),
+        (tr!("fileInfo.year"), &m.year),
+        (tr!("fileInfo.track"), &m.track),
+        (tr!("fileInfo.disc"), &m.disc),
+        (tr!("fileInfo.genre"), &m.genre),
+        (tr!("fileInfo.composer"), &m.composer),
+        (tr!("fileInfo.comment"), &m.comment),
+        (tr!("fileInfo.codec"), &m.codec),
     ];
     for (k, v) in fields {
         if let Some(v) = v {
@@ -2187,14 +2172,14 @@ pub fn meta_rows(m: &TrackMeta) -> Vec<(String, String)> {
         }
     }
     if let Some(l) = m.length_ms {
-        push(tr!("Length"), format_duration_ms(l));
+        push(tr!("fileInfo.length"), format_duration_ms(l));
     }
     if let (Some(r), Some(c)) = (m.sample_rate, m.channels) {
-        let bitrate = m.bitrate_kbps.map(|b| tr!(", {b} kbps", b)).unwrap_or_default();
-        push(tr!("Format"), trn!(c, "{r} Hz, {n} channel{bitrate}", "{r} Hz, {n} channels{bitrate}", r, bitrate));
+        let bitrate = m.bitrate_kbps.map(|b| tr!("fileInfo.bitrateKbps", b)).unwrap_or_default();
+        push(tr!("fileInfo.format"), trn!(c, "fileInfo.sampleRateChannels", r, bitrate));
     }
     if let Some(g) = m.replaygain_track_gain {
-        push(tr!("ReplayGain"), tr!("{gain} dB (track)", gain = format!("{g:+.2}")));
+        push(tr!("fileInfo.replayGain"), tr!("fileInfo.gainTrack", gain = format!("{g:+.2}")));
     }
     rows
 }

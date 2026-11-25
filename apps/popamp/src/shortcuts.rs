@@ -11,9 +11,9 @@ use popamp_skin::layout::WindowKey;
 
 /// The windows that have shortcuts.
 pub const TARGETS: [(WindowKey, &str, &str); 3] = [
-    (WindowKey::Main, "main", tr_const!("Main")),
-    (WindowKey::Eq, "eq", tr_const!("Equalizer")),
-    (WindowKey::Playlist, "playlist", tr_const!("Playlist")),
+    (WindowKey::Main, "main", tr_const!("prefs.shortcuts.main")),
+    (WindowKey::Eq, "eq", tr_const!("prefs.shortcuts.equalizer")),
+    (WindowKey::Playlist, "playlist", tr_const!("prefs.shortcuts.playlist")),
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,22 +27,22 @@ pub enum Click {
 
 /// The mouse buttons and wheel turns that have shortcuts.
 pub const CLICKS: [(Click, &str, &str); 4] = [
-    (Click::Right, "right", tr_const!("Right Mouse")),
-    (Click::Middle, "middle", tr_const!("Middle Mouse")),
-    (Click::ScrollUp, "scrollup", tr_const!("Scroll Up")),
-    (Click::ScrollDown, "scrolldown", tr_const!("Scroll Down")),
+    (Click::Right, "right", tr_const!("prefs.shortcuts.rightMouse")),
+    (Click::Middle, "middle", tr_const!("prefs.shortcuts.middleMouse")),
+    (Click::ScrollUp, "scrollup", tr_const!("prefs.shortcuts.scrollUp")),
+    (Click::ScrollDown, "scrolldown", tr_const!("prefs.shortcuts.scrollDown")),
 ];
 
 /// What a click can do.
 pub const ACTIONS: [(Command, &str, &str); 8] = [
-    (Command::Previous, "previous", tr_const!("Previous track")),
-    (Command::Next, "next", tr_const!("Next track")),
-    (Command::Pause, "pause", tr_const!("Pause")),
-    (Command::Stop, "stop", tr_const!("Stop")),
-    (Command::ToggleShuffle, "shuffle", tr_const!("Shuffle on/off")),
-    (Command::ToggleRepeat, "repeat", tr_const!("Repeat on/off")),
-    (Command::VolumeUp, "volup", tr_const!("Vol Up")),
-    (Command::VolumeDown, "voldown", tr_const!("Vol Down")),
+    (Command::Previous, "previous", tr_const!("prefs.shortcuts.previousTrack")),
+    (Command::Next, "next", tr_const!("prefs.shortcuts.nextTrack")),
+    (Command::Pause, "pause", tr_const!("prefs.shortcuts.pause")),
+    (Command::Stop, "stop", tr_const!("prefs.shortcuts.stop")),
+    (Command::ToggleShuffle, "shuffle", tr_const!("prefs.shortcuts.shuffleOnOff")),
+    (Command::ToggleRepeat, "repeat", tr_const!("prefs.shortcuts.repeatOnOff")),
+    (Command::VolumeUp, "volup", tr_const!("prefs.shortcuts.volUp")),
+    (Command::VolumeDown, "voldown", tr_const!("prefs.shortcuts.volDown")),
 ];
 
 /// One rule: a click on a window's title bar runs a command.

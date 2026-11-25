@@ -1,486 +1,1187 @@
 # Русский перевод интерфейса Popamp.
-# Ключ — английский текст из программы, значение — перевод.
+# Над каждой строкой — её английский текст из en.toml.
 # Для текстов с числом даны три формы: 1 файл, 2 файла, 5 файлов.
 
-" (installed)" = " (установлен)"
-" (update)" = " (обновление)"
-" and " = " и "
-"(no album)" = "(без альбома)"
-"(no artist)" = "(без исполнителя)"
-"(none)" = "(нет)"
-", turn it on in Options > ReplayGain" = ", включите его в «Параметры > ReplayGain»"
-", {b} kbps" = ", {b} кбит/с"
-", {failed} failed" = ", с ошибкой: {failed}"
-", {n} to update" = ", обновить: {n}"
-"10 tracks back" = "На 10 треков назад"
-"10 tracks fwd" = "На 10 треков вперёд"
-"; {n} plug-ins need Popamp Plus" = ["; {n} плагину нужен Popamp Plus", "; {n} плагинам нужен Popamp Plus", "; {n} плагинам нужен Popamp Plus"]
-"A click, or the wheel, over a title bar (full size or shaded):" = "Щелчок или колёсико над заголовком любого окна:"
-"A PLAYLIST IS CALLED {name} ALREADY" = "ПЛЕЙЛИСТ {name} УЖЕ ЕСТЬ"
-"A stream's tags cannot be changed." = "Теги потока изменить нельзя."
-"About Popamp…" = "О Popamp…"
-"About {name}" = "О программе {name}"
-"Action" = "Действие"
-"Add a folder with music." = "Добавьте папку с музыкой."
-"Add current as bookmark" = "Добавить текущий в закладки"
-"Add folders to the media library" = "Добавить папки в медиатеку"
-"Add folder…" = "Добавить папку…"
-"Add group" = "+ Группа"
-"Add rule" = "+ Правило"
-"Added" = "Добавлен"
-"Advance to next track" = "Переходить к следующему треку"
-"Album" = "Альбом"
-"Album art" = "Обложка альбома"
-"Album artist" = "Исполнитель альбома"
-"Album gain" = "По альбому"
-"Albums" = "Альб."
-"all" = "всем"
-"All ({n} albums)" = ["Все ({n} альбом)", "Все ({n} альбома)", "Все ({n} альбомов)"]
-"All ({n} artists)" = ["Все ({n} исполнитель)", "Все ({n} исполнителя)", "Все ({n} исполнителей)"]
-"All files" = "Все файлы"
-"All music" = "Вся музыка"
-"Always on top" = "Поверх всех окон"
-"Always On Top" = "Поверх всех окон"
-"any" = "любому"
-"Any text" = "Любой текст"
-"Artist" = "Исполнитель"
-"Artist - Album - ## - Title" = "Исполнитель - Альбом - ## - Название"
-"Artist - Title" = "Исполнитель - Название"
-"As the system ({language})" = "Как в системе ({language})"
-"ascending" = "по возр."
-"Asks for no permissions." = "Не запрашивает разрешений."
-"Assign" = "Назначить"
-"Audio files" = "Аудиофайлы"
-"Auto-load presets" = "Пресеты автозагрузки"
-"Auto-load preset…" = "Пресет автозагрузки…"
-"Autoscroll song name" = "Прокручивать название"
-"Back 5 seconds" = "Назад на 5 секунд"
-"BALANCE: CENTER" = "БАЛАНС: ЦЕНТР"
-"BALANCE: {pct}% LEFT" = "БАЛАНС: {pct}% ВЛЕВО"
-"BALANCE: {pct}% RIGHT" = "БАЛАНС: {pct}% ВПРАВО"
-"Bit rate" = "Битрейт"
-"Bookmark" = "Закладка"
-"Bookmark item(s)" = "Добавить в закладки"
-"Bookmarks" = "Закладки"
-"Bottom of the screen" = "Внизу экрана"
-"Broken: {e}" = "Повреждён: {e}"
-"Cancel" = "Отмена"
-"Cancelled: nothing was saved" = "Отменено: ничего не сохранено"
-"Cancelling: finishing the tracks under way" = "Отмена: дообрабатываются начатые треки"
-"CANNOT OPEN JOURNAL: {file}" = "НЕ УДАЁТСЯ ОТКРЫТЬ ЖУРНАЛ: {file}"
-"CANNOT OPEN THE BROWSER" = "НЕ УДАЁТСЯ ОТКРЫТЬ БРАУЗЕР"
-"CANNOT REMOVE PLUG-IN: {e}" = "НЕ УДАЁТСЯ УДАЛИТЬ ПЛАГИН: {e}"
-"Change…" = "Заменить…"
-"Check for a new version" = "Проверять новые версии"
-"Choose a cover picture" = "Выберите картинку обложки"
-"Choose Popamp in Finder: Get Info, then Open with." = "Выберите Popamp в Finder: «Свойства», затем «Открывать в программе»."
-"Close" = "Закрыть"
-"Codec" = "Кодек"
-"Colours" = "Цвета"
-"Comment" = "Комментарий"
-"Composer" = "Композитор"
-"Connect to {address}" = "Подключаться к {address}"
-"Connect to {address} ({why})" = "Подключаться к {address} ({why})"
-"CONNECTING…" = "ПОДКЛЮЧЕНИЕ…"
-"contains" = "содержит"
-"Count a play after hearing (%)" = "Порог прослушивания (%)"
-"Count a play: 50 to 100, in steps of 5" = "Порог прослушивания: от 50 до 100, с шагом 5"
-"Crop item(s)" = "Оставить только выбранные"
-"Crossfade" = "Плавный переход"
-"Crossfade (ms)" = "Плавный переход (мс)"
-"Date added" = "Дата добавления"
-"Decoder plug-in" = "Плагин-декодер"
-"Default" = "По умолчанию"
-"Default apps" = "Открыть"
-"Delete" = "Удалить"
-"Delete files" = "Удаление файлов"
-"Delete playlist" = "Удаление плейлиста"
-"Delete smart playlist" = "Удаление умного плейлиста"
-"Delete the playlist “{name}”?\n\nIts tracks stay in the library." = "Удалить плейлист «{name}»?\n\nЕго треки останутся в медиатеке."
-"Delete the smart playlist “{name}”?" = "Удалить умный плейлист «{name}»?"
-"Delete “{name}”" = "Удалить «{name}»"
-"descending" = "по убыв."
-"Desktop" = "Рабочий стол"
-"Did not load: {e}" = "Не загрузился: {e}"
-"Dim inactive playlist" = "Затемнять неактивный плейлист"
-"Disc" = "Диск"
-"Done: {done} of {n} tracks scanned" = ["Готово: просканировано {done} из {n} трека", "Готово: просканировано {done} из {n} треков", "Готово: просканировано {done} из {n} треков"]
-"Double size" = "Двойной размер"
-"Double Size" = "Двойной размер"
-"Download & use" = "Скачать"
-"Downloading {name}…" = "Скачивается {name}…"
-"Download…" = "Скачать…"
-"DSP plug-in" = "DSP-плагин"
-"Each is a folder in {dir}." = "Каждый — это папка в {dir}."
-"Easy move" = "Перемещать за любое место"
-"EasyMove" = "Перемещать за любое место"
-"Edit playlist entry" = "Изменение записи плейлиста"
-"Edit “{name}”…" = "Изменить «{name}»…"
-"EMPTY EQ FILE" = "ПУСТОЙ ФАЙЛ ЭКВАЛАЙЗЕРА"
-"Enabled" = "Включён"
-"End of list" = "Конец списка"
-"Enqueue" = "В очередь"
-"Enter a URL to open (a stream or a playlist):" = "Введите адрес (поток или плейлист):"
-"EQ FILE ERROR: {e}" = "ОШИБКА ФАЙЛА ЭКВАЛАЙЗЕРА: {e}"
-"EQ presets" = "Пресеты эквалайзера"
-"EQ: {db} DB" = "ЭКВ: {db} ДБ"
-"Equalizer" = "Эквалайзер"
-"ERROR: {message}" = "ОШИБКА: {message}"
-"Exit" = "Выход"
-"Fade-out" = "Затухание"
-"Fade-out (ms)" = "Затухание (мс)"
-"Fast-forward 5 seconds" = "Вперёд на 5 секунд"
-"Favourites (smart playlist)" = "Избранное"
-"File info" = "Сведения о файле"
-"File info…" = "Сведения о файле…"
-"File name" = "Имя файла"
-"File path" = "Путь к файлу"
-"File types: cannot add Popamp to the menu: {e}" = "Типы файлов: не удаётся добавить Popamp в меню: {e}"
-"File types: cannot write {file}: {e}" = "Типы файлов: не удаётся записать {file}: {e}"
-"File…" = "Файл…"
-"Fire style" = "Огненный стиль"
-"Folders" = "Папки"
-"Folders it may read, separated by ; (~ is your whole home):" = "Папки, которые он может читать, через ; (~ — вся домашняя папка):"
-"Folder…" = "Папка…"
-"Font size" = "Размер шрифта"
-"Forget them now" = "Забыть сейчас"
-"Forgot the plays and ratings of {n} missing files." = ["Забыты история и оценки {n} пропавшего файла.", "Забыты история и оценки {n} пропавших файлов.", "Забыты история и оценки {n} пропавших файлов."]
-"Format" = "Формат"
-"Forward 5 seconds" = "Вперёд на 5 секунд"
-"From EQF…" = "Из файла EQF…"
-"Full width, under side panels" = "Во всю ширину, под боковыми панелями"
-"Fwd 5 seconds" = "Вперёд на 5 секунд"
-"Gallery (popamp.app)…" = "Галерея (popamp.app)…"
-"Gallery: {e}" = "Галерея: {e}"
-"Gallery…" = "Галерея…"
-"Generate HTML playlist" = "Создание HTML-плейлиста"
-"Generate HTML playlist…" = "Создать HTML-плейлист…"
-"Genre" = "Жанр"
-"Global hotkeys (Ctrl+Alt)" = "Глобальные горячие клавиши (Ctrl+Alt)"
-"Hidden folders and the player's own stay closed." = "Скрытые папки и папки самого плеера остаются закрытыми."
-"History" = "История"
-"History…" = "История…"
-"HTTP proxy" = "HTTP-прокси"
-"Icon in the system tray" = "Значок в системном трее"
-"in the last (days)" = "за последние (дней)"
-"Install" = "Установить"
-"INSTALL FAILED: {e}" = "ОШИБКА УСТАНОВКИ: {e}"
-"Install from file…" = "Из файла…"
-"Install skin" = "Установка скина"
-"Installed" = "Установлен"
-"Installed as a package (popamp-plugin-{folder}): remove it with your package manager." = "Установлен пакетом (popamp-plugin-{folder}): удаляйте его через менеджер пакетов."
-"Internet" = "Интернет"
-"is" = "равно"
-"is empty" = "пусто"
-"is less than" = "меньше"
-"is more than" = "больше"
-"ISO bands (31Hz-16kHz)" = "Полосы ISO (31 Гц – 16 кГц)"
-"Journal" = "Журнал"
-"Jump" = "Перейти"
-"Jump to (m:ss), track length {len}:" = "Перейти к (м:сс), длина трека {len}:"
-"Jump to file" = "Переход к файлу"
-"Jump to file…" = "Перейти к файлу…"
-"Jump to time" = "Переход ко времени"
-"Jump to time…" = "Перейти ко времени…"
-"Kbps" = "Кбит/с"
-"Keep the ReplayGain scan window open" = "Не закрывать окно сканирования ReplayGain"
-"Keep this window open when the scan ends" = "Не закрывать это окно после сканирования"
-"Keep windows on screen" = "Держать окна в пределах экрана"
-"Language" = "Язык"
-"Last played" = "Последнее прослушивание"
-"Last played (smart playlist)" = "Недавние"
-"Length" = "Длительность"
-"Length (seconds)" = "Длительность (секунды)"
-"LIBRARY: COVER WRITTEN TO {n} FILES" = ["МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛ", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛА", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛОВ"]
-"LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED" = ["МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛ, ОШИБОК: {failed}", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛА, ОШИБОК: {failed}", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛОВ, ОШИБОК: {failed}"]
-"LIBRARY: NO COVER CAN GO INTO THESE FILES" = "МЕДИАТЕКА: В ЭТИ ФАЙЛЫ НЕЛЬЗЯ ЗАПИСАТЬ ОБЛОЖКУ"
-"LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE" = "МЕДИАТЕКА: ЭТО НЕ КАРТИНКА JPEG, PNG, GIF ИЛИ BMP"
-"LIBRARY: THE FOLDER IS THERE ALREADY" = "МЕДИАТЕКА: ЭТА ПАПКА УЖЕ ЕСТЬ"
-"LIBRARY: THE FOLDERS ARE THERE ALREADY" = "МЕДИАТЕКА: ЭТИ ПАПКИ УЖЕ ЕСТЬ"
-"LIBRARY: {n} TRACKS TO THE PLAYLIST" = ["МЕДИАТЕКА: {n} ТРЕК В ПЛЕЙЛИСТ", "МЕДИАТЕКА: {n} ТРЕКА В ПЛЕЙЛИСТ", "МЕДИАТЕКА: {n} ТРЕКОВ В ПЛЕЙЛИСТ"]
-"License: {license}" = "Лицензия: {license}"
-"Limit" = "Лимит"
-"Limiter (prevents clipping)" = "Лимитер (защита от перегрузки)"
-"Line style" = "Линии"
-"Load" = "Загрузить"
-"Load EQ preset file" = "Загрузка файла пресета эквалайзера"
-"Load playlist" = "Загрузка плейлиста"
-"Loading preview…" = "Загрузка превью…"
-"Loading the catalog…" = "Загрузка каталога…"
-"Loading the preview…" = "Загрузка превью…"
-"Loading…" = "Загрузка…"
-"Location" = "Расположение"
-"Location:" = "Расположение:"
-"Main" = "Главное окно"
-"Main Window" = "Главное окно"
-"MANUAL ADVANCE: OFF" = "РУЧНОЙ ПЕРЕХОД: ВЫКЛ."
-"MANUAL ADVANCE: ON" = "РУЧНОЙ ПЕРЕХОД: ВКЛ."
-"Manual playlist advance" = "Ручной переход по плейлисту"
-"Maximized" = "Развёрнуто"
-"May connect to {hosts}" = "Может подключаться к {hosts}"
-"May read the folders you allow" = "Может читать папки, которые вы разрешите"
-"May run {programs}" = "Может запускать {programs}"
-"Media files" = "Медиафайлы"
-"Media Library" = "Медиатека"
-"MEDIA LIBRARY" = "МЕДИАТЕКА"
-"Middle Mouse" = "Средняя кнопка"
-"MIDI SoundFont" = "MIDI SoundFont"
-"MIDI SoundFont: no such file (leave it empty for the system's)" = "MIDI SoundFont: такого файла нет (оставьте пустым, чтобы взять системный)"
-"Minimize to the tray" = "Сворачивать в трей"
-"Minutes" = "Минуты"
-"More" = "Ещё"
-"Most played (smart playlist)" = "Популярное"
-"Mouse" = "Мышь"
-"Move docked windows together" = "Перемещать пристыкованные окна вместе"
-"Museum: {e}" = "Музей: {e}"
-"Name:" = "Имя:"
-"Nearest pixel" = "Ближайший пиксель"
-"Never played (smart playlist)" = "Не слушали"
-"New" = "Новые"
-"New playlist" = "Новый плейлист"
-"New playlist…" = "Новый плейлист…"
-"New smart playlist" = "Новый умный плейлист"
-"New smart playlist…" = "Новый умный плейлист…"
-"Next" = "Следующий"
-"Next track" = "Следующий"
-"No cover" = "Нет обложки"
-"No file selected." = "Файл не выбран."
-"No limit" = "Без лимита"
-"No preview" = "Нет превью"
-"No preview: {e}" = "Нет превью: {e}"
-"No rating" = "Без оценки"
-"Normal style" = "Обычный стиль"
-"Not rated yet" = "Ещё нет оценок"
-"Not saved: {e}" = "Не сохранено: {e}"
-"Nothing found" = "Ничего не найдено"
-"Nothing found." = "Ничего не найдено."
-"NOTHING TO ADD" = "НЕЧЕГО ДОБАВИТЬ"
-"Nothing to play" = "Нечего играть"
-"Notify of each new track" = "Уведомлять о каждом новом треке"
-"Now playing" = "Сейчас играет"
-"of these rules:" = "из правил ниже:"
-"of these:" = "из этих:"
-"Off" = "Выкл."
-"OK" = "OK"
-"OK keeps what you chose; Cancel forgets it." = "OK сохраняет выбор, «Отмена» его отменяет."
-"On" = "Вкл."
-"Open file(s)" = "Открыть файлы"
-"Open file…" = "Открыть файл…"
-"Open folder" = "Открыть папку"
-"Open folder…" = "Открыть папку…"
-"Open URL" = "Открыть адрес"
-"Open URL…" = "Открыть адрес…"
-"Open with Popamp" = "Открывать в Popamp"
-"Options" = "Параметры"
-"Order by" = "Порядок"
-"Oscilloscope" = "Осциллограф"
-"Output buffer" = "Буфер вывода"
-"Output buffer (ms)" = "Буфер вывода (мс)"
-"Output device" = "Устройство вывода"
-"Pause" = "Пауза"
-"Pause/Unpause" = "Пауза/продолжить"
-"Paused" = "Пауза"
-"Permanently delete {n} files from disk?\n\n{files}" = ["Безвозвратно удалить {n} файл с диска?\n\n{files}", "Безвозвратно удалить {n} файла с диска?\n\n{files}", "Безвозвратно удалить {n} файлов с диска?\n\n{files}"]
-"Permissions" = "Разрешения"
-"Physically remove selected file(s)…" = "Удалить выбранные файлы с диска…"
-"Play" = "Играть"
-"Play item" = "Играть"
-"Play/restart" = "Играть/сначала"
-"Playback" = "Воспроизведение"
-"Playlist" = "Плейлист"
-"Playlist Editor" = "Плейлист"
-"Playlist entry…" = "Запись плейлиста…"
-"Playlist font size" = "Размер шрифта плейлиста"
-"Playlist name:" = "Название плейлиста:"
-"Playlists" = "Плейлисты"
-"Plays" = "Прослушивания"
-"Plays and ratings of missing files are kept {n} days." = ["История и оценки пропавших файлов хранятся {n} день.", "История и оценки пропавших файлов хранятся {n} дня.", "История и оценки пропавших файлов хранятся {n} дней."]
-"Plug-in" = "Плагин"
-"PLUG-IN {name} STOPPED: {why}" = "ПЛАГИН {name} ОСТАНОВЛЕН: {why}"
-"Plug-ins" = "Плагины"
-"Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on." = "Плагины добавляют в Popamp источники, типы файлов, звуковые эффекты и визуализации. Они выключены, пока вы их не включите."
-"Plug-ins need Popamp Plus" = "Плагинам нужен Popamp Plus"
-"Plug-ins…" = "Плагины…"
-"Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files." = "Popamp может менять теги файлов MP3, FLAC, Ogg Vorbis и MP4."
-"Popamp cannot read this file: it may be damaged or still downloading." = "Popamp не может прочитать этот файл: возможно, он повреждён или ещё скачивается."
-"Popamp Equalizer" = "Эквалайзер Popamp"
-"Popamp Gallery" = "Галерея Popamp"
-"Popamp Media Library" = "Медиатека Popamp"
-"Popamp Playlist Editor" = "Плейлист Popamp"
-"Popamp Preferences" = "Настройки Popamp"
-"Popamp {version} is out" = "Вышел Popamp {version}"
-"POPAMP {version} IS OUT, SEE THE MAIN MENU" = "ВЫШЕЛ POPAMP {version}, СМ. ГЛАВНОЕ МЕНЮ"
-"Popular" = "Популярные"
-"Position" = "Положение"
-"PREAMP: {db} DB" = "ПРЕДУСИЛЕНИЕ: {db} ДБ"
-"Preferences…" = "Настройки…"
-"Preset" = "Пресет"
-"Preset name:" = "Название пресета:"
-"Preset…" = "Пресет…"
-"Previous" = "Предыдущий"
-"Previous track" = "Предыдущий"
-"Random" = "Случайно"
-"Random 50 (smart playlist)" = "Случайные 50"
-"Randomize list" = "Перемешать список"
-"Rate" = "Оценить"
-"Rated {rating} of 5 by {n}" = "Оценка {rating} из 5, голосов: {n}"
-"Rating" = "Оценка"
-"Rating (stars)" = "Оценка (звёзды)"
-"Recently added (smart playlist)" = "Новинки"
-"Remove" = "Удалить"
-"Remove bookmark" = "Удаление закладки"
-"Remove bookmark…" = "Удалить закладку…"
-"Remove from “{name}”" = "Убрать из «{name}»"
-"Remove item(s)" = "Убрать выбранные"
-"Remove missing files" = "Убрать отсутствующие файлы"
-"Remove plug-in" = "Удаление плагина"
-"Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}" = "Удалить плагин {name}?\n\nЕго папка будет удалена:\n{folder}"
-"Remove “{name}” from the library" = "Убрать «{name}» из медиатеки"
-"Rename playlist" = "Переименование плейлиста"
-"Rename “{name}”…" = "Переименовать «{name}»…"
-"Repeat" = "Повтор"
-"Repeat on/off" = "Повтор"
-"ReplayGain" = "ReplayGain"
-"ReplayGain is off: turn it on in Options > ReplayGain" = "ReplayGain выключен: включите его в «Параметры > ReplayGain»"
-"ReplayGain scan" = "Сканирование ReplayGain"
-"ReplayGain: scan cancelled" = "ReplayGain: сканирование отменено"
-"ReplayGain: select the tracks to scan" = "ReplayGain: выберите треки для сканирования"
-"ReplayGain: {done} of {total} scanned" = "ReplayGain: просканировано {done} из {total}"
-"Rescan folders" = "Пересканировать папки"
-"Reset columns" = "Сбросить столбцы"
-"Reset to flat" = "Сбросить"
-"Reverse list" = "Обратный порядок"
-"Rewind 5 seconds" = "Назад на 5 секунд"
-"Right Mouse" = "Правая кнопка"
-"Rule {n}: {e}." = "Правило {n}: {e}."
-"Save" = "Сохранить"
-"Save EQ preset" = "Сохранение пресета эквалайзера"
-"Save EQ preset file" = "Сохранение файла пресета эквалайзера"
-"SAVE FAILED: {e}" = "ОШИБКА СОХРАНЕНИЯ: {e}"
-"Save playlist" = "Сохранение плейлиста"
-"Save search as smart playlist…" = "Сохранить поиск как умный плейлист…"
-"Saved to {file}" = "Сохранено в {file}"
-"Scan every (minutes)" = "Сканировать каждые (мин)"
-"Scan every: 1 to {max} minutes" = "Интервал сканирования: от 1 до {max} минут"
-"Scan ReplayGain" = "Сканировать ReplayGain"
-"Scan the folders at startup" = "Сканировать папки при запуске"
-"Scan the folders periodically" = "Сканировать папки периодически"
-"Scanning: {done}" = "Сканирование: {done}"
-"Scanning: {done} of {n} tracks" = ["Сканирование: {done} из {n} трека", "Сканирование: {done} из {n} треков", "Сканирование: {done} из {n} треков"]
-"Scope: afterglow" = "Осциллограф: послесвечение"
-"Scope: dots" = "Осциллограф: точки"
-"Scope: lines" = "Осциллограф: линии"
-"Scope: solid" = "Осциллограф: заливка"
-"Scroll Down" = "Колёсико вниз"
-"Scroll song title" = "Прокручивать название трека"
-"Scroll Up" = "Колёсико вверх"
-"Search" = "Найти"
-"Search for:" = "Найти:"
-"Search: type here" = "Поиск: начните печатать"
-"Settings" = "Настройки"
-"Sharp scaling" = "Чёткое масштабирование"
-"Shortcuts" = "Быстрые действия"
-"Show peaks" = "Показывать пики"
-"Show playlist numbers" = "Показывать номера в плейлисте"
-"Show Popamp" = "Показать Popamp"
-"Show the commands it runs" = "Показать команды, которые он запускает"
-"Shuffle" = "Перемешать"
-"Shuffle on/off" = "Перемешивание"
-"Size" = "Размер"
-"Skin" = "Скин"
-"Skin browser" = "Выбор скина"
-"Skin browser…" = "Выбор скина…"
-"SKIN ERROR: {e}" = "ОШИБКА СКИНА: {e}"
-"Skin Museum (online)…" = "Музей скинов (онлайн)…"
-"Skins" = "Скины"
-"Skins from skins.webamp.org belong to their authors." = "Скины с skins.webamp.org принадлежат их авторам."
-"Skip this version" = "Пропустить эту версию"
-"Smart playlist" = "Умный плейлист"
-"Smart playlists" = "Умные плейлисты"
-"Snap windows together" = "Прилипание окон друг к другу"
-"Sort" = "Сортировка"
-"Sort list by filename" = "Сортировать по имени файла"
-"Sort list by path and filename" = "Сортировать по пути и имени файла"
-"Sort list by title" = "Сортировать по названию"
-"Source plug-in" = "Плагин-источник"
-"Spectrum analyzer" = "Анализатор спектра"
-"Start of list" = "Начало списка"
-"Station" = "Станция"
-"Stop" = "Стоп"
-"Stop after current" = "Остановить после текущего"
-"STOP AFTER CURRENT: OFF" = "СТОП ПОСЛЕ ТЕКУЩЕГО: ВЫКЛ."
-"STOP AFTER CURRENT: ON" = "СТОП ПОСЛЕ ТЕКУЩЕГО: ВКЛ."
-"Stop w/ fadeout" = "Стоп с затуханием"
-"Stopped" = "Остановлено"
-"Stopped after failing: {why}. OK starts it again." = "Остановлен после сбоя: {why}. OK запустит его снова."
-"The file is not there." = "Файла нет на месте."
-"The library is empty." = "Медиатека пуста."
-"The limit needs a whole number above 0." = "Для лимита нужно целое число больше 0."
-"The playlist needs a name." = "Плейлисту нужно название."
-"then by" = "затем"
-"There are none yet in {dir}." = "В {dir} их пока нет."
-"Thick bands" = "Толстые полосы"
-"This track is part of a whole-disc image; its tags are in the CUE sheet." = "Этот трек — часть образа диска; его теги лежат в CUE-файле."
-"Time" = "Время"
-"Time elapsed" = "Прошедшее время"
-"Time remaining" = "Оставшееся время"
-"Title" = "Название"
-"Title format" = "Формат заголовка"
-"Title format: must not be empty" = "Формат заголовка: не может быть пустым"
-"To EQF…" = "В файл EQF…"
-"To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it." = "Чтобы включить плагин, выберите его в списке слева, прочитайте, что он делает и что ему разрешено, и отметьте «Включён». Его настройки находятся ниже."
-"Today {time}" = "Сегодня {time}"
-"Toolbar mode" = "Режим панели"
-"Top of the screen" = "Вверху экрана"
-"Top rated" = "Лучшие по оценкам"
-"Track" = "Номер трека"
-"Track gain" = "По треку"
-"Track number" = "Номер трека"
-"Tracks" = "Треки"
-"Tracks that match" = "Отбирать по"
-"Update" = "Обновить"
-"Update through your package manager" = "Обновите через менеджер пакетов"
-"URL…" = "Адрес…"
-"Use" = "Применить"
-"Use skin cursors" = "Курсоры скина"
-"Using {name}." = "Применён {name}."
-"View file info…" = "Сведения о файле…"
-"Visual plug-in" = "Плагин визуализации"
-"Visualization" = "Визуализация"
-"Visualizations" = "Визуализации"
-"Vol Down" = "Тише"
-"Vol Up" = "Громче"
-"Volume down" = "Тише"
-"Volume up" = "Громче"
-"VOLUME: {pct}%" = "ГРОМКОСТЬ: {pct}%"
-"Whole multiples only" = "Только целые кратные"
-"Winamp bands (60Hz-16kHz)" = "Полосы Winamp (60 Гц – 16 кГц)"
-"Winamp Skin Museum" = "Музей скинов Winamp"
-"Window" = "Окно"
-"Windows" = "Окна"
-"Windows lets you choose the default player in its Settings." = "Плеер по умолчанию выбирается в параметрах Windows."
-"Windowshade" = "Свёрнутый вид"
-"Write cover" = "Запись обложки"
-"Write “{image}” into {n} tracks as the cover?\n\n{files}" = ["Записать «{image}» как обложку в {n} трек?\n\n{files}", "Записать «{image}» как обложку в {n} трека?\n\n{files}", "Записать «{image}» как обложку в {n} треков?\n\n{files}"]
-"Year" = "Год"
-"Yesterday {time}" = "Вчера {time}"
-"Zero-pad numbers" = "Номера с ведущими нулями"
-"{device} (not found)" = "{device} (не найдено)"
-"{file} is not a JPEG, PNG, GIF or BMP picture." = "{file} — не картинка JPEG, PNG, GIF или BMP."
-"{gain} dB (track)" = "{gain} дБ (трек)"
-"{id} is already in {folder}; the gallery leaves it alone." = "{id} уже есть в {folder}; галерея его не трогает."
-"{kind} plug-in" = "Плагин {kind}"
-"{kind}, {b} kbps" = "{kind}, {b} кбит/с"
-"{name} (removed)" = "{name} (удалён)"
-"{name} is installed. Turn it on in Options > Plug-ins." = "{name} установлен. Включите его в «Параметры > Плагины»."
-"{name} is removed." = "{name} удалён."
-"{n} BOOKMARKS ADDED" = ["ДОБАВЛЕНА {n} ЗАКЛАДКА", "ДОБАВЛЕНО {n} ЗАКЛАДКИ", "ДОБАВЛЕНО {n} ЗАКЛАДОК"]
-"{n} in the gallery" = "В галерее: {n}"
-"{n} missing files keep their plays and ratings {days} days." = ["{n} пропавший файл: история и оценки хранятся {days} дн.", "{n} пропавших файла: история и оценки хранятся {days} дн.", "{n} пропавших файлов: история и оценки хранятся {days} дн."]
-"{n} skins." = ["{n} скин.", "{n} скина.", "{n} скинов."]
-"{n} tracks" = ["{n} трек", "{n} трека", "{n} треков"]
-"{rated}, {n} downloads" = ["{rated}, {n} скачивание", "{rated}, {n} скачивания", "{rated}, {n} скачиваний"]
-"{r} Hz, {n} channels{bitrate}" = ["{r} Гц, {n} канал{bitrate}", "{r} Гц, {n} канала{bitrate}", "{r} Гц, {n} каналов{bitrate}"]
-"{title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}" = "{title}\n\nАудиоплеер в духе Winamp для macOS, Linux и Windows, написанный на Rust.\nДекодирование: Symphonia. Классические (.wsz) и векторные (.psz) скины.\n\nНастройки: {config}"
-"{what} by {author}" = "{what}, автор: {author}"
-"{what}: enter a whole number" = "{what}: введите целое число"
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Отмена"
+# Remove
+remove = "Удалить"
+# Save
+save = "Сохранить"
+# Close
+close = "Закрыть"
+# Search
+search = "Найти"
+# Loading…
+loading = "Загрузка…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Эквалайзер Popamp"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Плейлист Popamp"
+# Popamp Media Library
+popampMediaLibrary = "Медиатека Popamp"
+# Jump to file
+jumpToFile = "Переход к файлу"
+# File info
+fileInfo = "Сведения о файле"
+# Popamp Preferences
+popampPreferences = "Настройки Popamp"
+# Winamp Skin Museum
+winampSkinMuseum = "Музей скинов Winamp"
+# Popamp Gallery
+popampGallery = "Галерея Popamp"
+# Album art
+albumArt = "Обложка альбома"
+# Skin browser
+skinBrowser = "Выбор скина"
+# History
+history = "История"
+# ReplayGain scan
+replayGainScan = "Сканирование ReplayGain"
+# Smart playlist
+smartPlaylist = "Умный плейлист"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "МЕДИАТЕКА"
+# NOTHING TO ADD
+nothingToAdd = "НЕЧЕГО ДОБАВИТЬ"
+# CONNECTING…
+connecting = "ПОДКЛЮЧЕНИЕ…"
+# VOLUME: {pct}%
+volumePct = "ГРОМКОСТЬ: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "БАЛАНС: ЦЕНТР"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "БАЛАНС: {pct}% ВЛЕВО"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "БАЛАНС: {pct}% ВПРАВО"
+# ERROR: {message}
+error = "ОШИБКА: {message}"
+# EQ: {db} DB
+eqBandDb = "ЭКВ: {db} ДБ"
+# PREAMP: {db} DB
+preampDb = "ПРЕДУСИЛЕНИЕ: {db} ДБ"
+# SKIN ERROR: {e}
+skinError = "ОШИБКА СКИНА: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "СТОП ПОСЛЕ ТЕКУЩЕГО: ВКЛ."
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "СТОП ПОСЛЕ ТЕКУЩЕГО: ВЫКЛ."
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "РУЧНОЙ ПЕРЕХОД: ВЫКЛ."
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "РУЧНОЙ ПЕРЕХОД: ВКЛ."
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nАудиоплеер в духе Winamp для macOS, Linux и Windows, написанный на Rust.\nДекодирование: Symphonia. Классические (.wsz) и векторные (.psz) скины.\n\nНастройки: {config}"
+# About {name}
+aboutName = "О программе {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "О Popamp…"
+  # Play
+  play = "Играть"
+  # File…
+  file = "Файл…"
+  # URL…
+  url = "Адрес…"
+  # Folder…
+  folder = "Папка…"
+  # View file info…
+  viewFileInfo = "Сведения о файле…"
+  # Album art
+  albumArt = "Обложка альбома"
+  # History…
+  history = "История…"
+  # Bookmarks
+  bookmarks = "Закладки"
+  # Main Window
+  mainWindow = "Главное окно"
+  # Playlist Editor
+  playlistEditor = "Плейлист"
+  # Equalizer
+  equalizer = "Эквалайзер"
+  # Media Library
+  mediaLibrary = "Медиатека"
+  # Colours
+  colours = "Цвета"
+  # On
+  on = "Вкл."
+  # Off
+  off = "Выкл."
+  # Position
+  position = "Положение"
+  # Top of the screen
+  topOfScreen = "Вверху экрана"
+  # Bottom of the screen
+  bottomOfScreen = "Внизу экрана"
+  # Size
+  size = "Размер"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "Во всю ширину, под боковыми панелями"
+  # Toolbar mode
+  toolbarMode = "Режим панели"
+  # Options
+  options = "Параметры"
+  # Playback
+  playback = "Воспроизведение"
+  # Previous
+  previous = "Предыдущий"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Next
+  next = "Следующий"
+  # Stop w/ fadeout
+  stopWithFadeout = "Стоп с затуханием"
+  # Stop after current
+  stopAfterCurrent = "Остановить после текущего"
+  # Back 5 seconds
+  back5Seconds = "Назад на 5 секунд"
+  # Fwd 5 seconds
+  fwd5Seconds = "Вперёд на 5 секунд"
+  # Start of list
+  startOfList = "Начало списка"
+  # End of list
+  endOfList = "Конец списка"
+  # 10 tracks back
+  n10TracksBack = "На 10 треков назад"
+  # 10 tracks fwd
+  n10TracksFwd = "На 10 треков вперёд"
+  # Jump to time…
+  jumpToTime = "Перейти ко времени…"
+  # Jump to file…
+  jumpToFile = "Перейти к файлу…"
+  # Visualization
+  visualization = "Визуализация"
+  # Skins
+  skins = "Скины"
+  # Exit
+  exit = "Выход"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Настройки…"
+  # Plug-ins…
+  plugIns = "Плагины…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Галерея (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Прошедшее время"
+  # Time remaining
+  timeRemaining = "Оставшееся время"
+  # Always On Top
+  alwaysOnTop = "Поверх всех окон"
+  # Double Size
+  doubleSize = "Двойной размер"
+  # Size
+  size = "Размер"
+  # EasyMove
+  easyMove = "Перемещать за любое место"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Перемещать пристыкованные окна вместе"
+  # Windowshade
+  windowshade = "Свёрнутый вид"
+  # Repeat
+  repeat = "Повтор"
+  # Shuffle
+  shuffle = "Перемешать"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ручной переход по плейлисту"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Выкл."
+  # Track gain
+  trackGain = "По треку"
+  # Album gain
+  albumGain = "По альбому"
+  # Title format
+  titleFormat = "Формат заголовка"
+  # Artist - Title
+  artistTitle = "Исполнитель - Название"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Исполнитель - Альбом - ## - Название"
+  # Title
+  title = "Название"
+  # File name
+  fileName = "Имя файла"
+  # Equalizer
+  equalizer = "Эквалайзер"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Полосы Winamp (60 Гц – 16 кГц)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "Полосы ISO (31 Гц – 16 кГц)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Лимитер (защита от перегрузки)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Выбор скина…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Галерея (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Музей скинов (онлайн)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Анализатор спектра"
+  # Oscilloscope
+  oscilloscope = "Осциллограф"
+  # Off
+  off = "Выкл."
+  # Normal style
+  normalStyle = "Обычный стиль"
+  # Fire style
+  fireStyle = "Огненный стиль"
+  # Line style
+  lineStyle = "Линии"
+  # Show peaks
+  showPeaks = "Показывать пики"
+  # Thick bands
+  thickBands = "Толстые полосы"
+  # Scope: dots
+  scopeDots = "Осциллограф: точки"
+  # Scope: lines
+  scopeLines = "Осциллограф: линии"
+  # Scope: solid
+  scopeSolid = "Осциллограф: заливка"
+  # Scope: afterglow
+  scopeAfterglow = "Осциллограф: послесвечение"
+
+  [menu.equalizer]
+  # (none)
+  none = "(нет)"
+  # Load
+  load = "Загрузить"
+  # Auto-load presets
+  autoLoadPresets = "Пресеты автозагрузки"
+  # Default
+  default = "По умолчанию"
+  # From EQF…
+  fromEQF = "Из файла EQF…"
+  # Preset…
+  preset = "Пресет…"
+  # Auto-load preset…
+  autoLoadPreset = "Пресет автозагрузки…"
+  # To EQF…
+  toEQF = "В файл EQF…"
+  # Delete
+  delete = "Удалить"
+  # Reset to flat
+  resetToFlat = "Сбросить"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Чёткое масштабирование"
+  # Whole multiples only
+  wholeMultiplesOnly = "Только целые кратные"
+  # Nearest pixel
+  nearestPixel = "Ближайший пиксель"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Играть"
+  # Remove item(s)
+  removeItems = "Убрать выбранные"
+  # Crop item(s)
+  cropItems = "Оставить только выбранные"
+  # View file info…
+  viewFileInfo = "Сведения о файле…"
+  # Playlist entry…
+  playlistEntry = "Запись плейлиста…"
+  # Bookmark item(s)
+  bookmarkItems = "Добавить в закладки"
+  # Scan ReplayGain
+  scanReplayGain = "Сканировать ReplayGain"
+  # Sort
+  sort = "Сортировка"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "Создать HTML-плейлист…"
+  # Options
+  options = "Параметры"
+  # Sort list by title
+  sortListByTitle = "Сортировать по названию"
+  # Sort list by filename
+  sortListByFilename = "Сортировать по имени файла"
+  # Sort list by path and filename
+  sortListByPath = "Сортировать по пути и имени файла"
+  # Reverse list
+  reverseList = "Обратный порядок"
+  # Randomize list
+  randomizeList = "Перемешать список"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Убрать отсутствующие файлы"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Удалить выбранные файлы с диска…"
+  # Previous
+  previous = "Предыдущий"
+  # Start of list
+  startOfList = "Начало списка"
+  # Rewind 5 seconds
+  rewind5Seconds = "Назад на 5 секунд"
+  # Play/restart
+  playRestart = "Играть/сначала"
+  # Open URL…
+  openURL = "Открыть адрес…"
+  # Open file…
+  openFile = "Открыть файл…"
+  # Pause/Unpause
+  pauseUnpause = "Пауза/продолжить"
+  # Stop
+  stop = "Стоп"
+  # Stop w/ fadeout
+  stopWithFadeout = "Стоп с затуханием"
+  # Stop after current
+  stopAfterCurrent = "Остановить после текущего"
+  # Next
+  next = "Следующий"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "Вперёд на 5 секунд"
+  # End of list
+  endOfList = "Конец списка"
+  # Open folder…
+  openFolder = "Открыть папку…"
+  # Jump to time…
+  jumpToTime = "Перейти ко времени…"
+  # Forward 5 seconds
+  forward5Seconds = "Вперёд на 5 секунд"
+  # Repeat
+  repeat = "Повтор"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ручной переход по плейлисту"
+  # Shuffle
+  shuffle = "Перемешать"
+  # Time elapsed
+  timeElapsed = "Прошедшее время"
+  # Time remaining
+  timeRemaining = "Оставшееся время"
+  # View file info…
+  viewFileInfo = "Сведения о файле…"
+  # Jump to file…
+  jumpToFile = "Перейти к файлу…"
+  # Autoscroll song name
+  autoscrollSongName = "Прокручивать название"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["ДОБАВЛЕНА {n} ЗАКЛАДКА", "ДОБАВЛЕНО {n} ЗАКЛАДКИ", "ДОБАВЛЕНО {n} ЗАКЛАДОК"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Добавить текущий в закладки"
+  # Remove bookmark…
+  removeBookmark = "Удалить закладку…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Показать Popamp"
+  # Previous
+  previous = "Предыдущий"
+  # Play
+  play = "Играть"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Next
+  next = "Следующий"
+  # Shuffle
+  shuffle = "Перемешать"
+  # Repeat
+  repeat = "Повтор"
+  # Exit
+  exit = "Выход"
+
+  [menu.update]
+  # Download…
+  download = "Скачать…"
+  # Update through your package manager
+  throughPackageManager = "Обновите через менеджер пакетов"
+  # Skip this version
+  skipThisVersion = "Пропустить эту версию"
+  # Popamp {version} is out
+  popampVersionIsOut = "Вышел Popamp {version}"
+
+[dialog]
+# Media files
+mediaFiles = "Медиафайлы"
+# All files
+allFiles = "Все файлы"
+# Open file(s)
+openFiles = "Открыть файлы"
+# Open folder
+openFolder = "Открыть папку"
+# Add folders to the media library
+addLibraryFolders = "Добавить папки в медиатеку"
+# Open URL
+openURL = "Открыть адрес"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "Введите адрес (поток или плейлист):"
+# Load playlist
+loadPlaylist = "Загрузка плейлиста"
+# Save playlist
+savePlaylist = "Сохранение плейлиста"
+# Generate HTML playlist
+generateHtmlPlaylist = "Создание HTML-плейлиста"
+# Jump to time
+jumpToTime = "Переход ко времени"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Перейти к (м:сс), длина трека {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Изменение записи плейлиста"
+# Location:
+location = "Расположение:"
+# Remove bookmark
+removeBookmark = "Удаление закладки"
+# Bookmark
+bookmark = "Закладка"
+# EQ presets
+eqPresets = "Пресеты эквалайзера"
+# Preset
+preset = "Пресет"
+# Save EQ preset
+saveEQPreset = "Сохранение пресета эквалайзера"
+# Preset name:
+presetName = "Название пресета:"
+# Load EQ preset file
+loadEQPresetFile = "Загрузка файла пресета эквалайзера"
+# Save EQ preset file
+saveEQPresetFile = "Сохранение файла пресета эквалайзера"
+# Install skin
+installSkin = "Установка скина"
+# Choose a cover picture
+chooseCoverPicture = "Выберите картинку обложки"
+# Remove plug-in
+removePlugIn = "Удаление плагина"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Удалить плагин {name}?\n\nЕго папка будет удалена:\n{folder}"
+# New playlist
+newPlaylist = "Новый плейлист"
+# Playlist name:
+playlistName = "Название плейлиста:"
+# Rename playlist
+renamePlaylist = "Переименование плейлиста"
+# Delete playlist
+deletePlaylist = "Удаление плейлиста"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Удалить плейлист «{name}»?\n\nЕго треки останутся в медиатеке."
+# Write cover
+writeCover = "Запись обложки"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["Записать «{image}» как обложку в {n} трек?\n\n{files}", "Записать «{image}» как обложку в {n} трека?\n\n{files}", "Записать «{image}» как обложку в {n} треков?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Удаление умного плейлиста"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Удалить умный плейлист «{name}»?"
+# Delete files
+deleteFiles = "Удаление файлов"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["Безвозвратно удалить {n} файл с диска?\n\n{files}", "Безвозвратно удалить {n} файла с диска?\n\n{files}", "Безвозвратно удалить {n} файлов с диска?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "ОШИБКА СОХРАНЕНИЯ: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "ПУСТОЙ ФАЙЛ ЭКВАЛАЙЗЕРА"
+# EQ FILE ERROR: {e}
+eqFileError = "ОШИБКА ФАЙЛА ЭКВАЛАЙЗЕРА: {e}"
+# INSTALL FAILED: {e}
+installFailed = "ОШИБКА УСТАНОВКИ: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Остановлено"
+# Paused
+paused = "Пауза"
+
+[fileInfo]
+# No cover
+noCover = "Нет обложки"
+# Change…
+change = "Заменить…"
+# Not saved: {e}
+notSaved = "Не сохранено: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} — не картинка JPEG, PNG, GIF или BMP."
+# A stream's tags cannot be changed.
+streamTagsFixed = "Теги потока изменить нельзя."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Этот трек — часть образа диска; его теги лежат в CUE-файле."
+# The file is not there.
+fileIsNotThere = "Файла нет на месте."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp не может прочитать этот файл: возможно, он повреждён или ещё скачивается."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp может менять теги файлов MP3, FLAC, Ogg Vorbis и MP4."
+# Location
+location = "Расположение"
+# Nothing to play
+nothingToPlay = "Нечего играть"
+# No file selected.
+noFileSelected = "Файл не выбран."
+# Title
+title = "Название"
+# Station
+station = "Станция"
+# Now playing
+nowPlaying = "Сейчас играет"
+# Artist
+artist = "Исполнитель"
+# Album
+album = "Альбом"
+# Album artist
+albumArtist = "Исполнитель альбома"
+# Year
+year = "Год"
+# Track
+track = "Номер трека"
+# Disc
+disc = "Диск"
+# Genre
+genre = "Жанр"
+# Composer
+composer = "Композитор"
+# Comment
+comment = "Комментарий"
+# Codec
+codec = "Кодек"
+# Length
+length = "Длительность"
+# , {b} kbps
+bitrateKbps = ", {b} кбит/с"
+# Format
+format = "Формат"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Гц, {n} канал{bitrate}", "{r} Гц, {n} канала{bitrate}", "{r} Гц, {n} каналов{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} дБ (трек)"
+
+[library]
+# Playlists
+playlists = "Плейлисты"
+# Smart playlists
+smartPlaylists = "Умные плейлисты"
+# Folders
+folders = "Папки"
+# All music
+allMusic = "Вся музыка"
+# Scanning: {done}
+scanningDone = "Сканирование: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} трек", "{n} трека", "{n} треков"]
+# No cover
+noCover = "Нет обложки"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Все ({n} исполнитель)", "Все ({n} исполнителя)", "Все ({n} исполнителей)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Все ({n} альбом)", "Все ({n} альбома)", "Все ({n} альбомов)"]
+# (no artist)
+noArtist = "(без исполнителя)"
+# (no album)
+noAlbum = "(без альбома)"
+# Search: type here
+searchTypeHere = "Поиск: начните печатать"
+# The library is empty.
+libraryIsEmpty = "Медиатека пуста."
+# Add a folder with music.
+addFolderWithMusic = "Добавьте папку с музыкой."
+# Recently added
+smartRecentlyAdded = "Новинки"
+# Last played
+smartLastPlayed = "Недавние"
+# Most played
+smartMostPlayed = "Популярное"
+# Never played
+smartNeverPlayed = "Не слушали"
+# Random 50
+smartRandom50 = "Случайные 50"
+# Favourites
+smartFavourites = "Избранное"
+# No rating
+noRating = "Без оценки"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "МЕДИАТЕКА: ЭТО НЕ КАРТИНКА JPEG, PNG, GIF ИЛИ BMP"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "МЕДИАТЕКА: В ЭТИ ФАЙЛЫ НЕЛЬЗЯ ЗАПИСАТЬ ОБЛОЖКУ"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛ", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛА", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛОВ"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛ, ОШИБОК: {failed}", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛА, ОШИБОК: {failed}", "МЕДИАТЕКА: ОБЛОЖКА ЗАПИСАНА В {n} ФАЙЛОВ, ОШИБОК: {failed}"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "МЕДИАТЕКА: ЭТА ПАПКА УЖЕ ЕСТЬ"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "МЕДИАТЕКА: ЭТИ ПАПКИ УЖЕ ЕСТЬ"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["МЕДИАТЕКА: {n} ТРЕК В ПЛЕЙЛИСТ", "МЕДИАТЕКА: {n} ТРЕКА В ПЛЕЙЛИСТ", "МЕДИАТЕКА: {n} ТРЕКОВ В ПЛЕЙЛИСТ"]
+# New smart playlist
+newSmartPlaylist = "Новый умный плейлист"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "ПЛЕЙЛИСТ {name} УЖЕ ЕСТЬ"
+
+  [library.column]
+  # Artist
+  artist = "Исполнитель"
+  # Title
+  title = "Название"
+  # Album
+  album = "Альбом"
+  # Time
+  time = "Время"
+  # Genre
+  genre = "Жанр"
+  # Year
+  year = "Год"
+  # Rating
+  rating = "Оценка"
+  # Track number
+  trackNumber = "Номер трека"
+  # File name
+  fileName = "Имя файла"
+  # Comment
+  comment = "Комментарий"
+  # Kbps
+  kbps = "Кбит/с"
+  # Bit rate
+  bitRate = "Битрейт"
+  # Plays
+  plays = "Прослушивания"
+  # Last played
+  lastPlayed = "Последнее прослушивание"
+  # Added
+  added = "Добавлен"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} кбит/с"
+  # Albums
+  albums = "Альб."
+  # Tracks
+  tracks = "Треки"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Сбросить столбцы"
+  # Play
+  play = "Играть"
+  # Enqueue
+  enqueue = "В очередь"
+  # Rate
+  rate = "Оценить"
+  # File info…
+  fileInfo = "Сведения о файле…"
+  # Remove from “{name}”
+  removeFromName = "Убрать из «{name}»"
+  # New playlist…
+  newPlaylist = "Новый плейлист…"
+  # Rename “{name}”…
+  renameName = "Переименовать «{name}»…"
+  # Delete “{name}”
+  deleteName = "Удалить «{name}»"
+  # New smart playlist…
+  newSmartPlaylist = "Новый умный плейлист…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Сохранить поиск как умный плейлист…"
+  # Edit “{name}”…
+  editName = "Изменить «{name}»…"
+  # Add folder…
+  addFolder = "Добавить папку…"
+  # Rescan folders
+  rescanFolders = "Пересканировать папки"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "Убрать «{name}» из медиатеки"
+  # Maximized
+  maximized = "Развёрнуто"
+
+[smartPlaylist]
+# all
+all = "всем"
+# any
+any = "любому"
+# No limit
+noLimit = "Без лимита"
+# Tracks
+tracks = "Треки"
+# Minutes
+minutes = "Минуты"
+# Any text
+anyText = "Любой текст"
+# Title
+title = "Название"
+# Artist
+artist = "Исполнитель"
+# Album
+album = "Альбом"
+# Genre
+genre = "Жанр"
+# Year
+year = "Год"
+# Track number
+trackNumber = "Номер трека"
+# Length (seconds)
+lengthSeconds = "Длительность (секунды)"
+# File path
+filePath = "Путь к файлу"
+# Rating (stars)
+ratingStars = "Оценка (звёзды)"
+# Plays
+plays = "Прослушивания"
+# Last played
+lastPlayed = "Последнее прослушивание"
+# Date added
+dateAdded = "Дата добавления"
+# is
+is = "равно"
+# contains
+contains = "содержит"
+# is less than
+isLessThan = "меньше"
+# is more than
+isMoreThan = "больше"
+# is empty
+isEmpty = "пусто"
+# in the last (days)
+inLastDays = "за последние (дней)"
+# Random
+random = "Случайно"
+# Rule {n}: {e}.
+ruleError = "Правило {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "Плейлисту нужно название."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "Для лимита нужно целое число больше 0."
+# Name:
+name = "Имя:"
+# Tracks that match
+tracksThatMatch = "Отбирать по"
+# of these rules:
+ofTheseRules = "из правил ниже:"
+# Add rule
+addRule = "+ Правило"
+# Add group
+addGroup = "+ Группа"
+# Order by
+orderBy = "Порядок"
+# then by
+thenBy = "затем"
+# ascending
+ascending = "по возр."
+# descending
+descending = "по убыв."
+# Limit
+limit = "Лимит"
+# of these:
+ofThese = "из этих:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Найти:"
+# Jump
+jump = "Перейти"
+
+[history]
+# Search for:
+searchFor = "Найти:"
+# Play
+play = "Играть"
+# Today {time}
+todayTime = "Сегодня {time}"
+# Yesterday {time}
+yesterdayTime = "Вчера {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (не найдено)"
+# Output device
+outputDevice = "Устройство вывода"
+# Open with Popamp
+openWithPopamp = "Открывать в Popamp"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "Плеер по умолчанию выбирается в параметрах Windows."
+# Default apps
+defaultApps = "Открыть"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Выберите Popamp в Finder: «Свойства», затем «Открывать в программе»."
+# Forget them now
+forgetThemNow = "Забыть сейчас"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Забыты история и оценки {n} пропавшего файла.", "Забыты история и оценки {n} пропавших файлов.", "Забыты история и оценки {n} пропавших файлов."]
+
+  [prefs.page]
+  # Windows
+  windows = "Окна"
+  # Playlist
+  playlist = "Плейлист"
+  # Playback
+  playback = "Воспроизведение"
+  # Media Library
+  mediaLibrary = "Медиатека"
+  # Desktop
+  desktop = "Рабочий стол"
+  # Internet
+  internet = "Интернет"
+  # Shortcuts
+  shortcuts = "Быстрые действия"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Прилипание окон друг к другу"
+  # Easy move
+  easyMove = "Перемещать за любое место"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Держать окна в пределах экрана"
+  # Always on top
+  alwaysOnTop = "Поверх всех окон"
+  # Double size
+  doubleSize = "Двойной размер"
+  # Use skin cursors
+  useSkinCursors = "Курсоры скина"
+  # Scroll song title
+  scrollSongTitle = "Прокручивать название трека"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Затемнять неактивный плейлист"
+  # Show playlist numbers
+  showPlaylistNumbers = "Показывать номера в плейлисте"
+  # Zero-pad numbers
+  zeroPadNumbers = "Номера с ведущими нулями"
+  # Advance to next track
+  advanceToNextTrack = "Переходить к следующему треку"
+  # Icon in the system tray
+  iconInSystemTray = "Значок в системном трее"
+  # Minimize to the tray
+  minimizeToTray = "Сворачивать в трей"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Уведомлять о каждом новом треке"
+  # Check for a new version
+  checkForNewVersion = "Проверять новые версии"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Глобальные горячие клавиши (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "Не закрывать окно сканирования ReplayGain"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Сканировать папки при запуске"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Сканировать папки периодически"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Размер шрифта плейлиста"
+  # Title format
+  titleFormat = "Формат заголовка"
+  # Fade-out (ms)
+  fadeOutMs = "Затухание (мс)"
+  # Crossfade (ms)
+  crossfadeMs = "Плавный переход (мс)"
+  # Output buffer (ms)
+  outputBufferMs = "Буфер вывода (мс)"
+  # HTTP proxy
+  httpProxy = "HTTP-прокси"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Порог прослушивания (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Сканировать каждые (мин)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: введите целое число"
+  # Font size
+  fontSize = "Размер шрифта"
+  # Fade-out
+  fadeOut = "Затухание"
+  # Crossfade
+  crossfade = "Плавный переход"
+  # Output buffer
+  outputBuffer = "Буфер вывода"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Порог прослушивания: от 50 до 100, с шагом 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Интервал сканирования: от 1 до {max} минут"
+  # Title format: must not be empty
+  titleFormatEmpty = "Формат заголовка: не может быть пустым"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI SoundFont: такого файла нет (оставьте пустым, чтобы взять системный)"
+  # Language
+  language = "Язык"
+  # As the system ({language})
+  systemLanguage = "Как в системе ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["История и оценки пропавших файлов хранятся {n} день.", "История и оценки пропавших файлов хранятся {n} дня.", "История и оценки пропавших файлов хранятся {n} дней."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} пропавший файл: история и оценки хранятся {days} дн.", "{n} пропавших файла: история и оценки хранятся {days} дн.", "{n} пропавших файлов: история и оценки хранятся {days} дн."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Щелчок или колёсико над заголовком любого окна:"
+  # Window
+  window = "Окно"
+  # Mouse
+  mouse = "Мышь"
+  # Action
+  action = "Действие"
+  # Assign
+  assign = "Назначить"
+  # Main
+  main = "Главное окно"
+  # Equalizer
+  equalizer = "Эквалайзер"
+  # Playlist
+  playlist = "Плейлист"
+  # Right Mouse
+  rightMouse = "Правая кнопка"
+  # Middle Mouse
+  middleMouse = "Средняя кнопка"
+  # Scroll Up
+  scrollUp = "Колёсико вверх"
+  # Scroll Down
+  scrollDown = "Колёсико вниз"
+  # Previous track
+  previousTrack = "Предыдущий"
+  # Next track
+  nextTrack = "Следующий"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Shuffle on/off
+  shuffleOnOff = "Перемешивание"
+  # Repeat on/off
+  repeatOnOff = "Повтор"
+  # Vol Up
+  volUp = "Громче"
+  # Vol Down
+  volDown = "Тише"
+
+[fileTypes]
+# Audio files
+audioFiles = "Аудиофайлы"
+# Playlists
+playlists = "Плейлисты"
+# Skins
+skins = "Скины"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Типы файлов: не удаётся добавить Popamp в меню: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Типы файлов: не удаётся записать {file}: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: выберите треки для сканирования"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: сканирование отменено"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: просканировано {done} из {total}"
+# , turn it on in Options > ReplayGain
+turnItOn = ", включите его в «Параметры > ReplayGain»"
+# Cancelling: finishing the tracks under way
+cancelling = "Отмена: дообрабатываются начатые треки"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Сканирование: {done} из {n} трека", "Сканирование: {done} из {n} треков", "Сканирование: {done} из {n} треков"]
+# Cancelled: nothing was saved
+cancelled = "Отменено: ничего не сохранено"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Готово: просканировано {done} из {n} трека", "Готово: просканировано {done} из {n} треков", "Готово: просканировано {done} из {n} треков"]
+# , {failed} failed
+nFailed = ", с ошибкой: {failed}"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain выключен: включите его в «Параметры > ReplayGain»"
+# Saved to {file}
+savedToFile = "Сохранено в {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Не закрывать это окно после сканирования"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Из файла…"
+# Gallery…
+gallery = "Галерея…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Скины с skins.webamp.org принадлежат их авторам."
+# More
+more = "Ещё"
+# Download & use
+downloadAndUse = "Скачать"
+# Loading preview…
+loadingPreview = "Загрузка превью…"
+# Downloading {name}…
+downloadingName = "Скачивается {name}…"
+# Using {name}.
+usingName = "Применён {name}."
+# Museum: {e}
+loadError = "Музей: {e}"
+# No preview: {e}
+noPreviewError = "Нет превью: {e}"
+# Nothing found.
+nothingFound = "Ничего не найдено."
+# {n} skin. | {n} skins.
+nSkins = ["{n} скин.", "{n} скина.", "{n} скинов."]
+
+[gallery]
+# Skins
+skins = "Скины"
+# Plug-ins
+plugIns = "Плагины"
+# Visualizations
+visualizations = "Визуализации"
+# Popular
+popular = "Популярные"
+# Top rated
+topRated = "Лучшие по оценкам"
+# New
+new = "Новые"
+# May run {programs}
+mayRunPrograms = "Может запускать {programs}"
+# " and "
+andJoin = " и "
+# May connect to {hosts}
+mayConnectToHosts = "Может подключаться к {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Может читать папки, которые вы разрешите"
+# Install
+install = "Установить"
+# Update
+update = "Обновить"
+# Use
+use = "Применить"
+# Installed
+installed = "Установлен"
+# Loading the catalog…
+loadingCatalog = "Загрузка каталога…"
+# " (update)"
+updateMark = " (обновление)"
+# " (installed)"
+installedMark = " (установлен)"
+# Loading the preview…
+loadingPreview = "Загрузка превью…"
+# No preview
+noPreview = "Нет превью"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Плагинам нужен Popamp Plus"
+# Nothing found
+nothingFound = "Ничего не найдено"
+# Using {name}.
+usingName = "Применён {name}."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} установлен. Включите его в «Параметры > Плагины»."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} уже есть в {folder}; галерея его не трогает."
+# Downloading {name}…
+downloadingName = "Скачивается {name}…"
+# {n} in the gallery
+nInGallery = "В галерее: {n}"
+# , {n} to update
+nToUpdate = ", обновить: {n}"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} плагину нужен Popamp Plus", "; {n} плагинам нужен Popamp Plus", "; {n} плагинам нужен Popamp Plus"]
+# Gallery: {e}
+loadError = "Галерея: {e}"
+# Skin
+skin = "Скин"
+# Plug-in
+plugIn = "Плагин"
+# DSP plug-in
+dspPlugIn = "DSP-плагин"
+# Source plug-in
+sourcePlugIn = "Плагин-источник"
+# Decoder plug-in
+decoderPlugIn = "Плагин-декодер"
+# Visual plug-in
+visualPlugIn = "Плагин визуализации"
+# {kind} plug-in
+kindPlugIn = "Плагин {kind}"
+# {what} by {author}
+whatByAuthor = "{what}, автор: {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Не запрашивает разрешений."
+# License: {license}
+licenseLicense = "Лицензия: {license}"
+# Not rated yet
+notRatedYet = "Ещё нет оценок"
+# Rated {rating} of 5 by {n}
+ratedBy = "Оценка {rating} из 5, голосов: {n}"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} скачивание", "{rated}, {n} скачивания", "{rated}, {n} скачиваний"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "НЕ УДАЁТСЯ УДАЛИТЬ ПЛАГИН: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "ПЛАГИН {name} ОСТАНОВЛЕН: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Плагины добавляют в Popamp источники, типы файлов, звуковые эффекты и визуализации. Они выключены, пока вы их не включите."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Чтобы включить плагин, выберите его в списке слева, прочитайте, что он делает и что ему разрешено, и отметьте «Включён». Его настройки находятся ниже."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "OK сохраняет выбор, «Отмена» его отменяет."
+# Plug-ins
+plugIns = "Плагины"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "В {dir} их пока нет."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Каждый — это папка в {dir}."
+# {name} is removed.
+nameIsRemoved = "{name} удалён."
+# {name} (removed)
+nameRemoved = "{name} (удалён)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Установлен пакетом (popamp-plugin-{folder}): удаляйте его через менеджер пакетов."
+# Enabled
+enabled = "Включён"
+# Show the commands it runs
+showCommandsItRuns = "Показать команды, которые он запускает"
+# Settings
+settings = "Настройки"
+# Permissions
+permissions = "Разрешения"
+# Connect to {address} ({why})
+connectToAddressWhy = "Подключаться к {address} ({why})"
+# Connect to {address}
+connectToAddress = "Подключаться к {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Папки, которые он может читать, через ; (~ — вся домашняя папка):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Скрытые папки и папки самого плеера остаются закрытыми."
+# Journal
+journal = "Журнал"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "НЕ УДАЁТСЯ ОТКРЫТЬ ЖУРНАЛ: {file}"
+# Broken: {e}
+broken = "Повреждён: {e}"
+# Did not load: {e}
+didNotLoad = "Не загрузился: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Остановлен после сбоя: {why}. OK запустит его снова."
+
+[hotkeys]
+# Play
+play = "Играть"
+# Pause
+pause = "Пауза"
+# Stop
+stop = "Стоп"
+# Previous track
+previousTrack = "Предыдущий"
+# Next track
+nextTrack = "Следующий"
+# Volume up
+volumeUp = "Громче"
+# Volume down
+volumeDown = "Тише"
+# Back 5 seconds
+back5Seconds = "Назад на 5 секунд"
+# Forward 5 seconds
+forward5Seconds = "Вперёд на 5 секунд"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "ВЫШЕЛ POPAMP {version}, СМ. ГЛАВНОЕ МЕНЮ"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "НЕ УДАЁТСЯ ОТКРЫТЬ БРАУЗЕР"

@@ -6,8 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **The interface in Russian, Korean and Simplified Chinese**: menus,
+  windows and messages follow the system's language, or the one picked
+  in Preferences > Desktop. The Korean and Chinese texts were made with
+  AI; corrections are welcome. The desktop entry and the software centre
+  description come in the same languages.
+- **Translations by key**: the texts live in `apps/popamp/locales`, the
+  English in `en.toml`, in sections such as `[library.menu]`; each
+  translation keeps its file's keys in the same order with the English
+  in a comment above each line, and a test checks all of it.
+
+### Changed
+
+- **Options menu**: Skin browser… is left to the Skins menu.
+
 ### Fixed
 
+- **Gallery**: the Top rated sort button is translated.
+- **Library**: the Folders branch is there before any folder is added.
 - **CUE sheets from EAC with gaps appended to the previous track**: when a
   sheet names each track's own file after its TRACK line (the pregap kept
   at the end of the file before), every track played the file before its

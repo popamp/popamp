@@ -1,14 +1,15 @@
 //! The words of menus and windows in the user's language.
 //!
-//! The English text in the code is the key: `tr!("Preferences")` is its
-//! translation from `locales/<code>.toml`, or the English itself where the
-//! file has none. A text with values names them in braces, filled in after
-//! the lookup: `tr!("Scan every: 1 to {max} minutes", max = MAX)`. A count
-//! picks one of the language's plural forms:
-//! `trn!(n, "{n} file", "{n} files")`, keyed by the English plural.
+//! The code names each text by its key: `tr!("library.menu.addFolder")` is
+//! its text in the language of `locales/<code>.toml`, or in English from
+//! `locales/en.toml` where that file has none. The part before the last dot
+//! is the file's section, `[library.menu]`. A text with values names them in
+//! braces, filled in after the lookup: `tr!("prefs.field.scanEveryRange",
+//! max = MAX)`. A count picks one of the language's plural forms:
+//! `trn!(n, "library.nTracks")`.
 //!
 //! The files are built into the program. The test at the end reads the
-//! sources and checks each file against every text they translate.
+//! sources and checks the files against the keys they use.
 
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -50,7 +51,7 @@ impl Lang {
 
     fn file(self) -> &'static str {
         match self {
-            Lang::En => "",
+            Lang::En => include_str!("../locales/en.toml"),
             Lang::Ru => include_str!("../locales/ru.toml"),
             Lang::Ko => include_str!("../locales/ko.toml"),
             Lang::Zh => include_str!("../locales/zh.toml"),
@@ -98,23 +99,35 @@ impl Lang {
     }
 }
 
-/// A translation: one text, or one per plural form.
+/// A text: one, or one per plural form.
 #[derive(Debug)]
 enum Text {
     One(&'static str),
     Forms(Vec<&'static str>),
 }
 
+/// A language's texts by their full key: `library.menu.addFolder`.
 type Table = HashMap<&'static str, Text>;
 
-/// A translations file: `"English" = "перевод"`, or a list of the plural
+/// A texts file: sections of `key = "text"`, or a list of the plural
 /// forms. Each file is read once and kept while the program runs.
 fn parse(file: &str) -> Result<Table, String> {
-    let leak = |s: String| -> &'static str { Box::leak(s.into_boxed_str()) };
     let doc: toml::Table = file.parse().map_err(|e: toml::de::Error| e.to_string())?;
     let mut table = Table::new();
-    for (key, value) in doc {
+    add(&mut table, "", doc)?;
+    Ok(table)
+}
+
+/// Puts the texts of `section` and of the sections in it into `table`.
+fn add(table: &mut Table, section: &str, values: toml::Table) -> Result<(), String> {
+    let leak = |s: String| -> &'static str { Box::leak(s.into_boxed_str()) };
+    for (name, value) in values {
+        let key = if section.is_empty() { name } else { format!("{section}.{name}") };
         let text = match value {
+            toml::Value::Table(inner) => {
+                add(table, &key, inner)?;
+                continue;
+            }
             toml::Value::String(s) => Text::One(leak(s)),
             toml::Value::Array(forms) => Text::Forms(
                 forms
@@ -126,14 +139,14 @@ fn parse(file: &str) -> Result<Table, String> {
         };
         table.insert(leak(key), text);
     }
-    Ok(table)
+    Ok(())
 }
 
 fn table(lang: Lang) -> &'static Table {
     static TABLES: [OnceLock<Table>; Lang::ALL.len()] = [const { OnceLock::new() }; Lang::ALL.len()];
     TABLES[lang.index()].get_or_init(|| {
         parse(lang.file()).unwrap_or_else(|e| {
-            log::warn!("translations for {}: {e}", lang.code());
+            log::warn!("texts for {}: {e}", lang.code());
             Table::new()
         })
     })
@@ -160,34 +173,25 @@ pub fn system_language() -> Lang {
     system().unwrap_or(Lang::En)
 }
 
-/// The translation of `en` in the current language.
-pub fn tr(en: &'static str) -> &'static str {
-    match table(current()).get(en) {
-        Some(Text::One(t)) => t,
-        Some(Text::Forms(f)) => f.first().copied().unwrap_or(en),
-        None => en,
-    }
+/// The text of `key` in the current language, else in English, else the
+/// key itself, so that a missing text shows where it is missing.
+pub fn tr(key: &'static str) -> &'static str {
+    let one = |lang| match table(lang).get(key) {
+        Some(Text::One(t)) => Some(*t),
+        Some(Text::Forms(f)) => f.first().copied(),
+        None => None,
+    };
+    one(current()).or_else(|| one(Lang::En)).unwrap_or(key)
 }
 
-/// The translation of `key` in the current language, none where it has
-/// none: for a key that is not the English to show.
-pub fn translated(key: &str) -> Option<&'static str> {
-    match table(current()).get(key) {
-        Some(Text::One(t)) => Some(t),
-        _ => None,
-    }
-}
-
-/// The form of a counted text that goes with `n`: `one` or `many` in
-/// English, the translation of `many` in the current language.
-pub fn tr_n(n: u64, one: &'static str, many: &'static str) -> &'static str {
-    let lang = current();
-    let english = if n == 1 { one } else { many };
-    match table(lang).get(many) {
-        Some(Text::Forms(f)) => f.get(lang.form(n)).copied().unwrap_or(english),
-        Some(Text::One(t)) => t,
-        None => english,
-    }
+/// The form of the counted text `key` that goes with `n`, as [`tr`] finds it.
+pub fn tr_n(n: u64, key: &'static str) -> &'static str {
+    let form = |lang: Lang| match table(lang).get(key) {
+        Some(Text::Forms(f)) => f.get(lang.form(n)).copied(),
+        Some(Text::One(t)) => Some(*t),
+        None => None,
+    };
+    form(current()).or_else(|| form(Lang::En)).unwrap_or(key)
 }
 
 /// `text` with each `{name}` of `values` written in; other braces stay.
@@ -213,32 +217,33 @@ pub fn fill(text: &str, values: &[(&str, &dyn Display)]) -> String {
     out
 }
 
-/// `tr!("Text")` is a `&'static str`; `tr!("Text {a} {b}", a = x, b)` a
-/// `String` with the values written in (`b` alone stands for `b = b`).
+/// `tr!("menu.main.play")` is a `&'static str`; `tr!("dialog.saveFailed",
+/// e = err, b)` a `String` with the values written in (`b` alone stands
+/// for `b = b`).
 macro_rules! tr {
     (@value $k:ident) => { $k };
     (@value $k:ident = $v:expr) => { $v };
-    ($en:literal) => { $crate::i18n::tr($en) };
-    ($en:literal, $($k:ident $(= $v:expr)?),+ $(,)?) => {
-        $crate::i18n::fill($crate::i18n::tr($en), &[$((stringify!($k), &tr!(@value $k $(= $v)?) as &dyn std::fmt::Display)),+])
+    ($key:literal) => { $crate::i18n::tr($key) };
+    ($key:literal, $($k:ident $(= $v:expr)?),+ $(,)?) => {
+        $crate::i18n::fill($crate::i18n::tr($key), &[$((stringify!($k), &tr!(@value $k $(= $v)?) as &dyn std::fmt::Display)),+])
     };
 }
 
-/// `tr_const!("Artist")` is the text itself, for a constant: it marks the
-/// text to translate where it is shown, with [`tr`].
+/// `tr_const!("library.column.artist")` is the key itself, for a constant:
+/// it marks the key, whose text is shown through [`tr`].
 macro_rules! tr_const {
-    ($en:literal) => {
-        $en
+    ($key:literal) => {
+        $key
     };
 }
 
-/// `trn!(n, "{n} file", "{n} files")`: the form that goes with the count
-/// `n`, with `{n}` and any further values written in, as in `tr!`.
+/// `trn!(n, "library.nTracks")`: the form that goes with the count `n`,
+/// with `{n}` and any further values written in, as in `tr!`.
 macro_rules! trn {
-    ($n:expr, $one:literal, $many:literal $(, $k:ident $(= $v:expr)?)* $(,)?) => {{
+    ($n:expr, $key:literal $(, $k:ident $(= $v:expr)?)* $(,)?) => {{
         let n = $n;
         $crate::i18n::fill(
-            $crate::i18n::tr_n(n as u64, $one, $many),
+            $crate::i18n::tr_n(n as u64, $key),
             &[("n", &n as &dyn std::fmt::Display) $(, (stringify!($k), &tr!(@value $k $(= $v)?) as &dyn std::fmt::Display))*],
         )
     }};
@@ -341,15 +346,14 @@ mod tests {
         assert_eq!(from_env(env(&[])), None);
     }
 
-    /// A text of the sources to translate: its English key, and whether it
-    /// is counted (`trn!`).
-    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+    /// A key the sources use, and where.
+    #[derive(Debug)]
     struct Key {
-        text: String,
+        key: String,
+        /// Whether it is counted (`trn!`).
         counted: bool,
-        /// The names of the values given after the texts.
+        /// The names of the values given after it.
         values: BTreeSet<String>,
-        /// Where it is, for the messages.
         at: String,
     }
 
@@ -413,7 +417,7 @@ mod tests {
         src.split_inclusive('\n').map(|line| if line.trim_start().starts_with("//") { "\n" } else { line }).collect()
     }
 
-    /// Every `tr!` and `trn!` text in the `.rs` files under `dir`.
+    /// Every `tr!`, `trn!` and `tr_const!` key in the `.rs` files under `dir`.
     fn keys(dir: &Path, out: &mut Vec<Key>) {
         for entry in std::fs::read_dir(dir).unwrap().flatten() {
             let path = entry.path();
@@ -422,30 +426,70 @@ mod tests {
             } else if path.extension().is_some_and(|e| e == "rs") && !path.ends_with("i18n.rs") {
                 let src = without_comment_lines(&std::fs::read_to_string(&path).unwrap());
                 let name = path.file_name().unwrap().to_string_lossy().into_owned();
-                let at = |pos: usize| format!("{name}:{}", src[..pos].lines().count());
-                // A macro name of its own: not the end of a longer one.
-                let starts = |pat: &'static str| {
-                    src.match_indices(pat)
+                for pat in ["tr!(", "trn!(", "tr_const!("] {
+                    // A macro name of its own: not the end of a longer one.
+                    let starts = src
+                        .match_indices(pat)
                         .map(|(pos, _)| pos)
-                        .filter(|&pos| !src[..pos].ends_with(|c: char| c.is_alphanumeric() || c == '_'))
-                };
-                for (pat, pos) in starts("tr!(").map(|p| ("tr!(", p)).chain(starts("tr_const!(").map(|p| ("tr_const!(", p))) {
-                    let (text, rest) =
-                        literal(&src[pos + pat.len()..]).unwrap_or_else(|| panic!("{}: {pat} takes a string literal", at(pos)));
-                    out.push(Key { text, counted: false, values: values(rest), at: at(pos) });
-                }
-                for pos in starts("trn!(") {
-                    // trn!(count, "one", "many"): the count runs to the first text.
-                    let args = &src[pos + 5..];
-                    let one = args.find('"').unwrap_or_else(|| panic!("{}: trn! needs its texts", at(pos)));
-                    let (_, rest) = literal(&args[one..]).unwrap_or_else(|| panic!("{}: trn! one form", at(pos)));
-                    let rest = rest.trim_start().strip_prefix(',').unwrap_or_else(|| panic!("{}: trn! needs two forms", at(pos)));
-                    let (many, rest) = literal(rest).unwrap_or_else(|| panic!("{}: trn! many form", at(pos)));
-                    let mut given = values(rest);
-                    given.insert("n".into());
-                    out.push(Key { text: many, counted: true, values: given, at: at(pos) });
+                        .filter(|&pos| !src[..pos].ends_with(|c: char| c.is_alphanumeric() || c == '_'));
+                    for pos in starts {
+                        let at = format!("{name}:{}", src[..pos].lines().count());
+                        let mut args = &src[pos + pat.len()..];
+                        if pat == "trn!(" {
+                            // trn!(count, "key"): the count runs to the key.
+                            args = &args[args.find('"').unwrap_or_else(|| panic!("{at}: trn! needs its key"))..];
+                        }
+                        let (key, rest) = literal(args).unwrap_or_else(|| panic!("{at}: {pat} takes a string literal"));
+                        let mut values = values(rest);
+                        if pat == "trn!(" {
+                            values.insert("n".into());
+                        }
+                        out.push(Key { key, counted: pat == "trn!(", values, at });
+                    }
                 }
             }
+        }
+    }
+
+    /// The keys of a texts file in its order, each with the comment on the
+    /// line right above it.
+    fn layout(file: &str) -> Vec<(String, Option<String>)> {
+        let (mut section, mut comment, mut out) = (String::new(), None, Vec::new());
+        for line in file.lines().map(str::trim) {
+            if let Some(name) = line.strip_prefix('[').and_then(|l| l.strip_suffix(']')) {
+                section = name.to_string();
+                comment = None;
+            } else if let Some(text) = line.strip_prefix('#') {
+                comment = Some(text.strip_prefix(' ').unwrap_or(text).to_string());
+            } else if let Some((name, _)) = line.split_once('=') {
+                out.push((format!("{section}.{}", name.trim()), comment.take()));
+            } else {
+                comment = None;
+            }
+        }
+        out
+    }
+
+    /// The comment a translation carries over a key: its English, the
+    /// forms of a counted one between bars, a line break as `\n`, a text
+    /// with spaces at its ends in quotes.
+    fn english_comment(text: &Text) -> String {
+        let forms = match text {
+            Text::One(t) => vec![*t],
+            Text::Forms(f) => f.clone(),
+        };
+        forms
+            .iter()
+            .map(|t| t.replace('\n', "\\n"))
+            .map(|t| if t.trim() == t { t } else { format!("\"{t}\"") })
+            .collect::<Vec<_>>()
+            .join(" | ")
+    }
+
+    fn all_placeholders(text: &Text) -> BTreeSet<&str> {
+        match text {
+            Text::One(t) => placeholders(t),
+            Text::Forms(f) => f.iter().flat_map(|t| placeholders(t)).collect(),
         }
     }
 
@@ -457,64 +501,84 @@ mod tests {
             .collect()
     }
 
-    /// The TOML line that a missing text would take, to copy into the file.
-    fn line(key: &Key) -> String {
-        let q = toml::Value::String(key.text.clone()).to_string();
-        match key.counted {
-            true => format!("{q} = [{q}, {q}, {q}]  # {}", key.at),
-            false => format!("{q} = {q}  # {}", key.at),
-        }
-    }
-
     #[test]
-    fn every_language_translates_every_text() {
+    fn the_code_uses_the_keys_of_the_english_file() {
         let mut found = Vec::new();
         keys(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &mut found);
         assert!(found.len() > 10, "the scan of the sources found almost nothing");
+        let en = parse(Lang::En.file()).unwrap_or_else(|e| panic!("locales/en.toml: {e}"));
         let mut problems = Vec::new();
-        for (a, b) in found.iter().zip(found.iter().skip(1)).filter(|(a, b)| a.text == b.text && a.counted != b.counted) {
-            problems.push(format!("{:?} is counted at {} but not at {}", a.text, a.at, b.at));
-        }
         for key in &found {
-            let wanted: BTreeSet<String> = placeholders(&key.text).into_iter().map(String::from).collect();
-            if wanted != key.values {
-                problems.push(format!("{}: {:?} names {wanted:?} but is given {:?}", key.at, key.text, key.values));
+            let fault = match (en.get(key.key.as_str()), key.counted) {
+                (None, _) => Some("is not in locales/en.toml".to_string()),
+                (Some(Text::Forms(_)), false) => Some("is counted in en.toml: use trn!".to_string()),
+                (Some(Text::One(_)), true) => Some("is not counted in en.toml: give it [one, many]".to_string()),
+                (Some(Text::Forms(f)), true) if f.len() != Lang::En.forms() => Some("needs two forms in en.toml".to_string()),
+                (Some(text), _) => {
+                    let named: BTreeSet<String> = all_placeholders(text).into_iter().map(String::from).collect();
+                    (key.values != named).then(|| format!("names {named:?} but is given {:?}", key.values))
+                }
+            };
+            if let Some(fault) = fault {
+                problems.push(format!("{}: {:?} {fault}", key.at, key.key));
             }
         }
+        let used: BTreeSet<&str> = found.iter().map(|k| k.key.as_str()).collect();
+        let mut stale: Vec<&&str> = en.keys().filter(|k| !used.contains(**k)).collect();
+        stale.sort();
+        if !stale.is_empty() {
+            problems.push(format!("locales/en.toml has keys the program does not use: {stale:?}"));
+        }
+        assert!(problems.is_empty(), "{}", problems.join("\n"));
+    }
+
+    #[test]
+    fn every_language_follows_the_english_file() {
+        let en = parse(Lang::En.file()).unwrap();
+        let order: Vec<String> = layout(Lang::En.file()).into_iter().map(|(k, _)| k).collect();
+        assert_eq!(order.len(), en.len(), "locales/en.toml: one line a key, in sections");
+        let mut problems = Vec::new();
         for lang in Lang::ALL.into_iter().filter(|&l| l != Lang::En) {
-            let table = parse(lang.file()).unwrap_or_else(|e| panic!("locales/{}.toml: {e}", lang.code()));
-            let mut missing = Vec::new();
-            for key in &found {
-                let wanted = placeholders(&key.text);
-                let fault = match (table.get(key.text.as_str()), key.counted) {
-                    (None, _) => {
-                        missing.push(line(key));
-                        None
+            let file = format!("locales/{}.toml", lang.code());
+            let table = parse(lang.file()).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let lines = layout(lang.file());
+            let keys: Vec<&String> = lines.iter().map(|(k, _)| k).collect();
+            if keys != order.iter().collect::<Vec<_>>() {
+                let missing: Vec<&String> = order.iter().filter(|k| !keys.contains(k)).collect();
+                let extra: Vec<&&String> = keys.iter().filter(|k| !order.contains(k)).collect();
+                problems.push(format!("{file}: keys not as in en.toml; lacks {missing:?}, has besides {extra:?}"));
+            }
+            for (key, comment) in &lines {
+                let (Some(english), Some(text)) = (en.get(key.as_str()), table.get(key.as_str())) else { continue };
+                let wanted = english_comment(english);
+                if comment.as_deref() != Some(wanted.as_str()) {
+                    problems.push(format!("{file}: {key}: the line above should be `# {wanted}`, is {comment:?}"));
+                }
+                let fault = match (english, text) {
+                    (Text::One(_), Text::Forms(_)) => Some("is not counted: give one text".to_string()),
+                    (Text::Forms(_), Text::One(_)) => Some("is counted: give its forms".to_string()),
+                    (Text::Forms(_), Text::Forms(f)) if f.len() != lang.forms() => Some(format!("needs {} forms", lang.forms())),
+                    (Text::Forms(_), Text::Forms(f)) => {
+                        let named = all_placeholders(english);
+                        f.iter().find(|t| !placeholders(t).is_subset(&named)).map(|t| format!("{t:?} has braces the English lacks"))
                     }
-                    (Some(Text::One(t)), false) => (placeholders(t) != wanted).then(|| format!("{t:?} has other braces")),
-                    (Some(Text::Forms(_)), false) => Some("is not counted: give one text".to_string()),
-                    (Some(Text::One(_)), true) => Some("is counted: give its forms".to_string()),
-                    (Some(Text::Forms(f)), true) if f.len() != lang.forms() => Some(format!("needs {} forms", lang.forms())),
-                    (Some(Text::Forms(f)), true) => {
-                        f.iter().find(|t| !placeholders(t).is_subset(&wanted)).map(|t| format!("{t:?} has braces it lacks"))
-                    }
+                    (Text::One(e), Text::One(t)) => (placeholders(t) != placeholders(e)).then(|| format!("{t:?} has other braces")),
                 };
                 if let Some(fault) = fault {
-                    problems.push(format!("{}: {:?} ({}): {fault}", lang.code(), key.text, key.at));
+                    problems.push(format!("{file}: {key} {fault}"));
                 }
-            }
-            missing.sort();
-            missing.dedup();
-            if !missing.is_empty() {
-                problems.push(format!("locales/{}.toml lacks:\n{}", lang.code(), missing.join("\n")));
-            }
-            let used: BTreeSet<&str> = found.iter().map(|k| k.text.as_str()).collect();
-            let mut stale: Vec<&&str> = table.keys().filter(|k| !used.contains(**k)).collect();
-            stale.sort();
-            if !stale.is_empty() {
-                problems.push(format!("locales/{}.toml has texts the program no longer has: {stale:?}", lang.code()));
             }
         }
         assert!(problems.is_empty(), "{}", problems.join("\n"));
+    }
+
+    #[test]
+    fn a_text_falls_back_to_english_then_to_its_key() {
+        set(Lang::Ru);
+        let shown = (tr("common.cancel"), tr("no.such.key"));
+        set(Lang::En);
+        assert_eq!(shown, ("Отмена", "no.such.key"));
+        assert_eq!(tr("common.cancel"), "Cancel");
+        assert_eq!(fill(tr_n(5, "library.nTracks"), &[("n", &5)]), "5 tracks");
     }
 }

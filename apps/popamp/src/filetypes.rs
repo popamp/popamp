@@ -22,9 +22,9 @@ impl Group {
     #[cfg(linux_like)]
     pub fn label(self) -> &'static str {
         match self {
-            Group::Audio => tr!("Audio files"),
-            Group::Playlists => tr!("Playlists"),
-            Group::Skins => tr!("Skins"),
+            Group::Audio => tr!("fileTypes.audioFiles"),
+            Group::Playlists => tr!("fileTypes.playlists"),
+            Group::Skins => tr!("fileTypes.skins"),
         }
     }
 
@@ -146,7 +146,7 @@ mod linux {
                 return Ok(());
             }
             if chosen.iter().any(|&on| on) {
-                self.ensure_entry().map_err(|e| tr!("File types: cannot add Popamp to the menu: {e}", e))?;
+                self.ensure_entry().map_err(|e| tr!("fileTypes.cannotAddToMenu", e))?;
             }
             let mut list = self.list();
             for (n, g) in Group::ALL.into_iter().enumerate().filter(|&(n, _)| chosen[n] != now[n]) {
@@ -157,7 +157,7 @@ mod linux {
             std::fs::create_dir_all(&self.config)
                 .and_then(|()| std::fs::write(&tmp, list))
                 .and_then(|()| std::fs::rename(&tmp, &file))
-                .map_err(|e| tr!("File types: cannot write {file}: {e}", file = file.display(), e))
+                .map_err(|e| tr!("fileTypes.cannotWrite", file = file.display(), e))
         }
 
         /// Writes a desktop entry for this program when no package did, so

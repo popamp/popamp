@@ -70,7 +70,7 @@ impl Model {
         }
         if let Err(e) = std::fs::remove_dir_all(dir) {
             log::warn!("cannot remove {}: {e}", dir.display());
-            self.flash(tr!("CANNOT REMOVE PLUG-IN: {e}", e));
+            self.flash(tr!("plugins.cannotRemove", e));
             return;
         }
         if let Some(id) = id {
@@ -100,7 +100,7 @@ impl Model {
     pub fn on_plugin_stopped(&mut self, id: &str, why: &str) {
         let name = self.plugins.list.iter().filter_map(Installed::manifest).find(|m| m.id == id).map_or(id, |m| m.name.as_str());
         log::warn!("plug-in {id} stopped: {why}");
-        self.flash(tr!("PLUG-IN {name} STOPPED: {why}", name = name.to_uppercase(), why));
+        self.flash(tr!("plugins.stopped", name = name.to_uppercase(), why));
     }
 }
 
@@ -174,11 +174,7 @@ impl Column {
 }
 
 /// What the Plug-ins page says: how a plug-in is turned on.
-const HELP: [&str; 3] = [
-    tr_const!("Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on."),
-    tr_const!("To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it."),
-    tr_const!("OK keeps what you chose; Cancel forgets it."),
-];
+const HELP: [&str; 3] = [tr_const!("plugins.intro"), tr_const!("plugins.howToTurnOn"), tr_const!("plugins.okKeepsChoice")];
 
 /// How far in a page puts its headings and what is under them.
 const HEADING: i32 = 4;
@@ -202,7 +198,7 @@ impl PluginPages {
     /// to `entries`. Returns them, and how far down the tallest page goes.
     pub(crate) fn build(form: &mut Form<Act>, entries: &mut Vec<PageEntry>, col: Column, model: &Model) -> (PluginPages, i32) {
         let page = entries.len();
-        entries.push(PageEntry::top(tr!("Plug-ins")));
+        entries.push(PageEntry::top(tr!("plugins.plugIns")));
         let mut y = 10;
         for text in HELP {
             lines(form, page, (col, HEADING), &mut y, crate::i18n::tr(text), false);
@@ -210,8 +206,8 @@ impl PluginPages {
         }
         let dir = model.paths.plugins_dir().display().to_string();
         let found = match model.plugins.list.is_empty() {
-            true => tr!("There are none yet in {dir}.", dir),
-            false => tr!("Each is a folder in {dir}.", dir),
+            true => tr!("plugins.thereAreNoneYetIn", dir),
+            false => tr!("plugins.eachIsFolderInDir", dir),
         };
         lines(form, page, (col, HEADING), &mut y, &found, true);
         let mut bottom = y;
@@ -279,8 +275,8 @@ impl PluginPages {
             for i in pg.controls.clone() {
                 form.set_hidden(i, true);
             }
-            form.add_on(pg.page, col.at(HEADING, 10, 20), Widget::Label { text: tr!("{name} is removed.", name = pg.name), dim: false });
-            form.set_page_label(pages, pg.page, tr!("{name} (removed)", name = pg.name));
+            form.add_on(pg.page, col.at(HEADING, 10, 20), Widget::Label { text: tr!("plugins.nameIsRemoved", name = pg.name), dim: false });
+            form.set_page_label(pages, pg.page, tr!("plugins.nameRemoved", name = pg.name));
             any = true;
         }
         any
@@ -341,11 +337,11 @@ fn plugin_page(
     form.add_on(page, Rect { w: line.w - room, ..line }, Widget::Label { text: title, dim: false });
     if removable {
         let r = Rect::new(col.x + col.w - BUTTON.0, *y - 2, BUTTON.0, BUTTON.1);
-        form.add_on(page, r, Widget::Button { label: tr!("Remove").into(), action: Act::PluginRemove(n), default: false });
+        form.add_on(page, r, Widget::Button { label: tr!("common.remove").into(), action: Act::PluginRemove(n), default: false });
     }
     *y += 26;
     if !removable {
-        let text = tr!("Installed as a package (popamp-plugin-{folder}): remove it with your package manager.", folder = p.folder);
+        let text = tr!("plugins.installedAsPackage", folder = p.folder);
         lines(form, page, (col, HEADING), y, &text, true);
         *y += 6;
     }
@@ -354,7 +350,7 @@ fn plugin_page(
         return None;
     };
     let on = matches!(p.state, State::On(_) | State::Failed(..));
-    form.add_on(page, col.at(HEADING, *y, 20), Widget::Check { label: tr!("Enabled").into(), checked: on, action: Act::Plugin(n) });
+    form.add_on(page, col.at(HEADING, *y, 20), Widget::Check { label: tr!("plugins.enabled").into(), checked: on, action: Act::Plugin(n) });
     *y += 28;
     lines(form, page, (col, HEADING), y, &m.description, true);
     let grant = m.permissions.grant();
@@ -377,7 +373,7 @@ fn plugin_page(
     (row.hosts, row.folders) = permissions(form, page, col, y, &mut row.tunables, n, m, config);
     row.fields = settings_fields(form, page, col, y, &mut row.tunables, m, config);
     if !m.permissions.exec.is_empty() {
-        let check = Widget::Check { label: tr!("Show the commands it runs").into(), checked: false, action: Act::PluginCommands(n) };
+        let check = Widget::Check { label: tr!("plugins.showCommandsItRuns").into(), checked: false, action: Act::PluginCommands(n) };
         form.add_on(page, col.at(HEADING, *y, 20), check);
         *y += 22;
         let mut below = *y;
@@ -407,7 +403,7 @@ fn settings_fields(
     if m.settings.is_empty() {
         return Vec::new();
     }
-    tunables.push(form.add_on(page, col.at(HEADING, *y, 20), Widget::Label { text: tr!("Settings").into(), dim: false }));
+    tunables.push(form.add_on(page, col.at(HEADING, *y, 20), Widget::Label { text: tr!("plugins.settings").into(), dim: false }));
     *y += 24;
     let mut fields = Vec::new();
     for s in &m.settings {
@@ -441,25 +437,25 @@ fn permissions(
     if asks.exec.is_empty() && asks.net.is_empty() && asks.files.is_none() {
         return (Vec::new(), None);
     }
-    tunables.push(form.add_on(page, col.at(HEADING, *y, 20), Widget::Label { text: tr!("Permissions").into(), dim: false }));
+    tunables.push(form.add_on(page, col.at(HEADING, *y, 20), Widget::Label { text: tr!("plugins.permissions").into(), dim: false }));
     *y += 24;
     let hosts = installed::addresses(m, config);
     for (i, (address, open)) in hosts.iter().enumerate() {
         let label = match installed::caution(address) {
-            Some(why) => tr!("Connect to {address} ({why})", address, why),
-            None => tr!("Connect to {address}", address),
+            Some(why) => tr!("plugins.connectToAddressWhy", address, why),
+            None => tr!("plugins.connectToAddress", address),
         };
         tunables.push(form.add_on(page, col.at(BODY, *y, 20), Widget::Check { label, checked: *open, action: Act::PluginHost(n, i) }));
         *y += 22;
     }
     let folders = asks.files.map(|_| {
-        lines(form, page, (col, BODY), y, tr!("Folders it may read, separated by ; (~ is your whole home):"), true);
+        lines(form, page, (col, BODY), y, tr!("plugins.readFoldersHelp"), true);
         let text = installed::folders_text(m, config, std::env::home_dir().as_deref());
         let cursor = text.chars().count();
         let field = form.add_on(page, col.at(BODY, *y, 24), Widget::Input { text, cursor });
         tunables.push(field);
         *y += 28;
-        lines(form, page, (col, BODY), y, tr!("Hidden folders and the player's own stay closed."), true);
+        lines(form, page, (col, BODY), y, tr!("plugins.hiddenFoldersClosed"), true);
         *y += 2;
         field
     });
@@ -467,7 +463,7 @@ fn permissions(
     form.add_on(
         page,
         Rect { w: BUTTON.0, ..r },
-        Widget::Button { label: tr!("Journal").into(), action: Act::PluginJournal(n), default: false },
+        Widget::Button { label: tr!("plugins.journal").into(), action: Act::PluginJournal(n), default: false },
     );
     *y += BUTTON.1 + 12;
     (hosts, folders)
@@ -492,7 +488,7 @@ fn open_journal(model: &mut Model, id: &str) {
     };
     if let Err(e) = made.and_then(|_| viewer.arg(&path).spawn()) {
         log::warn!("{}: {e}", path.display());
-        model.flash(tr!("CANNOT OPEN JOURNAL: {file}", file = path.display()));
+        model.flash(tr!("plugins.cannotOpenJournal", file = path.display()));
     }
 }
 
@@ -523,9 +519,9 @@ fn wrapped(text: &str) -> Vec<String> {
 /// Why a plug-in is not working, in words.
 fn problem(p: &Installed) -> Option<String> {
     match &p.state {
-        State::Broken(e) => Some(tr!("Broken: {e}", e)),
-        State::Failed(_, e) => Some(tr!("Did not load: {e}", e)),
-        State::On(plugin) => plugin.stopped_because().map(|why| tr!("Stopped after failing: {why}. OK starts it again.", why)),
+        State::Broken(e) => Some(tr!("plugins.broken", e)),
+        State::Failed(_, e) => Some(tr!("plugins.didNotLoad", e)),
+        State::On(plugin) => plugin.stopped_because().map(|why| tr!("plugins.stoppedAfterFailing", why)),
         _ => None,
     }
 }
