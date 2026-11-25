@@ -187,8 +187,8 @@ aboutName = "О программе {name}"
   timeRemaining = "Оставшееся время"
   # Always On Top
   alwaysOnTop = "Поверх всех окон"
-  # Double Size
-  doubleSize = "Двойной размер"
+  # Larger Size
+  largerSize = "Увеличенный размер"
   # Size
   size = "Размер"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Забыты история и оценки {n} пропавш
   keepWindowsOnScreen = "Держать окна в пределах экрана"
   # Always on top
   alwaysOnTop = "Поверх всех окон"
-  # Double size
-  doubleSize = "Двойной размер"
+  # Larger size
+  largerSize = "Увеличенный размер"
   # Use skin cursors
   useSkinCursors = "Курсоры скина"
   # Scroll song title

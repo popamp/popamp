@@ -187,8 +187,8 @@ aboutName = "Σχετικά με το {name}"
   timeRemaining = "Χρόνος που απομένει"
   # Always On Top
   alwaysOnTop = "Πάντα στην κορυφή"
-  # Double Size
-  doubleSize = "Διπλό μέγεθος"
+  # Larger Size
+  largerSize = "Μεγέθυνση"
   # Size
   size = "Μέγεθος"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Ξεχάστηκαν οι αναπαραγωγές και οι
   keepWindowsOnScreen = "Διατήρηση παραθύρων στην οθόνη"
   # Always on top
   alwaysOnTop = "Πάντα στην κορυφή"
-  # Double size
-  doubleSize = "Διπλό μέγεθος"
+  # Larger size
+  largerSize = "Μεγέθυνση"
   # Use skin cursors
   useSkinCursors = "Δρομείς του θέματος"
   # Scroll song title

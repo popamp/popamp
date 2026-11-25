@@ -393,7 +393,7 @@ impl Flag {
             Flag::EasyMove => tr!("prefs.option.easyMove"),
             Flag::KeepOnScreen => tr!("prefs.option.keepWindowsOnScreen"),
             Flag::AlwaysOnTop => tr!("prefs.option.alwaysOnTop"),
-            Flag::DoubleSize => tr!("prefs.option.doubleSize"),
+            Flag::DoubleSize => tr!("prefs.option.largerSize"),
             Flag::SkinCursors => tr!("prefs.option.useSkinCursors"),
             Flag::ScrollTitle => tr!("prefs.option.scrollSongTitle"),
             Flag::DimInactive => tr!("prefs.option.dimInactivePlaylist"),

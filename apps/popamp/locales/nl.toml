@@ -187,8 +187,8 @@ aboutName = "Over {name}"
   timeRemaining = "Resterende tijd"
   # Always On Top
   alwaysOnTop = "Altijd bovenaan"
-  # Double Size
-  doubleSize = "Dubbele grootte"
+  # Larger Size
+  largerSize = "Vergroot formaat"
   # Size
   size = "Grootte"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Afspeelgegevens en waarderingen van {n} ontbrekend bestand ver
   keepWindowsOnScreen = "Vensters op het scherm houden"
   # Always on top
   alwaysOnTop = "Altijd bovenaan"
-  # Double size
-  doubleSize = "Dubbele grootte"
+  # Larger size
+  largerSize = "Vergroot formaat"
   # Use skin cursors
   useSkinCursors = "Cursors van de skin gebruiken"
   # Scroll song title

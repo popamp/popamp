@@ -187,8 +187,8 @@ aboutName = "Про {name}"
   timeRemaining = "Час, що лишився"
   # Always On Top
   alwaysOnTop = "Поверх усіх вікон"
-  # Double Size
-  doubleSize = "Подвійний розмір"
+  # Larger Size
+  largerSize = "Збільшений розмір"
   # Size
   size = "Розмір"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Забуто прослуховування й оцінки {n
   keepWindowsOnScreen = "Тримати вікна в межах екрана"
   # Always on top
   alwaysOnTop = "Поверх усіх вікон"
-  # Double size
-  doubleSize = "Подвійний розмір"
+  # Larger size
+  largerSize = "Збільшений розмір"
   # Use skin cursors
   useSkinCursors = "Курсори зі скіна"
   # Scroll song title

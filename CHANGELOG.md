@@ -40,6 +40,9 @@ All notable changes to this project are documented here. The format follows
   away from the edge goes back to the steps. When a bigger window size
   would push either window's bottom off the screen, it is cut right at
   the edge; the library is kept on the screen too now.
+- **Double Size is now Larger Size** (Ctrl+D): it switches to the size
+  chosen under Options → Size, which need not be twice; 2x until another
+  is chosen.
 
 ### Fixed
 

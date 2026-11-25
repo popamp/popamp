@@ -23,7 +23,7 @@ pub enum MenuAction {
     EqBands(bool),
     EqLimiter,
     ReplayGain(Option<i32>),
-    /// Window size in percent; 100 turns "Double Size" off.
+    /// Window size in percent; 100 turns "Larger Size" off.
     Zoom(i32),
     Scaling(popamp_core::config::Scaling),
     /// The skin's colour set of this name.

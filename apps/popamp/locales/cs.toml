@@ -187,8 +187,8 @@ aboutName = "O aplikaci {name}"
   timeRemaining = "Zbývající čas"
   # Always On Top
   alwaysOnTop = "Vždy navrchu"
-  # Double Size
-  doubleSize = "Dvojnásobná velikost"
+  # Larger Size
+  largerSize = "Zvětšená velikost"
   # Size
   size = "Velikost"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Zapomenuta přehrání a hodnocení {n} chybějícího souboru
   keepWindowsOnScreen = "Držet okna na obrazovce"
   # Always on top
   alwaysOnTop = "Vždy navrchu"
-  # Double size
-  doubleSize = "Dvojnásobná velikost"
+  # Larger size
+  largerSize = "Zvětšená velikost"
   # Use skin cursors
   useSkinCursors = "Používat kurzory skinu"
   # Scroll song title

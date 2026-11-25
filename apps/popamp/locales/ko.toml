@@ -187,8 +187,8 @@ aboutName = "{name} 정보"
   timeRemaining = "남은 시간"
   # Always On Top
   alwaysOnTop = "항상 위"
-  # Double Size
-  doubleSize = "2배 크기"
+  # Larger Size
+  largerSize = "확대 크기"
   # Size
   size = "크기"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["없어진 파일 {n}개의 재생 기록과 평점을 지웠�
   keepWindowsOnScreen = "창을 화면 안에 두기"
   # Always on top
   alwaysOnTop = "항상 위"
-  # Double size
-  doubleSize = "2배 크기"
+  # Larger size
+  largerSize = "확대 크기"
   # Use skin cursors
   useSkinCursors = "스킨 커서 사용"
   # Scroll song title

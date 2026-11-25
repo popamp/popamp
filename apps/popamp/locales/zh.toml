@@ -187,8 +187,8 @@ aboutName = "关于 {name}"
   timeRemaining = "剩余时间"
   # Always On Top
   alwaysOnTop = "窗口置顶"
-  # Double Size
-  doubleSize = "双倍大小"
+  # Larger Size
+  largerSize = "放大尺寸"
   # Size
   size = "大小"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["已清除 {n} 个丢失文件的播放记录和评分。"]
   keepWindowsOnScreen = "窗口不超出屏幕"
   # Always on top
   alwaysOnTop = "窗口置顶"
-  # Double size
-  doubleSize = "双倍大小"
+  # Larger size
+  largerSize = "放大尺寸"
   # Use skin cursors
   useSkinCursors = "使用皮肤光标"
   # Scroll song title

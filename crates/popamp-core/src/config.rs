@@ -233,9 +233,9 @@ settings! {
     /// to the main window, moves all the docked windows together.
     groupmove: bool = false,
     aot: bool = false,
-    /// Windows drawn at `zoom` instead of 1x ("Double Size", Ctrl+D).
+    /// Windows drawn at `zoom` instead of 1x ("Larger Size", Ctrl+D).
     dsize: bool = false,
-    /// The size "Double Size" switches to, in percent (125..=300).
+    /// The size "Larger Size" switches to, in percent (125..=300).
     zoom: i32 = 200,
     wsz_scaling: Scaling = Scaling::Sharp,
     keeponscreen: bool = true,

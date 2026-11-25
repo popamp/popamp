@@ -187,8 +187,8 @@ aboutName = "Informazioni su {name}"
   timeRemaining = "Tempo rimanente"
   # Always On Top
   alwaysOnTop = "Sempre in primo piano"
-  # Double Size
-  doubleSize = "Dimensione doppia"
+  # Larger Size
+  largerSize = "Dimensione ingrandita"
   # Size
   size = "Dimensione"
   # EasyMove
@@ -845,8 +845,8 @@ forgotMissing = ["Dimenticati ascolti e voti di {n} file mancante.", "Dimenticat
   keepWindowsOnScreen = "Tieni le finestre sullo schermo"
   # Always on top
   alwaysOnTop = "Sempre in primo piano"
-  # Double size
-  doubleSize = "Dimensione doppia"
+  # Larger size
+  largerSize = "Dimensione ingrandita"
   # Use skin cursors
   useSkinCursors = "Usa i cursori della skin"
   # Scroll song title

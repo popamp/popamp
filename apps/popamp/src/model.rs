@@ -1880,7 +1880,7 @@ impl Model {
             MenuItem::cmd(tr!("menu.options.timeRemaining"), "Ctrl+T", C::TimeRemaining).checked(s.timeleftmode),
             MenuItem::sep(),
             MenuItem::cmd(tr!("menu.options.alwaysOnTop"), "Ctrl+A", C::ToggleAlwaysOnTop).checked(s.aot),
-            MenuItem::cmd(tr!("menu.options.doubleSize"), "Ctrl+D", C::ToggleDoubleSize).checked(s.dsize),
+            MenuItem::cmd(tr!("menu.options.largerSize"), "Ctrl+D", C::ToggleDoubleSize).checked(s.dsize),
             MenuItem::sub(tr!("menu.options.size"), self.size_menu()),
             MenuItem::cmd(tr!("menu.options.easyMove"), "Ctrl+E", C::ToggleEasyMove).checked(s.easymove),
             MenuItem::cmd(tr!("menu.options.moveDockedWindowsTogether"), "", C::ToggleGroupMove).checked(s.groupmove),
