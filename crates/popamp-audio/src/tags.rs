@@ -136,7 +136,15 @@ fn writes(kind: lofty::file::FileType) -> bool {
 
 /// The fields as lofty reads them from the file at `path`, which is what
 /// [`write`] changes: a track or disc as `3/12` when the total is there.
+/// Old code-page text is read as the player shows it.
 pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
+    Ok(fields(path)?.into_iter().map(|(f, _, shown)| (f, shown)).collect())
+}
+
+/// Each field as lofty reads it and as the player shows it. The main tag
+/// comes first; the others (an MP3's ID3v1) fill what it lacks. Each tag's
+/// old code-page text is judged on its own values, as the player does.
+fn fields(path: &Path) -> Result<Vec<(Field, String, String)>, String> {
     let file = lofty::read_from_path(path).map_err(|e| e.to_string())?;
     let value = |tag: &Tag, f: Field| {
         let (key, second) = f.keys();
@@ -147,14 +155,20 @@ pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
             _ => main.to_string(),
         }
     };
-    // The main tag first; the others (an MP3's ID3v1) fill what it lacks, as the player shows them.
     let primary = file.primary_tag();
-    let tags: Vec<&Tag> = primary.into_iter().chain(file.tags().iter().filter(|t| primary.is_none_or(|p| !std::ptr::eq(*t, p)))).collect();
-    let pick = |f: Field| tags.iter().map(|t| value(t, f)).find(|v| !v.is_empty()).unwrap_or_default();
-    let mut fields: Vec<(Field, String)> = Field::ALL.iter().map(|&f| (f, pick(f))).collect();
-    // Read as the player shows them, so that saving writes the text and not its mojibake.
-    popamp_core::text::redecode_latin1(fields.iter_mut().map(|(_, v)| v));
-    Ok(fields)
+    let others = file.tags().iter().filter(|t| primary.is_none_or(|p| !std::ptr::eq(*t, p)));
+    let tags: Vec<(Vec<String>, Vec<String>)> = primary
+        .into_iter()
+        .chain(others)
+        .map(|t| {
+            let raw: Vec<String> = Field::ALL.iter().map(|&f| value(t, f)).collect();
+            let mut shown = raw.clone();
+            popamp_core::text::redecode_latin1(shown.iter_mut());
+            (raw, shown)
+        })
+        .collect();
+    let pick = |i: usize| tags.iter().find(|(raw, _)| !raw[i].is_empty()).map(|(raw, shown)| (raw[i].clone(), shown[i].clone()));
+    Ok(Field::ALL.iter().enumerate().map(|(i, &f)| (f, pick(i).unwrap_or_default())).map(|(f, (raw, shown))| (f, raw, shown)).collect())
 }
 
 /// The picture in `data` with its type, if it is a JPEG, PNG, GIF or BMP.
@@ -192,12 +206,26 @@ impl Changes {
 /// Writes `changes` into the file at `path`.
 pub fn write(path: &Path, changes: &Changes) -> Result<(), String> {
     changes.check()?;
+    let restored = with_old_text_restored(path, changes)?;
     let copy = sibling(path).ok_or("not a file")?;
-    let result = write_copy(path, &copy, changes).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
+    let result = write_copy(path, &copy, &restored, changes).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
     if result.is_err() {
         let _ = std::fs::remove_file(&copy);
     }
     result
+}
+
+/// `changes` and, for each field they leave alone that holds old code-page
+/// text, that text as the player shows it. lofty would write it back as
+/// Unicode of its Latin-1 reading, mojibake to every other program.
+fn with_old_text_restored(path: &Path, changes: &Changes) -> Result<Changes, String> {
+    let mut restored = changes.clone();
+    for (f, raw, shown) in fields(path)? {
+        if raw != shown && !changes.fields.iter().any(|(g, _)| *g == f) {
+            restored.fields.push((f, shown));
+        }
+    }
+    Ok(restored)
 }
 
 /// A hidden name beside `path` for the copy being changed, with the same
@@ -208,13 +236,15 @@ fn sibling(path: &Path) -> Option<PathBuf> {
     Some(path.with_file_name(format!(".{stem}.popamp-tags{ext}")))
 }
 
-fn write_copy(path: &Path, copy: &Path, changes: &Changes) -> Result<(), String> {
+/// Writes `changes` to the copy; an MP3's ID3v1 tag gets only the user's
+/// `asked`, as it keeps old code-page text in the bytes it was written in.
+fn write_copy(path: &Path, copy: &Path, changes: &Changes, asked: &Changes) -> Result<(), String> {
     use lofty::file::FileType as T;
     std::fs::copy(path, copy).map_err(|e| e.to_string())?;
     let probe = lofty::probe::Probe::open(copy).and_then(|p| Ok(p.guess_file_type()?)).map_err(|e| e.to_string())?;
     let mut io = std::fs::OpenOptions::new().read(true).write(true).open(copy).map_err(|e| e.to_string())?;
     match probe.file_type() {
-        Some(T::Mpeg) => write_mpeg(&mut io, changes),
+        Some(T::Mpeg) => write_mpeg(&mut io, changes, asked),
         Some(T::Flac) => write_flac(&mut io, changes),
         Some(T::Vorbis) => write_vorbis(&mut io, changes),
         Some(T::Opus) => write_opus(&mut io, changes),
@@ -223,13 +253,13 @@ fn write_copy(path: &Path, copy: &Path, changes: &Changes) -> Result<(), String>
     }
 }
 
-fn write_mpeg(io: &mut std::fs::File, changes: &Changes) -> Result<(), String> {
+fn write_mpeg(io: &mut std::fs::File, changes: &Changes, asked: &Changes) -> Result<(), String> {
     let mut file = MpegFile::read_from(io, ParseOptions::new()).map_err(|e| e.to_string())?;
     let id3v2 = file.remove_id3v2().unwrap_or_default();
     file.set_id3v2(edited(id3v2, changes));
     // The older tags too, so they do not show the old values.
     if let Some(t) = file.remove_id3v1() {
-        file.set_id3v1(edited(t, changes));
+        file.set_id3v1(edited(t, asked));
     }
     if let Some(t) = file.remove_ape() {
         file.set_ape(edited(t, changes));
@@ -462,6 +492,28 @@ mod tests {
 
         let meta = crate::decoder::read_meta(&path).unwrap();
         assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("POP"), Some("ПО")));
+    }
+
+    #[test]
+    fn saving_one_field_stores_the_others_old_code_page_text_as_unicode() {
+        let path = bare_mp3("save-legacy");
+        let v2 = legacy_id3v2(encoding_rs::WINDOWS_1251, &[(b"TIT2", "Тучи"), (b"TPE1", "Иванушки International"), (b"TALB", "Конфетки")]);
+        let v1 = id3v1(encoding_rs::WINDOWS_1251, "Тучи", "Иванушки", "Конфетки", 1, 255);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, v1.clone()].concat()).unwrap();
+
+        let fields = vec![(Field::Title, "Тучи (remix)".to_string())];
+        write(&path, &Changes { fields, cover: CoverChange::Keep }).unwrap();
+        // What any other program reads, with no guessing of code pages.
+        let file = lofty::read_from_path(&path).unwrap();
+        let tag = file.primary_tag().unwrap();
+        let get = |k| tag.get_string(k).map(str::to_string);
+        assert_eq!(
+            (get(ItemKey::TrackTitle), get(ItemKey::TrackArtist), get(ItemKey::AlbumTitle)),
+            (Some("Тучи (remix)".into()), Some("Иванушки International".into()), Some("Конфетки".into()))
+        );
+        let bytes = std::fs::read(&path).unwrap();
+        assert_eq!(&bytes[bytes.len() - 128 + 33..], &v1[33..], "ID3v1 keeps its CP1251 bytes, which it cannot hold as Unicode");
     }
 
     #[test]
