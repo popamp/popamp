@@ -26,9 +26,10 @@ All notable changes to this project are documented here. The format follows
   that, as wide as the main window and down to the bottom; the library
   goes on the main window's free side, level with its top, out to the
   screen's edge and down to the bottom. A maximized library comes back
-  to its own size for it. Under Wayland the main window and the library
-  stay where they are; the equalizer and the playlist come under the main
-  window, the playlist down to the bottom on COSMIC.
+  to its own size for it. Under Wayland the main window stays where it
+  is and the others are arranged against it; on COSMIC the playlist and
+  the library reach the screen's edges and a maximized library comes back
+  to its own size too. Elsewhere on Wayland the library stays as it is.
 
 ### Changed
 

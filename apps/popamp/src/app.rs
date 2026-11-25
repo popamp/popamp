@@ -698,9 +698,9 @@ impl App {
     /// equalizer and the playlist under it and the library beside it, and
     /// stretches the playlist and the library to the screen's edges. Under
     /// Wayland the main window stays where the compositor has it and the
-    /// library, a window of its own, stays too; the playlist reaches the
-    /// bottom only where the screen is known (COSMIC). A library still
-    /// maximized (Wayland) is left so.
+    /// others are placed against it; the playlist and the library reach the
+    /// screen's edges only where the screen is known (COSMIC), and the
+    /// library goes along only there. A maximized library is left so.
     fn arrange_windows(&mut self, corner: Corner) {
         let Some(main_pos) = self.win(WindowKey::Main).map(|w| w.pos) else { return };
         let wayland = self.platform.on_wayland();
@@ -721,7 +721,14 @@ impl App {
             let height = if height_known { mode.height } else { Dim::Fixed(now.1) };
             Some(Sized { width: mode.width, height, now })
         };
-        let library_free = !wayland && crate::bind::maximized_area(&self.model, WindowKey::Library).is_none();
+        // Under Wayland the library is a popup of the main window, which
+        // Popamp places, unless maximized (a window of its own then); it
+        // goes beside the main window only where the screen is known.
+        let library_free = if wayland {
+            area.is_some() && !self.model.settings().ml_max
+        } else {
+            crate::bind::maximized_area(&self.model, WindowKey::Library).is_none()
+        };
         let windows = Windows {
             main: self.logical_size(WindowKey::Main),
             main_at: wayland.then_some(main_pos),
@@ -2140,9 +2147,11 @@ impl App {
                 }
                 UiReq::Arrange(corner) => {
                     // A maximized library comes back to its own size to be
-                    // arranged, as a window docked again; under Wayland it stays.
+                    // arranged, as a window docked again; under Wayland only
+                    // where the screen is known (COSMIC), else it stays.
                     let s = self.model.settings();
-                    if s.ml_max && s.ml_open && !self.platform.on_wayland() {
+                    let placeable = !self.platform.on_wayland() || !self.platform.wayland_monitors().is_empty();
+                    if s.ml_max && s.ml_open && placeable {
                         self.model.settings_mut().ml_max = false;
                         self.remake_changed_windows(el);
                     }

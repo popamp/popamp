@@ -24,7 +24,8 @@ So the limits below concern COSMIC, desktops without Xwayland, and
 ## How the windows are built on Wayland
 
 On Wayland only the main window is a real window (an `xdg_toplevel`).
-The equalizer, the playlist, the menus and the tooltips are **popups**
+The equalizer, the playlist, the media library, the menus and the
+tooltips are **popups**
 of it (`xdg_popup`). A program may place its own popups, each against
 its parent window, which is the only placing Wayland allows a program.
 So the other windows stay docked to the main window and move with it.
@@ -35,8 +36,8 @@ window were not shown at all, and menus only where they lay over it.
 Subsurfaces are still used where a compositor has no popups to give, or
 with `POPAMP_WAYLAND_SUBSURFACES=1`.
 
-The media library, the dialogs and the visualizer are windows of their
-own, placed by the compositor.
+The maximized media library, the dialogs and the visualizer are windows
+of their own, placed by the compositor.
 
 ## Wayland in general
 
@@ -109,6 +110,14 @@ It also has habits of its own that Popamp has to work around.
   title bar asks COSMIC to move the main window, and the whole group
   goes with it. This also lets the group be put against a panel while
   being held by the playlist.
+- **Arranging the windows** (main menu, Ctrl+Shift+Left or
+  Ctrl+Shift+Right). The main window stays where COSMIC has it; the
+  equalizer and the playlist come under it, the playlist down to the
+  bottom of the screen, and the library beside it on the side the keys
+  name, level with its top, out to the screen's edge and down to the
+  bottom. A maximized library comes back to its own size first. To get
+  the group into a top corner, put the main window there first (see the
+  corner drop below for the top right one).
 - **The toolbar** is a layer of the desktop, keeps maximized windows
   out of its strip and takes the width COSMIC's panels leave it.
 
