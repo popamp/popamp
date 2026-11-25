@@ -13,7 +13,11 @@ All notable changes to this project are documented here. The format follows
   at the end of the file before), every track played the file before its
   own, the first track showed 0:00 and the last file came up a second
   time. A track now plays from the file its INDEX 01 is in. A library that
-  read such a sheet before reads it again once the sheet changes (touch it).
+  read such a sheet before reads it again on Rescan folders.
+- **Rescan folders reads every file again**: it kept the tags it had for a
+  file whose size and change time stayed the same, so a fix in the program
+  or a tag edit that kept them did not show. The scans that come by
+  themselves, at startup and every few minutes, still skip such files.
 
 ## [1.2.0] - 2026-11-24
 

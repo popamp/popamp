@@ -597,6 +597,8 @@ pub struct Scan {
     /// The tracks the library had when it began, to find the files that
     /// were renamed or moved meanwhile.
     before: Vec<Track>,
+    /// Which files it reads again, for a scan that takes its place.
+    reread: Reread,
 }
 
 /// What a scan running on its own thread reports; the number names the scan.
@@ -1958,12 +1960,38 @@ fn write_covers(picture: &popamp_audio::cover::Picture, paths: &[String]) -> (Ve
 
 // --- the library in the player ------------------------------------------------
 
-/// Looks through `folders` for audio files. A file that is as `known` has
-/// it keeps what was read from it before; the tags of the others are read.
+/// Which files a scan reads the tags of again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub enum Reread {
+    /// Those whose size or change time is not as the library has it, for
+    /// the scans that come by themselves.
+    #[default]
+    Changed,
+    /// Every one, for a scan the user asks for.
+    Every,
+}
+
+/// The tracks the library had before a scan, by path.
+#[derive(Debug, Default)]
+struct Known {
+    tracks: HashMap<String, Track>,
+    reread: Reread,
+}
+
+impl Known {
+    /// What was read from `path` before, when it can stand for its file now.
+    fn kept(&self, path: &str, stamp: Stamp) -> Option<&Track> {
+        self.tracks.get(path).filter(|old| self.reread == Reread::Changed && old.stamp == stamp)
+    }
+}
+
+/// Looks through `folders` for audio files. A file that `known` keeps
+/// keeps what was read from it before; the tags of the others are read.
+/// A track keeps the time the library first saw it.
 fn scan(
     id: u64,
     folders: Vec<String>,
-    known: HashMap<String, Track>,
+    known: Known,
     sources: &Sources,
     cx: &Context,
     stop: &AtomicBool,
@@ -1990,11 +2018,12 @@ fn scan(
             // A track of a CUE sheet changes with its sheet.
             let file = popamp_core::cue::split_location(&path).map_or(path.as_str(), |(sheet, _)| sheet);
             let Some(stamp) = Stamp::of(std::path::Path::new(file)) else { continue };
-            let track = match known.get(&path) {
-                Some(old) if old.stamp == stamp => old.clone(),
-                old => {
+            let track = match known.kept(&path, stamp) {
+                Some(old) => old.clone(),
+                None => {
                     let meta = sources.of(&path).describe(&path).and_then(Result::ok).unwrap_or_default();
-                    Track::new(path, stamp, old.map_or(now, |o| o.added), &meta)
+                    let added = known.tracks.get(&path).map_or(now, |o| o.added);
+                    Track::new(path, stamp, added, &meta)
                 }
             };
             found.push(track);
@@ -2012,11 +2041,13 @@ fn scan(
 
 impl Model {
     /// Looks through the library's folders again, in the background; a
-    /// scan under way is given up for the new one.
-    pub fn library_rescan(&mut self) {
+    /// scan under way is given up for the new one, which then rereads
+    /// every file when that one did.
+    pub fn library_rescan(&mut self, mut reread: Reread) {
         let pane = &mut self.library;
         if let Some(old) = pane.scan.take() {
             old.cancel.store(true, Ordering::Relaxed);
+            reread = reread.max(old.reread);
         }
         if pane.lib.folders.is_empty() {
             return;
@@ -2024,13 +2055,13 @@ impl Model {
         pane.scans += 1;
         let (id, cancel) = (pane.scans, Arc::new(AtomicBool::new(false)));
         let folders = pane.lib.folders.clone();
-        let known: HashMap<String, Track> = pane.lib.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
+        let known = Known { tracks: pane.lib.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect(), reread };
         let (events, sources, cx, stop) = (self.events.clone(), self.sources.clone(), self.source_context(), cancel.clone());
         let spawned = std::thread::Builder::new()
             .name("popamp-library".into())
             .spawn(move || scan(id, folders, known, &sources, &cx, &stop, &|ev| events.send(AppEvent::Library(ev))));
         match spawned {
-            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel, before: self.library.lib.tracks.clone() }),
+            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel, before: self.library.lib.tracks.clone(), reread }),
             Err(e) => log::warn!("cannot start a library scan: {e}"),
         }
     }
@@ -2041,7 +2072,7 @@ impl Model {
         let (on, minutes) = (self.settings().ml_rescan, self.settings().ml_rescan_minutes);
         let pane = &self.library;
         if on && pane.scan.is_none() && now.duration_since(pane.scanned_at).as_secs() >= u64::from(minutes) * 60 {
-            self.library_rescan();
+            self.library_rescan(Reread::Changed);
         }
     }
 
@@ -2183,7 +2214,7 @@ impl Model {
         }
         self.library.changed();
         self.save_library();
-        self.library_rescan();
+        self.library_rescan(Reread::Changed);
     }
 
     /// Takes the folder on screen out of the library; its files stay.
@@ -2194,7 +2225,7 @@ impl Model {
         self.save_library();
         // A scan under way would bring the folder's tracks back.
         if self.library.scan.is_some() {
-            self.library_rescan();
+            self.library_rescan(Reread::Changed);
         }
     }
 
@@ -3147,20 +3178,42 @@ mod tests {
         let old_path = dir.join("old.mp3").to_string_lossy().into_owned();
         let stamp = Stamp::of(&dir.join("old.mp3")).unwrap();
         let old = Track { stamp, added: 7, ..track(&old_path, "Kept", "", "As it was") };
-        let known = HashMap::from([(old_path.clone(), old.clone())]);
         let m = Model::for_tests();
-        let events = std::cell::RefCell::new(Vec::new());
-        scan(1, vec![folder.clone()], known, &m.sources, &m.source_context(), &AtomicBool::new(false), &|ev| {
-            events.borrow_mut().push(ev);
-            true
-        });
-        let events = events.into_inner();
-        let [LibEvent::Folder(1, f, found), LibEvent::Done(1)] = events.as_slice() else { panic!("{events:?}") };
-        assert_eq!(f, &folder);
-        let mut names: Vec<(&str, &str)> = found.iter().map(|t| (t.title.as_str(), t.artist.as_str())).collect();
-        names.sort();
-        assert_eq!(names, [("As it was", "Kept"), ("new", "")], "the text file is no track; the new one shows its name");
+        let found = |reread| {
+            let known = Known { tracks: HashMap::from([(old_path.clone(), old.clone())]), reread };
+            let events = std::cell::RefCell::new(Vec::new());
+            scan(1, vec![folder.clone()], known, &m.sources, &m.source_context(), &AtomicBool::new(false), &|ev| {
+                events.borrow_mut().push(ev);
+                true
+            });
+            let events = events.into_inner();
+            let [LibEvent::Folder(1, f, found), LibEvent::Done(1)] = events.as_slice() else { panic!("{events:?}") };
+            assert_eq!(f, &folder);
+            let mut names: Vec<(String, String, u64)> = found.iter().map(|t| (t.title.clone(), t.artist.clone(), t.added.min(7))).collect();
+            names.sort();
+            names
+        };
+        let name = |title: &str, artist: &str, added| (title.to_string(), artist.to_string(), added);
+        assert_eq!(
+            found(Reread::Changed),
+            [name("As it was", "Kept", 7), name("new", "", 7)],
+            "the text file is no track; the new one shows its name"
+        );
+        assert_eq!(found(Reread::Every), [name("new", "", 7), name("old", "", 7)], "asked for, every file is read again");
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn rescan_folders_reads_every_file_again_even_when_a_scan_restarts() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let reread = |m: &Model| m.library.scan.as_ref().map(|s| s.reread);
+        m.library_rescan(Reread::Changed);
+        assert_eq!(reread(&m), Some(Reread::Changed), "a scan that comes by itself");
+        m.exec(Command::LibraryRescan);
+        assert_eq!(reread(&m), Some(Reread::Every));
+        m.library_rescan(Reread::Changed);
+        assert_eq!(reread(&m), Some(Reread::Every), "a folder added meanwhile does not cut it short");
     }
 
     #[test]
@@ -3176,7 +3229,7 @@ mod tests {
         scan(
             1,
             vec![dir.to_string_lossy().into_owned()],
-            HashMap::new(),
+            Known::default(),
             &m.sources,
             &m.source_context(),
             &AtomicBool::new(false),
@@ -3195,7 +3248,8 @@ mod tests {
     fn a_scan_result_fills_the_library_and_is_saved() {
         let mut m = Model::for_tests();
         m.library.lib.add_folder("/music");
-        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: Vec::new() });
+        m.library.scan =
+            Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: Vec::new(), reread: Reread::Changed });
         m.on_library(LibEvent::Folder(2, "/music".into(), vec![track("/music/x.mp3", "", "", "Stale")]));
         assert!(m.library.lib.tracks.is_empty(), "an older scan's news is dropped");
         m.on_library(LibEvent::Progress(3, 40));
@@ -3527,7 +3581,13 @@ mod tests {
         m.library.lib.add_folder("/music");
         m.library.lib.tracks = vec![file("/music/a.mp3")];
         m.library.lib.stats.rate(&m.paths.stats_file(), "/music/a.mp3", Rating::new(4).unwrap());
-        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: m.library.lib.tracks.clone() });
+        m.library.scan = Some(Scan {
+            id: 3,
+            done: 0,
+            cancel: Arc::new(AtomicBool::new(false)),
+            before: m.library.lib.tracks.clone(),
+            reread: Reread::Changed,
+        });
         m.on_library(LibEvent::Folder(3, "/music".into(), vec![file("/music/sorted/01 Song.mp3")]));
         m.on_library(LibEvent::Done(3));
         let kept = popamp_core::stats::Stats::load(&m.paths.stats_file());

@@ -234,7 +234,7 @@ impl Model {
         });
         let mut m = Self::with_engine(paths, config, engine, sources, Events(Some(proxy)));
         if m.settings().ml_scan_at_start {
-            m.library_rescan();
+            m.library_rescan(crate::library::Reread::Changed);
         }
         m.check_for_update();
         m
@@ -1462,7 +1462,7 @@ impl Model {
             C::LibraryEnqueue => self.library_add(AddMode::Append),
             C::LibraryAudition => self.library_audition(),
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
-            C::LibraryRescan => self.library_rescan(),
+            C::LibraryRescan => self.library_rescan(crate::library::Reread::Every),
             C::LibraryRemoveFolder => self.library_remove_folder(),
             C::LibraryColumnArtist
             | C::LibraryColumnTitle
