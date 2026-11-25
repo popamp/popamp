@@ -9,6 +9,16 @@
   <summary xml:lang="ru">Аудиоплеер со скинами в духе Winamp</summary>
   <summary xml:lang="ko">Winamp 스타일의 스킨 지원 오디오 플레이어</summary>
   <summary xml:lang="zh_CN">Winamp 风格的可换肤音频播放器</summary>
+  <summary xml:lang="cs">Zvukový přehrávač se skiny ve stylu Winampu</summary>
+  <summary xml:lang="de">Audioplayer mit Skins im Stil von Winamp</summary>
+  <summary xml:lang="el">Πρόγραμμα αναπαραγωγής ήχου με θέματα σε στιλ Winamp</summary>
+  <summary xml:lang="es">Reproductor de audio con skins al estilo de Winamp</summary>
+  <summary xml:lang="fr">Lecteur audio à skins dans le style de Winamp</summary>
+  <summary xml:lang="it">Lettore audio con skin in stile Winamp</summary>
+  <summary xml:lang="nl">Audiospeler met skins in de stijl van Winamp</summary>
+  <summary xml:lang="pl">Odtwarzacz audio ze skórkami w stylu Winampa</summary>
+  <summary xml:lang="pt_BR">Player de áudio com skins no estilo do Winamp</summary>
+  <summary xml:lang="uk">Аудіоплеєр зі скінами в дусі Winamp</summary>
   <description>
     <p>
       Popamp is a desktop music player in the spirit of Winamp 2: a main
@@ -18,35 +28,115 @@
     <p xml:lang="ru">Popamp — музыкальный плеер для рабочего стола в духе Winamp 2: главное окно, 10-полосный эквалайзер и плейлист, которые стыкуются друг с другом, и новый облик, когда захочется.</p>
     <p xml:lang="ko">Popamp는 Winamp 2의 정신을 이은 데스크톱 음악 플레이어입니다. 서로 붙는 메인 창, 10밴드 이퀄라이저, 재생목록이 있고, 원할 때마다 모습을 바꿀 수 있습니다.</p>
     <p xml:lang="zh_CN">Popamp 是一款承袭 Winamp 2 风格的桌面音乐播放器：主窗口、10 段均衡器和播放列表可相互吸附，随时都能换个外观。</p>
+    <p xml:lang="cs">Popamp je hudební přehrávač pro desktop v duchu Winampu 2: hlavní okno, desetipásmový ekvalizér a playlist, které se k sobě přichytávají, a nový vzhled, kdykoli se vám zachce.</p>
+    <p xml:lang="de">Popamp ist ein Musikplayer für den Desktop im Geist von Winamp 2: Hauptfenster, 10-Band-Equalizer und Wiedergabeliste rasten aneinander ein, und ein neues Aussehen gibt es, wann immer Sie möchten.</p>
+    <p xml:lang="el">Το Popamp είναι πρόγραμμα αναπαραγωγής μουσικής για την επιφάνεια εργασίας στο πνεύμα του Winamp 2: κύριο παράθυρο, ισοσταθμιστής 10 ζωνών και λίστα αναπαραγωγής που κολλούν μεταξύ τους, και νέα εμφάνιση όποτε τη θέλετε.</p>
+    <p xml:lang="es">Popamp es un reproductor de música de escritorio con el espíritu de Winamp 2: una ventana principal, un ecualizador de 10 bandas y una lista de reproducción que se acoplan entre sí, y un aspecto nuevo cuando usted quiera.</p>
+    <p xml:lang="fr">Popamp est un lecteur de musique de bureau dans l’esprit de Winamp 2 : une fenêtre principale, un égaliseur 10 bandes et une liste de lecture qui se collent entre eux, et un nouveau look quand vous le voulez.</p>
+    <p xml:lang="it">Popamp è un lettore musicale per desktop nello spirito di Winamp 2: una finestra principale, un equalizzatore a 10 bande e una playlist che si agganciano tra loro, e un aspetto nuovo quando vuoi.</p>
+    <p xml:lang="nl">Popamp is een muziekspeler voor de desktop in de geest van Winamp 2: een hoofdvenster, een equalizer met 10 banden en een afspeellijst die aan elkaar vastklikken, en een nieuw uiterlijk wanneer je maar wilt.</p>
+    <p xml:lang="pl">Popamp to odtwarzacz muzyki na pulpit w duchu Winampa 2: okno główne, 10-pasmowy korektor i playlista, które przyciągają się do siebie, i nowy wygląd, kiedy tylko zechcesz.</p>
+    <p xml:lang="pt_BR">O Popamp é um player de música para desktop no espírito do Winamp 2: janela principal, equalizador de 10 bandas e playlist que se encaixam uns nos outros, e um visual novo sempre que você quiser.</p>
+    <p xml:lang="uk">Popamp — музичний плеєр для робочого столу в дусі Winamp 2: головне вікно, 10-смуговий еквалайзер і плейлист, що прилипають одне до одного, і новий вигляд, коли забажаєте.</p>
     <ul>
       <li>Its own skins are drawn as vectors and stay sharp at any size, from x1 to x3.</li>
       <li xml:lang="ru">Собственные скины нарисованы векторами и остаются чёткими при любом размере, от x1 до x3.</li>
       <li xml:lang="ko">자체 스킨은 벡터로 그려져 x1부터 x3까지 어떤 크기에서도 선명합니다.</li>
       <li xml:lang="zh_CN">自带皮肤以矢量绘制，从 x1 到 x3 任何尺寸都保持清晰。</li>
+      <li xml:lang="cs">Vlastní skiny jsou kreslené vektorově a zůstávají ostré v každé velikosti, od x1 do x3.</li>
+      <li xml:lang="de">Die eigenen Skins sind als Vektoren gezeichnet und bleiben in jeder Größe scharf, von x1 bis x3.</li>
+      <li xml:lang="el">Τα δικά του θέματα είναι σχεδιασμένα διανυσματικά και μένουν καθαρά σε κάθε μέγεθος, από x1 έως x3.</li>
+      <li xml:lang="es">Sus propios skins están dibujados con vectores y se ven nítidos a cualquier tamaño, de x1 a x3.</li>
+      <li xml:lang="fr">Ses propres skins sont dessinés en vectoriel et restent nets à toute taille, de x1 à x3.</li>
+      <li xml:lang="it">Le sue skin sono disegnate in vettoriale e restano nitide a ogni dimensione, da x1 a x3.</li>
+      <li xml:lang="nl">De eigen skins zijn als vectoren getekend en blijven scherp op elke grootte, van x1 tot x3.</li>
+      <li xml:lang="pl">Własne skórki są rysowane wektorowo i pozostają ostre w każdym rozmiarze, od x1 do x3.</li>
+      <li xml:lang="pt_BR">As skins próprias são desenhadas em vetor e ficam nítidas em qualquer tamanho, de x1 a x3.</li>
+      <li xml:lang="uk">Власні скіни намальовані векторами й лишаються чіткими за будь-якого розміру, від x1 до x3.</li>
       <li>Opens classic .wsz skins, and installs skins from the Winamp Skin Museum and the popamp.app gallery.</li>
       <li xml:lang="ru">Открывает классические скины .wsz и устанавливает скины из Winamp Skin Museum и галереи popamp.app.</li>
       <li xml:lang="ko">클래식 .wsz 스킨을 열고, Winamp Skin Museum과 popamp.app 갤러리에서 스킨을 설치합니다.</li>
       <li xml:lang="zh_CN">可打开经典 .wsz 皮肤，并从 Winamp Skin Museum 和 popamp.app 图库安装皮肤。</li>
+      <li xml:lang="cs">Otevírá klasické skiny .wsz a instaluje skiny z Winamp Skin Museum a galerie popamp.app.</li>
+      <li xml:lang="de">Öffnet klassische .wsz-Skins und installiert Skins aus dem Winamp Skin Museum und der Galerie popamp.app.</li>
+      <li xml:lang="el">Ανοίγει κλασικά θέματα .wsz και εγκαθιστά θέματα από το Winamp Skin Museum και τη συλλογή popamp.app.</li>
+      <li xml:lang="es">Abre skins clásicos .wsz e instala skins del Winamp Skin Museum y de la galería popamp.app.</li>
+      <li xml:lang="fr">Ouvre les skins classiques .wsz et installe des skins depuis le Winamp Skin Museum et la galerie popamp.app.</li>
+      <li xml:lang="it">Apre le skin classiche .wsz e installa skin dal Winamp Skin Museum e dalla galleria popamp.app.</li>
+      <li xml:lang="nl">Opent klassieke .wsz-skins en installeert skins uit het Winamp Skin Museum en de galerij popamp.app.</li>
+      <li xml:lang="pl">Otwiera klasyczne skórki .wsz i instaluje skórki z Winamp Skin Museum i galerii popamp.app.</li>
+      <li xml:lang="pt_BR">Abre skins clássicas .wsz e instala skins do Winamp Skin Museum e da galeria popamp.app.</li>
+      <li xml:lang="uk">Відкриває класичні скіни .wsz і встановлює скіни з Winamp Skin Museum та галереї popamp.app.</li>
       <li>Gapless playback, ReplayGain, an equalizer with .eqf presets and internet radio.</li>
       <li xml:lang="ru">Воспроизведение без пауз, ReplayGain, эквалайзер с пресетами .eqf и интернет-радио.</li>
       <li xml:lang="ko">갭리스 재생, ReplayGain, .eqf 프리셋을 지원하는 이퀄라이저, 인터넷 라디오.</li>
       <li xml:lang="zh_CN">无缝播放、ReplayGain、支持 .eqf 预设的均衡器以及网络电台。</li>
+      <li xml:lang="cs">Přehrávání bez mezer, ReplayGain, ekvalizér s předvolbami .eqf a internetové rádio.</li>
+      <li xml:lang="de">Lückenlose Wiedergabe, ReplayGain, ein Equalizer mit .eqf-Presets und Internetradio.</li>
+      <li xml:lang="el">Αναπαραγωγή χωρίς κενά, ReplayGain, ισοσταθμιστής με προρρυθμίσεις .eqf και διαδικτυακό ραδιόφωνο.</li>
+      <li xml:lang="es">Reproducción sin pausas, ReplayGain, un ecualizador con preajustes .eqf y radio por internet.</li>
+      <li xml:lang="fr">Lecture sans blanc, ReplayGain, un égaliseur avec préréglages .eqf et la radio sur Internet.</li>
+      <li xml:lang="it">Riproduzione senza pause, ReplayGain, un equalizzatore con preset .eqf e radio via internet.</li>
+      <li xml:lang="nl">Naadloos afspelen, ReplayGain, een equalizer met .eqf-presets en internetradio.</li>
+      <li xml:lang="pl">Odtwarzanie bez przerw, ReplayGain, korektor z ustawieniami .eqf i radio internetowe.</li>
+      <li xml:lang="pt_BR">Reprodução sem pausas, ReplayGain, equalizador com predefinições .eqf e rádio pela internet.</li>
+      <li xml:lang="uk">Відтворення без пауз, ReplayGain, еквалайзер з пресетами .eqf та інтернет-радіо.</li>
       <li>Plays MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, tracker modules and more.</li>
       <li xml:lang="ru">Играет MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, трекерные модули и многое другое.</li>
       <li xml:lang="ko">MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, 트래커 모듈 등을 재생합니다.</li>
       <li xml:lang="zh_CN">支持播放 MP3、AAC、FLAC、Ogg Vorbis、Opus、WAV、ALAC、MIDI、音轨模块等格式。</li>
+      <li xml:lang="cs">Přehrává MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, trackerové moduly a další.</li>
+      <li xml:lang="de">Spielt MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, Tracker-Module und mehr.</li>
+      <li xml:lang="el">Παίζει MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, αρθρώματα tracker και άλλα.</li>
+      <li xml:lang="es">Reproduce MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, módulos de tracker y más.</li>
+      <li xml:lang="fr">Lit le MP3, l’AAC, le FLAC, l’Ogg Vorbis, l’Opus, le WAV, l’ALAC, le MIDI, les modules de tracker et plus encore.</li>
+      <li xml:lang="it">Riproduce MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, moduli tracker e altro.</li>
+      <li xml:lang="nl">Speelt MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, trackermodules en meer.</li>
+      <li xml:lang="pl">Odtwarza MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, moduły trackerowe i więcej.</li>
+      <li xml:lang="pt_BR">Toca MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, módulos de tracker e mais.</li>
+      <li xml:lang="uk">Грає MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, трекерні модулі та інше.</li>
       <li>Media keys and the desktop's player controls through MPRIS.</li>
       <li xml:lang="ru">Медиаклавиши и управление плеером из рабочего стола через MPRIS.</li>
       <li xml:lang="ko">MPRIS를 통한 미디어 키 및 데스크톱 플레이어 컨트롤.</li>
       <li xml:lang="zh_CN">通过 MPRIS 支持媒体键和桌面播放器控件。</li>
+      <li xml:lang="cs">Mediální klávesy a ovládání přehrávače z prostředí přes MPRIS.</li>
+      <li xml:lang="de">Medientasten und die Player-Steuerung des Desktops über MPRIS.</li>
+      <li xml:lang="el">Πλήκτρα πολυμέσων και χειριστήρια της επιφάνειας εργασίας μέσω MPRIS.</li>
+      <li xml:lang="es">Teclas multimedia y controles del escritorio mediante MPRIS.</li>
+      <li xml:lang="fr">Les touches multimédias et les commandes du bureau via MPRIS.</li>
+      <li xml:lang="it">Tasti multimediali e controlli del desktop tramite MPRIS.</li>
+      <li xml:lang="nl">Mediatoetsen en de spelerbediening van de desktop via MPRIS.</li>
+      <li xml:lang="pl">Klawisze multimedialne i sterowanie odtwarzaczem z pulpitu przez MPRIS.</li>
+      <li xml:lang="pt_BR">Teclas de mídia e controles do player na área de trabalho via MPRIS.</li>
+      <li xml:lang="uk">Медіаклавіші та керування плеєром із робочого столу через MPRIS.</li>
       <li>Toolbar mode turns the player into a strip along the top or bottom of the screen.</li>
       <li xml:lang="ru">Режим панели превращает плеер в полосу вдоль верхнего или нижнего края экрана.</li>
       <li xml:lang="ko">툴바 모드는 플레이어를 화면 위쪽이나 아래쪽을 따라 놓인 띠로 바꿉니다.</li>
       <li xml:lang="zh_CN">工具栏模式将播放器变为沿屏幕顶部或底部的一条横栏。</li>
+      <li xml:lang="cs">Režim lišty promění přehrávač v pruh podél horního nebo dolního okraje obrazovky.</li>
+      <li xml:lang="de">Der Leistenmodus macht den Player zu einem Streifen am oberen oder unteren Bildschirmrand.</li>
+      <li xml:lang="el">Η λειτουργία μπάρας κάνει το πρόγραμμα μια λωρίδα κατά μήκος του πάνω ή του κάτω άκρου της οθόνης.</li>
+      <li xml:lang="es">El modo barra convierte el reproductor en una franja a lo largo del borde superior o inferior de la pantalla.</li>
+      <li xml:lang="fr">Le mode barre transforme le lecteur en bande le long du haut ou du bas de l’écran.</li>
+      <li xml:lang="it">La modalità barra trasforma il lettore in una striscia lungo il bordo superiore o inferiore dello schermo.</li>
+      <li xml:lang="nl">De balkmodus maakt van de speler een strook langs de boven- of onderkant van het scherm.</li>
+      <li xml:lang="pl">Tryb paska zmienia odtwarzacz w pasek wzdłuż górnej lub dolnej krawędzi ekranu.</li>
+      <li xml:lang="pt_BR">O modo barra transforma o player numa faixa ao longo do topo ou da base da tela.</li>
+      <li xml:lang="uk">Режим панелі перетворює плеєр на смугу вздовж верхнього чи нижнього краю екрана.</li>
       <li>No account, no cloud, no library to import.</li>
       <li xml:lang="ru">Без учётной записи, без облака, без обязательного импорта библиотеки.</li>
       <li xml:lang="ko">계정도, 클라우드도, 가져올 라이브러리도 필요 없습니다.</li>
       <li xml:lang="zh_CN">无需账户，无需云端，无需导入媒体库。</li>
+      <li xml:lang="cs">Žádný účet, žádný cloud, žádná knihovna k importu.</li>
+      <li xml:lang="de">Kein Konto, keine Cloud, keine Bibliothek zum Importieren.</li>
+      <li xml:lang="el">Χωρίς λογαριασμό, χωρίς cloud, χωρίς βιβλιοθήκη για εισαγωγή.</li>
+      <li xml:lang="es">Sin cuenta, sin nube, sin biblioteca que importar.</li>
+      <li xml:lang="fr">Pas de compte, pas de cloud, pas de bibliothèque à importer.</li>
+      <li xml:lang="it">Nessun account, nessun cloud, nessuna libreria da importare.</li>
+      <li xml:lang="nl">Geen account, geen cloud, geen bibliotheek om te importeren.</li>
+      <li xml:lang="pl">Bez konta, bez chmury, bez biblioteki do importowania.</li>
+      <li xml:lang="pt_BR">Sem conta, sem nuvem, sem biblioteca para importar.</li>
+      <li xml:lang="uk">Без облікового запису, без хмари, без обов’язкового імпорту медіатеки.</li>
     </ul>
   </description>
   <launchable type="desktop-id">popamp.desktop</launchable>
@@ -70,6 +160,16 @@
       <caption xml:lang="ru">Главное окно, эквалайзер и плейлист со стандартным скином</caption>
       <caption xml:lang="ko">기본 스킨의 메인 창, 이퀄라이저, 재생목록</caption>
       <caption xml:lang="zh_CN">默认皮肤下的主窗口、均衡器和播放列表</caption>
+      <caption xml:lang="cs">Hlavní okno, ekvalizér a playlist s výchozím skinem</caption>
+      <caption xml:lang="de">Hauptfenster, Equalizer und Wiedergabeliste mit dem Standard-Skin</caption>
+      <caption xml:lang="el">Το κύριο παράθυρο, ο ισοσταθμιστής και η λίστα αναπαραγωγής με το προεπιλεγμένο θέμα</caption>
+      <caption xml:lang="es">La ventana principal, el ecualizador y la lista de reproducción con el skin predeterminado</caption>
+      <caption xml:lang="fr">La fenêtre principale, l’égaliseur et la liste de lecture avec le skin par défaut</caption>
+      <caption xml:lang="it">La finestra principale, l’equalizzatore e la playlist con la skin predefinita</caption>
+      <caption xml:lang="nl">Het hoofdvenster, de equalizer en de afspeellijst met de standaardskin</caption>
+      <caption xml:lang="pl">Okno główne, korektor i playlista z domyślną skórką</caption>
+      <caption xml:lang="pt_BR">A janela principal, o equalizador e a playlist com a skin padrão</caption>
+      <caption xml:lang="uk">Головне вікно, еквалайзер і плейлист зі стандартним скіном</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/default.png</image>
     </screenshot>
     <screenshot>
@@ -77,6 +177,16 @@
       <caption xml:lang="ru">Скин Steel</caption>
       <caption xml:lang="ko">Steel 스킨</caption>
       <caption xml:lang="zh_CN">Steel 皮肤</caption>
+      <caption xml:lang="cs">Skin Steel</caption>
+      <caption xml:lang="de">Der Skin Steel</caption>
+      <caption xml:lang="el">Το θέμα Steel</caption>
+      <caption xml:lang="es">El skin Steel</caption>
+      <caption xml:lang="fr">Le skin Steel</caption>
+      <caption xml:lang="it">La skin Steel</caption>
+      <caption xml:lang="nl">De skin Steel</caption>
+      <caption xml:lang="pl">Skórka Steel</caption>
+      <caption xml:lang="pt_BR">A skin Steel</caption>
+      <caption xml:lang="uk">Скін Steel</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/steel.png</image>
     </screenshot>
     <screenshot>
@@ -84,6 +194,16 @@
       <caption xml:lang="ru">Скин Modern</caption>
       <caption xml:lang="ko">Modern 스킨</caption>
       <caption xml:lang="zh_CN">Modern 皮肤</caption>
+      <caption xml:lang="cs">Skin Modern</caption>
+      <caption xml:lang="de">Der Skin Modern</caption>
+      <caption xml:lang="el">Το θέμα Modern</caption>
+      <caption xml:lang="es">El skin Modern</caption>
+      <caption xml:lang="fr">Le skin Modern</caption>
+      <caption xml:lang="it">La skin Modern</caption>
+      <caption xml:lang="nl">De skin Modern</caption>
+      <caption xml:lang="pl">Skórka Modern</caption>
+      <caption xml:lang="pt_BR">A skin Modern</caption>
+      <caption xml:lang="uk">Скін Modern</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/modern.png</image>
     </screenshot>
     <screenshot>
@@ -91,6 +211,16 @@
       <caption xml:lang="ru">Режим панели: плеер полосой вдоль нижнего края экрана</caption>
       <caption xml:lang="ko">툴바 모드: 화면 아래쪽을 따라 놓인 띠 형태의 플레이어</caption>
       <caption xml:lang="zh_CN">工具栏模式：播放器作为沿屏幕底部的一条横栏</caption>
+      <caption xml:lang="cs">Režim lišty: přehrávač jako pruh podél dolního okraje obrazovky</caption>
+      <caption xml:lang="de">Leistenmodus: der Player als Streifen am unteren Bildschirmrand</caption>
+      <caption xml:lang="el">Λειτουργία μπάρας: το πρόγραμμα ως λωρίδα κατά μήκος του κάτω άκρου της οθόνης</caption>
+      <caption xml:lang="es">Modo barra: el reproductor como franja a lo largo del borde inferior de la pantalla</caption>
+      <caption xml:lang="fr">Mode barre : le lecteur en bande le long du bas de l’écran</caption>
+      <caption xml:lang="it">Modalità barra: il lettore come striscia lungo il bordo inferiore dello schermo</caption>
+      <caption xml:lang="nl">Balkmodus: de speler als strook langs de onderkant van het scherm</caption>
+      <caption xml:lang="pl">Tryb paska: odtwarzacz jako pasek wzdłuż dolnej krawędzi ekranu</caption>
+      <caption xml:lang="pt_BR">Modo barra: o player como faixa ao longo da base da tela</caption>
+      <caption xml:lang="uk">Режим панелі: плеєр смугою вздовж нижнього краю екрана</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/bar.png</image>
     </screenshot>
   </screenshots>

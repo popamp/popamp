@@ -17,23 +17,61 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::OnceLock;
 
 /// The languages the program speaks; English is the one in the code.
+/// [`Lang::ALL`] lists them as the drop-down of languages shows them:
+/// English, then by their own names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Lang {
     En,
+    Cs,
+    De,
+    El,
+    Es,
+    Fr,
+    It,
+    Nl,
+    Pl,
+    /// As spoken in Brazil; Portugal's Portuguese reads it too.
+    Pt,
     Ru,
+    Uk,
     Ko,
     /// Simplified, as on the mainland and in Singapore.
     Zh,
 }
 
 impl Lang {
-    pub const ALL: [Lang; 4] = [Lang::En, Lang::Ru, Lang::Ko, Lang::Zh];
+    pub const ALL: [Lang; 14] = [
+        Lang::En,
+        Lang::Cs,
+        Lang::De,
+        Lang::Es,
+        Lang::Fr,
+        Lang::It,
+        Lang::Nl,
+        Lang::Pl,
+        Lang::Pt,
+        Lang::El,
+        Lang::Ru,
+        Lang::Uk,
+        Lang::Ko,
+        Lang::Zh,
+    ];
 
     /// Its code, as locale names start with it and the settings keep it.
     pub fn code(self) -> &'static str {
         match self {
             Lang::En => "en",
+            Lang::Cs => "cs",
+            Lang::De => "de",
+            Lang::El => "el",
+            Lang::Es => "es",
+            Lang::Fr => "fr",
+            Lang::It => "it",
+            Lang::Nl => "nl",
+            Lang::Pl => "pl",
+            Lang::Pt => "pt",
             Lang::Ru => "ru",
+            Lang::Uk => "uk",
             Lang::Ko => "ko",
             Lang::Zh => "zh",
         }
@@ -43,7 +81,17 @@ impl Lang {
     pub fn name(self) -> &'static str {
         match self {
             Lang::En => "English",
+            Lang::Cs => "Čeština",
+            Lang::De => "Deutsch",
+            Lang::El => "Ελληνικά",
+            Lang::Es => "Español",
+            Lang::Fr => "Français",
+            Lang::It => "Italiano",
+            Lang::Nl => "Nederlands",
+            Lang::Pl => "Polski",
+            Lang::Pt => "Português (Brasil)",
             Lang::Ru => "Русский",
+            Lang::Uk => "Українська",
             Lang::Ko => "한국어",
             Lang::Zh => "简体中文",
         }
@@ -52,7 +100,17 @@ impl Lang {
     fn file(self) -> &'static str {
         match self {
             Lang::En => include_str!("../locales/en.toml"),
+            Lang::Cs => include_str!("../locales/cs.toml"),
+            Lang::De => include_str!("../locales/de.toml"),
+            Lang::El => include_str!("../locales/el.toml"),
+            Lang::Es => include_str!("../locales/es.toml"),
+            Lang::Fr => include_str!("../locales/fr.toml"),
+            Lang::It => include_str!("../locales/it.toml"),
+            Lang::Nl => include_str!("../locales/nl.toml"),
+            Lang::Pl => include_str!("../locales/pl.toml"),
+            Lang::Pt => include_str!("../locales/pt.toml"),
             Lang::Ru => include_str!("../locales/ru.toml"),
+            Lang::Uk => include_str!("../locales/uk.toml"),
             Lang::Ko => include_str!("../locales/ko.toml"),
             Lang::Zh => include_str!("../locales/zh.toml"),
         }
@@ -62,23 +120,35 @@ impl Lang {
     #[cfg(test)]
     fn forms(self) -> usize {
         match self {
-            Lang::En => 2,
-            Lang::Ru => 3,
             Lang::Ko | Lang::Zh => 1,
+            Lang::Ru | Lang::Uk | Lang::Pl | Lang::Cs => 3,
+            _ => 2,
         }
     }
 
     /// Which plural form goes with `n`.
     fn form(self, n: u64) -> usize {
         match self {
-            Lang::En => usize::from(n != 1),
+            Lang::Ko | Lang::Zh => 0,
             // 1, 21, 101 файл; 2-4, 22-24 файла; 5-20, 25-30, 11-14 файлов.
-            Lang::Ru => match (n % 10, n % 100) {
+            Lang::Ru | Lang::Uk => match (n % 10, n % 100) {
                 (1, h) if h != 11 => 0,
                 (2..=4, h) if !(12..=14).contains(&h) => 1,
                 _ => 2,
             },
-            Lang::Ko | Lang::Zh => 0,
+            // Only 1 itself is the one form: 21 plików.
+            Lang::Pl => match (n, n % 10, n % 100) {
+                (1, _, _) => 0,
+                (_, 2..=4, h) if !(12..=14).contains(&h) => 1,
+                _ => 2,
+            },
+            Lang::Cs => match n {
+                1 => 0,
+                2..=4 => 1,
+                _ => 2,
+            },
+            Lang::Fr | Lang::Pt => usize::from(n > 1),
+            _ => usize::from(n != 1),
         }
     }
 
@@ -176,22 +246,32 @@ pub fn system_language() -> Lang {
 /// The text of `key` in the current language, else in English, else the
 /// key itself, so that a missing text shows where it is missing.
 pub fn tr(key: &'static str) -> &'static str {
+    text_in(current(), key)
+}
+
+/// The form of the counted text `key` that goes with `n`, as [`tr`] finds it.
+pub fn tr_n(n: u64, key: &'static str) -> &'static str {
+    form_in(current(), n, key)
+}
+
+/// [`tr`] in `lang`.
+fn text_in(lang: Lang, key: &'static str) -> &'static str {
     let one = |lang| match table(lang).get(key) {
         Some(Text::One(t)) => Some(*t),
         Some(Text::Forms(f)) => f.first().copied(),
         None => None,
     };
-    one(current()).or_else(|| one(Lang::En)).unwrap_or(key)
+    one(lang).or_else(|| one(Lang::En)).unwrap_or(key)
 }
 
-/// The form of the counted text `key` that goes with `n`, as [`tr`] finds it.
-pub fn tr_n(n: u64, key: &'static str) -> &'static str {
+/// [`tr_n`] in `lang`.
+fn form_in(lang: Lang, n: u64, key: &'static str) -> &'static str {
     let form = |lang: Lang| match table(lang).get(key) {
         Some(Text::Forms(f)) => f.get(lang.form(n)).copied(),
         Some(Text::One(t)) => Some(*t),
         None => None,
     };
-    form(current()).or_else(|| form(Lang::En)).unwrap_or(key)
+    form(lang).or_else(|| form(Lang::En)).unwrap_or(key)
 }
 
 /// `text` with each `{name}` of `values` written in; other braces stay.
@@ -271,12 +351,27 @@ fn from_env(var: impl Fn(&str) -> Option<String>) -> Option<Lang> {
 /// The language of the Windows display.
 #[cfg(windows)]
 fn system() -> Option<Lang> {
-    // The primary language of a LANGID is its low ten bits; for Chinese
-    // the rest says the region: 0x0804 the mainland, 0x1004 Singapore.
-    let id = unsafe { windows_sys::Win32::Globalization::GetUserDefaultUILanguage() };
+    of_windows(unsafe { windows_sys::Win32::Globalization::GetUserDefaultUILanguage() })
+}
+
+/// The language of a Windows LANGID. Its primary language is the low ten
+/// bits; for Chinese the rest says the region: 0x0804 the mainland,
+/// 0x1004 Singapore.
+#[cfg_attr(not(windows), allow(dead_code))]
+fn of_windows(id: u16) -> Option<Lang> {
     match id & 0x3ff {
         0x09 => Some(Lang::En),
+        0x05 => Some(Lang::Cs),
+        0x07 => Some(Lang::De),
+        0x08 => Some(Lang::El),
+        0x0a => Some(Lang::Es),
+        0x0c => Some(Lang::Fr),
+        0x10 => Some(Lang::It),
+        0x13 => Some(Lang::Nl),
+        0x15 => Some(Lang::Pl),
+        0x16 => Some(Lang::Pt),
         0x19 => Some(Lang::Ru),
+        0x22 => Some(Lang::Uk),
         0x12 => Some(Lang::Ko),
         0x04 if matches!(id, 0x0804 | 0x1004) => Some(Lang::Zh),
         _ => None,
@@ -321,6 +416,26 @@ mod tests {
     }
 
     #[test]
+    fn european_counts_take_their_forms() {
+        let slavic = [1, 2, 4, 5, 11, 12, 14, 21, 22, 25, 101, 111];
+        assert_eq!(slavic.map(|n| Lang::Uk.form(n)), [0, 1, 1, 2, 2, 2, 2, 0, 1, 2, 0, 2]);
+        // 1 plik; 2-4, 22-24 pliki; 5-21, 25, 101, 111 plików.
+        assert_eq!(slavic.map(|n| Lang::Pl.form(n)), [0, 1, 1, 2, 2, 2, 2, 2, 1, 2, 2, 2]);
+        // 1 soubor; 2-4 soubory; 5 and up souborů.
+        assert_eq!(slavic.map(|n| Lang::Cs.form(n)), [0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+        // 0 and 1 take the one form in French and Brazilian Portuguese.
+        for lang in [Lang::Fr, Lang::Pt] {
+            assert_eq!([0, 1, 2, 5].map(|n| lang.form(n)), [0, 0, 1, 1], "{lang:?}");
+        }
+        for lang in [Lang::De, Lang::Es, Lang::It, Lang::Nl, Lang::El] {
+            assert_eq!([0, 1, 2, 5].map(|n| lang.form(n)), [1, 0, 1, 1], "{lang:?}");
+        }
+        for lang in Lang::ALL {
+            assert!(slavic.iter().all(|&n| lang.form(n) < lang.forms()), "{lang:?}");
+        }
+    }
+
+    #[test]
     fn locale_names_give_their_language() {
         assert_eq!(Lang::of_locale("ru_RU.UTF-8"), Some(Lang::Ru));
         assert_eq!(Lang::of_locale("en-GB"), Some(Lang::En));
@@ -330,9 +445,23 @@ mod tests {
         assert_eq!(Lang::of_locale("zh_SG"), Some(Lang::Zh));
         assert_eq!(Lang::of_locale("zh_TW.UTF-8"), None);
         assert_eq!(Lang::of_locale("zh-Hant-HK"), None);
-        assert_eq!(Lang::of_locale("de_DE"), None);
+        assert_eq!(Lang::of_locale("de_DE"), Some(Lang::De));
+        assert_eq!(Lang::of_locale("pt_PT.UTF-8"), Some(Lang::Pt));
+        assert_eq!(Lang::of_locale("pt-BR"), Some(Lang::Pt));
+        assert_eq!(Lang::of_locale("uk_UA.UTF-8"), Some(Lang::Uk));
+        assert_eq!(Lang::of_locale("el_GR.UTF-8"), Some(Lang::El));
+        assert_eq!(Lang::of_locale("sv_SE"), None);
         assert_eq!(Lang::of_locale(""), None);
-        assert_eq!(apple_languages("(\n    \"de-DE\",\n    \"ru-RU\"\n)"), Some(Lang::Ru));
+        assert_eq!(apple_languages("(\n    \"sv-SE\",\n    \"ru-RU\"\n)"), Some(Lang::Ru));
+    }
+
+    #[test]
+    fn windows_language_ids_give_their_language() {
+        use Lang::*;
+        let ids = [0x0409, 0x0419, 0x0407, 0x0c07, 0x040c, 0x0c0a, 0x0416, 0x0816, 0x0415, 0x0410, 0x0422, 0x0413, 0x0405, 0x0408];
+        let langs = [En, Ru, De, De, Fr, Es, Pt, Pt, Pl, It, Uk, Nl, Cs, El].map(Some);
+        assert_eq!(ids.map(of_windows), langs);
+        assert_eq!([0x0412, 0x0804, 0x1004, 0x0404, 0x041d].map(of_windows), [Some(Ko), Some(Zh), Some(Zh), None, None]);
     }
 
     #[test]
@@ -341,7 +470,7 @@ mod tests {
             |vars: &'static [(&'static str, &'static str)]| move |k: &str| vars.iter().find(|(n, _)| *n == k).map(|(_, v)| v.to_string());
         assert_eq!(from_env(env(&[("LANG", "ru_RU.UTF-8")])), Some(Lang::Ru));
         assert_eq!(from_env(env(&[("LANG", "en_US.UTF-8"), ("LC_MESSAGES", "ru_RU.UTF-8")])), Some(Lang::Ru));
-        assert_eq!(from_env(env(&[("LANG", "de_DE.UTF-8"), ("LANGUAGE", "de:ru")])), Some(Lang::Ru));
+        assert_eq!(from_env(env(&[("LANG", "sv_SE.UTF-8"), ("LANGUAGE", "sv:ru")])), Some(Lang::Ru));
         assert_eq!(from_env(env(&[("LANG", "C.UTF-8"), ("LANGUAGE", "ru")])), None);
         assert_eq!(from_env(env(&[])), None);
     }
@@ -574,11 +703,11 @@ mod tests {
 
     #[test]
     fn a_text_falls_back_to_english_then_to_its_key() {
-        set(Lang::Ru);
-        let shown = (tr("common.cancel"), tr("no.such.key"));
-        set(Lang::En);
-        assert_eq!(shown, ("Отмена", "no.such.key"));
-        assert_eq!(tr("common.cancel"), "Cancel");
-        assert_eq!(fill(tr_n(5, "library.nTracks"), &[("n", &5)]), "5 tracks");
+        // The language is the program's one setting: other tests read it,
+        // so this one looks up in a language without putting it on.
+        assert_eq!((text_in(Lang::Ru, "common.cancel"), text_in(Lang::Ru, "no.such.key")), ("Отмена", "no.such.key"));
+        assert_eq!(text_in(Lang::En, "common.cancel"), "Cancel");
+        assert_eq!(fill(form_in(Lang::En, 5, "library.nTracks"), &[("n", &5)]), "5 tracks");
+        assert_eq!(fill(form_in(Lang::Pl, 22, "library.nTracks"), &[("n", &22)]), "22 utwory");
     }
 }

@@ -8,11 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- **The interface in Russian, Korean and Simplified Chinese**: menus,
-  windows and messages follow the system's language, or the one picked
-  in Preferences > Desktop. The Korean and Chinese texts were made with
-  AI; corrections are welcome. The desktop entry and the software centre
-  description come in the same languages.
+- **The interface in 13 languages besides English**: Czech, Dutch,
+  French, German, Greek, Italian, Polish, Portuguese (Brazil), Russian,
+  Spanish, Ukrainian, Korean and Simplified Chinese. Menus, windows and
+  messages follow the system's language, or the one picked in
+  Preferences > Desktop. All but the Russian were made with AI;
+  corrections are welcome. The desktop entry and the software centre
+  description come in the same languages, and the Windows installer
+  speaks the ones Inno Setup ships.
 - **Translations by key**: the texts live in `apps/popamp/locales`, the
   English in `en.toml`, in sections such as `[library.menu]`; each
   translation keeps its file's keys in the same order with the English

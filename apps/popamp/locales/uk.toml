@@ -1,0 +1,1193 @@
+# Український переклад інтерфейсу Popamp.
+# Над кожним рядком — його англійський текст з en.toml.
+# Тексти з числом мають три форми: 1 файл, 2 файли, 5 файлів.
+
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Скасувати"
+# Remove
+remove = "Вилучити"
+# Save
+save = "Зберегти"
+# Close
+close = "Закрити"
+# Search
+search = "Знайти"
+# Loading…
+loading = "Завантаження…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Еквалайзер Popamp"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Плейлист Popamp"
+# Popamp Media Library
+popampMediaLibrary = "Медіатека Popamp"
+# Jump to file
+jumpToFile = "Перехід до файлу"
+# File info
+fileInfo = "Відомості про файл"
+# Popamp Preferences
+popampPreferences = "Налаштування Popamp"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp Skin Museum"
+# Popamp Gallery
+popampGallery = "Галерея Popamp"
+# Album art
+albumArt = "Обкладинка альбому"
+# Skin browser
+skinBrowser = "Огляд скінів"
+# History
+history = "Історія"
+# ReplayGain scan
+replayGainScan = "Аналіз ReplayGain"
+# Smart playlist
+smartPlaylist = "Розумний плейлист"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "МЕДІАТЕКА"
+# NOTHING TO ADD
+nothingToAdd = "НЕМАЄ ЧОГО ДОДАТИ"
+# CONNECTING…
+connecting = "З’ЄДНАННЯ…"
+# VOLUME: {pct}%
+volumePct = "ГУЧНІСТЬ: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "БАЛАНС: ЦЕНТР"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "БАЛАНС: {pct}% ЛІВОРУЧ"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "БАЛАНС: {pct}% ПРАВОРУЧ"
+# ERROR: {message}
+error = "ПОМИЛКА: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} ДБ"
+# PREAMP: {db} DB
+preampDb = "ПІДСИЛЕННЯ: {db} ДБ"
+# SKIN ERROR: {e}
+skinError = "ПОМИЛКА СКІНА: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "ЗУПИНКА ПІСЛЯ ПОТОЧНОГО: УВІМК."
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "ЗУПИНКА ПІСЛЯ ПОТОЧНОГО: ВИМК."
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "РУЧНИЙ ПЕРЕХІД: ВИМК."
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "РУЧНИЙ ПЕРЕХІД: УВІМК."
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nАудіоплеєр у стилі Winamp для macOS, Linux і Windows, написаний на Rust.\nДекодування — Symphonia. Класичні (.wsz) і векторні (.psz) скіни.\n\nНалаштування: {config}"
+# About {name}
+aboutName = "Про {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "Про Popamp…"
+  # Play
+  play = "Відтворити"
+  # File…
+  file = "Файл…"
+  # URL…
+  url = "Адреса…"
+  # Folder…
+  folder = "Тека…"
+  # View file info…
+  viewFileInfo = "Відомості про файл…"
+  # Album art
+  albumArt = "Обкладинка альбому"
+  # History…
+  history = "Історія…"
+  # Bookmarks
+  bookmarks = "Закладки"
+  # Main Window
+  mainWindow = "Головне вікно"
+  # Playlist Editor
+  playlistEditor = "Плейлист"
+  # Equalizer
+  equalizer = "Еквалайзер"
+  # Media Library
+  mediaLibrary = "Медіатека"
+  # Arrange windows
+  arrangeWindows = "Розставити вікна"
+  # Top left
+  arrangeTopLeft = "У лівий верхній кут"
+  # Top right
+  arrangeTopRight = "У правий верхній кут"
+  # Colours
+  colours = "Кольори"
+  # On
+  on = "Увімк."
+  # Off
+  off = "Вимк."
+  # Position
+  position = "Положення"
+  # Top of the screen
+  topOfScreen = "Угорі екрана"
+  # Bottom of the screen
+  bottomOfScreen = "Унизу екрана"
+  # Size
+  size = "Розмір"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "На всю ширину, під бічними панелями"
+  # Toolbar mode
+  toolbarMode = "Режим панелі"
+  # Options
+  options = "Параметри"
+  # Playback
+  playback = "Відтворення"
+  # Previous
+  previous = "Попередній"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Next
+  next = "Наступний"
+  # Stop w/ fadeout
+  stopWithFadeout = "Стоп із затуханням"
+  # Stop after current
+  stopAfterCurrent = "Стоп після поточного"
+  # Back 5 seconds
+  back5Seconds = "Назад на 5 секунд"
+  # Fwd 5 seconds
+  fwd5Seconds = "Вперед на 5 секунд"
+  # Start of list
+  startOfList = "Початок списку"
+  # End of list
+  endOfList = "Кінець списку"
+  # 10 tracks back
+  n10TracksBack = "На 10 треків назад"
+  # 10 tracks fwd
+  n10TracksFwd = "На 10 треків вперед"
+  # Jump to time…
+  jumpToTime = "Перейти до часу…"
+  # Jump to file…
+  jumpToFile = "Перейти до файлу…"
+  # Visualization
+  visualization = "Візуалізація"
+  # Skins
+  skins = "Скіни"
+  # Exit
+  exit = "Вихід"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Налаштування…"
+  # Plug-ins…
+  plugIns = "Плагіни…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Галерея (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Час, що минув"
+  # Time remaining
+  timeRemaining = "Час, що лишився"
+  # Always On Top
+  alwaysOnTop = "Поверх усіх вікон"
+  # Double Size
+  doubleSize = "Подвійний розмір"
+  # Size
+  size = "Розмір"
+  # EasyMove
+  easyMove = "EasyMove"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Рухати пристиковані вікна разом"
+  # Windowshade
+  windowshade = "Згорнути у смужку"
+  # Repeat
+  repeat = "Повтор"
+  # Shuffle
+  shuffle = "Випадково"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ручний перехід у плейлисті"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Вимк."
+  # Track gain
+  trackGain = "Рівень треку"
+  # Album gain
+  albumGain = "Рівень альбому"
+  # Title format
+  titleFormat = "Формат назви"
+  # Artist - Title
+  artistTitle = "Виконавець - Назва"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Виконавець - Альбом - ## - Назва"
+  # Title
+  title = "Назва"
+  # File name
+  fileName = "Ім’я файлу"
+  # Equalizer
+  equalizer = "Еквалайзер"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Смуги Winamp (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "Смуги ISO (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Обмежувач (запобігає перевантаженню)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Огляд скінів…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Галерея (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Skin Museum (онлайн)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Аналізатор спектра"
+  # Oscilloscope
+  oscilloscope = "Осцилограф"
+  # Off
+  off = "Вимк."
+  # Normal style
+  normalStyle = "Звичайний стиль"
+  # Fire style
+  fireStyle = "Стиль «вогонь»"
+  # Line style
+  lineStyle = "Стиль «лінії»"
+  # Show peaks
+  showPeaks = "Показувати піки"
+  # Thick bands
+  thickBands = "Товсті смуги"
+  # Scope: dots
+  scopeDots = "Осцилограф: точки"
+  # Scope: lines
+  scopeLines = "Осцилограф: лінії"
+  # Scope: solid
+  scopeSolid = "Осцилограф: суцільний"
+  # Scope: afterglow
+  scopeAfterglow = "Осцилограф: післясвічення"
+
+  [menu.equalizer]
+  # (none)
+  none = "(немає)"
+  # Load
+  load = "Завантажити"
+  # Auto-load presets
+  autoLoadPresets = "Автопресети"
+  # Default
+  default = "Типовий"
+  # From EQF…
+  fromEQF = "З EQF…"
+  # Preset…
+  preset = "Пресет…"
+  # Auto-load preset…
+  autoLoadPreset = "Автопресет…"
+  # To EQF…
+  toEQF = "В EQF…"
+  # Delete
+  delete = "Видалити"
+  # Reset to flat
+  resetToFlat = "Скинути"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Чітке масштабування"
+  # Whole multiples only
+  wholeMultiplesOnly = "Лише цілі кратні"
+  # Nearest pixel
+  nearestPixel = "Найближчий піксель"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Відтворити"
+  # Remove item(s)
+  removeItems = "Вилучити записи"
+  # Crop item(s)
+  cropItems = "Лишити тільки виділені"
+  # View file info…
+  viewFileInfo = "Відомості про файл…"
+  # Playlist entry…
+  playlistEntry = "Запис плейлиста…"
+  # Bookmark item(s)
+  bookmarkItems = "Додати в закладки"
+  # Scan ReplayGain
+  scanReplayGain = "Аналіз ReplayGain"
+  # Sort
+  sort = "Сортування"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "Створити HTML-плейлист…"
+  # Options
+  options = "Параметри"
+  # Sort list by title
+  sortListByTitle = "Сортувати за назвою"
+  # Sort list by filename
+  sortListByFilename = "Сортувати за ім’ям файлу"
+  # Sort list by path and filename
+  sortListByPath = "Сортувати за шляхом та ім’ям файлу"
+  # Reverse list
+  reverseList = "Обернути список"
+  # Randomize list
+  randomizeList = "Перемішати список"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Вилучити відсутні файли"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Видалити виділені файли з диска…"
+  # Previous
+  previous = "Попередній"
+  # Start of list
+  startOfList = "Початок списку"
+  # Rewind 5 seconds
+  rewind5Seconds = "Перемотати на 5 секунд назад"
+  # Play/restart
+  playRestart = "Відтворити/спочатку"
+  # Open URL…
+  openURL = "Відкрити адресу…"
+  # Open file…
+  openFile = "Відкрити файл…"
+  # Pause/Unpause
+  pauseUnpause = "Пауза/продовжити"
+  # Stop
+  stop = "Стоп"
+  # Stop w/ fadeout
+  stopWithFadeout = "Стоп із затуханням"
+  # Stop after current
+  stopAfterCurrent = "Стоп після поточного"
+  # Next
+  next = "Наступний"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "Перемотати на 5 секунд вперед"
+  # End of list
+  endOfList = "Кінець списку"
+  # Open folder…
+  openFolder = "Відкрити теку…"
+  # Jump to time…
+  jumpToTime = "Перейти до часу…"
+  # Forward 5 seconds
+  forward5Seconds = "Вперед на 5 секунд"
+  # Repeat
+  repeat = "Повтор"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ручний перехід у плейлисті"
+  # Shuffle
+  shuffle = "Випадково"
+  # Time elapsed
+  timeElapsed = "Час, що минув"
+  # Time remaining
+  timeRemaining = "Час, що лишився"
+  # View file info…
+  viewFileInfo = "Відомості про файл…"
+  # Jump to file…
+  jumpToFile = "Перейти до файлу…"
+  # Autoscroll song name
+  autoscrollSongName = "Прокручувати назву"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["ДОДАНО {n} ЗАКЛАДКУ", "ДОДАНО {n} ЗАКЛАДКИ", "ДОДАНО {n} ЗАКЛАДОК"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Додати поточний у закладки"
+  # Remove bookmark…
+  removeBookmark = "Вилучити закладку…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Показати Popamp"
+  # Previous
+  previous = "Попередній"
+  # Play
+  play = "Відтворити"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Next
+  next = "Наступний"
+  # Shuffle
+  shuffle = "Випадково"
+  # Repeat
+  repeat = "Повтор"
+  # Exit
+  exit = "Вихід"
+
+  [menu.update]
+  # Download…
+  download = "Завантажити…"
+  # Update through your package manager
+  throughPackageManager = "Оновити через менеджер пакунків"
+  # Skip this version
+  skipThisVersion = "Пропустити цю версію"
+  # Popamp {version} is out
+  popampVersionIsOut = "Вийшов Popamp {version}"
+
+[dialog]
+# Media files
+mediaFiles = "Медіафайли"
+# All files
+allFiles = "Усі файли"
+# Open file(s)
+openFiles = "Відкрити файли"
+# Open folder
+openFolder = "Відкрити теку"
+# Add folders to the media library
+addLibraryFolders = "Додати теки в медіатеку"
+# Open URL
+openURL = "Відкрити адресу"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "Введіть адресу (потік або плейлист):"
+# Load playlist
+loadPlaylist = "Завантажити плейлист"
+# Save playlist
+savePlaylist = "Зберегти плейлист"
+# Generate HTML playlist
+generateHtmlPlaylist = "Створити HTML-плейлист"
+# Jump to time
+jumpToTime = "Перейти до часу"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Перейти до (х:сс), тривалість треку {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Змінити запис плейлиста"
+# Location:
+location = "Розташування:"
+# Remove bookmark
+removeBookmark = "Вилучити закладку"
+# Bookmark
+bookmark = "Закладка"
+# EQ presets
+eqPresets = "Пресети еквалайзера"
+# Preset
+preset = "Пресет"
+# Save EQ preset
+saveEQPreset = "Зберегти пресет"
+# Preset name:
+presetName = "Назва пресета:"
+# Load EQ preset file
+loadEQPresetFile = "Завантажити файл пресета"
+# Save EQ preset file
+saveEQPresetFile = "Зберегти файл пресета"
+# Install skin
+installSkin = "Встановити скін"
+# Choose a cover picture
+chooseCoverPicture = "Виберіть зображення обкладинки"
+# Remove plug-in
+removePlugIn = "Вилучити плагін"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Вилучити плагін {name}?\n\nЙого теку буде видалено:\n{folder}"
+# New playlist
+newPlaylist = "Новий плейлист"
+# Playlist name:
+playlistName = "Назва плейлиста:"
+# Rename playlist
+renamePlaylist = "Перейменувати плейлист"
+# Delete playlist
+deletePlaylist = "Видалити плейлист"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Видалити плейлист «{name}»?\n\nЙого треки лишаться в медіатеці."
+# Write cover
+writeCover = "Записати обкладинку"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["Записати «{image}» як обкладинку в {n} трек?\n\n{files}", "Записати «{image}» як обкладинку в {n} треки?\n\n{files}", "Записати «{image}» як обкладинку в {n} треків?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Видалити розумний плейлист"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Видалити розумний плейлист «{name}»?"
+# Delete files
+deleteFiles = "Видалити файли"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["Остаточно видалити {n} файл з диска?\n\n{files}", "Остаточно видалити {n} файли з диска?\n\n{files}", "Остаточно видалити {n} файлів з диска?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "НЕ ВДАЛОСЯ ЗБЕРЕГТИ: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "ПОРОЖНІЙ ФАЙЛ EQ"
+# EQ FILE ERROR: {e}
+eqFileError = "ПОМИЛКА У ФАЙЛІ EQ: {e}"
+# INSTALL FAILED: {e}
+installFailed = "НЕ ВДАЛОСЯ ВСТАНОВИТИ: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Зупинено"
+# Paused
+paused = "Пауза"
+
+[fileInfo]
+# No cover
+noCover = "Немає обкладинки"
+# Change…
+change = "Змінити…"
+# Not saved: {e}
+notSaved = "Не збережено: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} — не зображення JPEG, PNG, GIF чи BMP."
+# A stream's tags cannot be changed.
+streamTagsFixed = "Теги потоку змінити не можна."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Цей трек — частина образу цілого диска; його теги в CUE-файлі."
+# The file is not there.
+fileIsNotThere = "Файлу немає на місці."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp не може прочитати цей файл: можливо, він пошкоджений або ще завантажується."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp може змінювати теги файлів MP3, FLAC, Ogg Vorbis і MP4."
+# Location
+location = "Розташування"
+# Nothing to play
+nothingToPlay = "Нічого відтворювати"
+# No file selected.
+noFileSelected = "Файл не вибрано."
+# Title
+title = "Назва"
+# Station
+station = "Станція"
+# Now playing
+nowPlaying = "Зараз грає"
+# Artist
+artist = "Виконавець"
+# Album
+album = "Альбом"
+# Album artist
+albumArtist = "Виконавець альбому"
+# Year
+year = "Рік"
+# Track
+track = "Трек"
+# Disc
+disc = "Диск"
+# Genre
+genre = "Жанр"
+# Composer
+composer = "Композитор"
+# Comment
+comment = "Коментар"
+# Codec
+codec = "Кодек"
+# Length
+length = "Тривалість"
+# , {b} kbps
+bitrateKbps = ", {b} кбіт/с"
+# Format
+format = "Формат"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Гц, {n} канал{bitrate}", "{r} Гц, {n} канали{bitrate}", "{r} Гц, {n} каналів{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} дБ (трек)"
+
+[library]
+# Playlists
+playlists = "Плейлисти"
+# Smart playlists
+smartPlaylists = "Розумні плейлисти"
+# Folders
+folders = "Теки"
+# All music
+allMusic = "Уся музика"
+# Scanning: {done}
+scanningDone = "Сканування: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} трек", "{n} треки", "{n} треків"]
+# No cover
+noCover = "Немає обкладинки"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Усі ({n} виконавець)", "Усі ({n} виконавці)", "Усі ({n} виконавців)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Усі ({n} альбом)", "Усі ({n} альбоми)", "Усі ({n} альбомів)"]
+# (no artist)
+noArtist = "(без виконавця)"
+# (no album)
+noAlbum = "(без альбому)"
+# Search: type here
+searchTypeHere = "Пошук: вводьте тут"
+# The library is empty.
+libraryIsEmpty = "Медіатека порожня."
+# Add a folder with music.
+addFolderWithMusic = "Додайте теку з музикою."
+# Recently added
+smartRecentlyAdded = "Нещодавно додані"
+# Last played
+smartLastPlayed = "Нещодавно слухані"
+# Most played
+smartMostPlayed = "Найчастіше слухані"
+# Never played
+smartNeverPlayed = "Ще не слухані"
+# Random 50
+smartRandom50 = "Випадкові 50"
+# Favourites
+smartFavourites = "Улюблені"
+# No rating
+noRating = "Без оцінки"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "МЕДІАТЕКА: ЦЕ НЕ ЗОБРАЖЕННЯ JPEG, PNG, GIF ЧИ BMP"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "МЕДІАТЕКА: У ЦІ ФАЙЛИ НЕ МОЖНА ЗАПИСАТИ ОБКЛАДИНКУ"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛ", "МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛИ", "МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛІВ"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛ, ПОМИЛОК: {failed}", "МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛИ, ПОМИЛОК: {failed}", "МЕДІАТЕКА: ОБКЛАДИНКУ ЗАПИСАНО В {n} ФАЙЛІВ, ПОМИЛОК: {failed}"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "МЕДІАТЕКА: ЦЯ ТЕКА ВЖЕ Є"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "МЕДІАТЕКА: ЦІ ТЕКИ ВЖЕ Є"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["МЕДІАТЕКА: {n} ТРЕК У ПЛЕЙЛИСТ", "МЕДІАТЕКА: {n} ТРЕКИ У ПЛЕЙЛИСТ", "МЕДІАТЕКА: {n} ТРЕКІВ У ПЛЕЙЛИСТ"]
+# New smart playlist
+newSmartPlaylist = "Новий розумний плейлист"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "ПЛЕЙЛИСТ {name} ВЖЕ Є"
+
+  [library.column]
+  # Artist
+  artist = "Виконавець"
+  # Title
+  title = "Назва"
+  # Album
+  album = "Альбом"
+  # Time
+  time = "Час"
+  # Genre
+  genre = "Жанр"
+  # Year
+  year = "Рік"
+  # Rating
+  rating = "Оцінка"
+  # Track number
+  trackNumber = "Номер треку"
+  # File name
+  fileName = "Ім’я файлу"
+  # Comment
+  comment = "Коментар"
+  # Kbps
+  kbps = "кбіт/с"
+  # Bit rate
+  bitRate = "Бітрейт"
+  # Plays
+  plays = "Прослуховування"
+  # Last played
+  lastPlayed = "Востаннє"
+  # Added
+  added = "Додано"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} кбіт/с"
+  # Albums
+  albums = "Альбоми"
+  # Tracks
+  tracks = "Треки"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Скинути стовпці"
+  # Play
+  play = "Відтворити"
+  # Enqueue
+  enqueue = "У чергу"
+  # Rate
+  rate = "Оцінити"
+  # File info…
+  fileInfo = "Відомості про файл…"
+  # Remove from “{name}”
+  removeFromName = "Вилучити з «{name}»"
+  # New playlist…
+  newPlaylist = "Новий плейлист…"
+  # Rename “{name}”…
+  renameName = "Перейменувати «{name}»…"
+  # Delete “{name}”
+  deleteName = "Видалити «{name}»"
+  # New smart playlist…
+  newSmartPlaylist = "Новий розумний плейлист…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Зберегти пошук як розумний плейлист…"
+  # Edit “{name}”…
+  editName = "Змінити «{name}»…"
+  # Add folder…
+  addFolder = "Додати теку…"
+  # Rescan folders
+  rescanFolders = "Пересканувати теки"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "Вилучити «{name}» з медіатеки"
+  # Maximized
+  maximized = "Розгорнуто"
+
+[smartPlaylist]
+# all
+all = "усім"
+# any
+any = "одному"
+# No limit
+noLimit = "Без обмеження"
+# Tracks
+tracks = "Треки"
+# Minutes
+minutes = "Хвилини"
+# Any text
+anyText = "Будь-який текст"
+# Title
+title = "Назва"
+# Artist
+artist = "Виконавець"
+# Album
+album = "Альбом"
+# Genre
+genre = "Жанр"
+# Year
+year = "Рік"
+# Track number
+trackNumber = "Номер треку"
+# Length (seconds)
+lengthSeconds = "Тривалість (секунди)"
+# File path
+filePath = "Шлях до файлу"
+# Rating (stars)
+ratingStars = "Оцінка (зірки)"
+# Plays
+plays = "Прослуховування"
+# Last played
+lastPlayed = "Востаннє слухано"
+# Date added
+dateAdded = "Дата додавання"
+# is
+is = "дорівнює"
+# contains
+contains = "містить"
+# is less than
+isLessThan = "менше ніж"
+# is more than
+isMoreThan = "більше ніж"
+# is empty
+isEmpty = "порожнє"
+# in the last (days)
+inLastDays = "за останні (днів)"
+# Random
+random = "Випадково"
+# Rule {n}: {e}.
+ruleError = "Правило {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "Плейлисту потрібна назва."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "Обмеження має бути цілим числом, більшим за 0."
+# Name:
+name = "Назва:"
+# Tracks that match
+tracksThatMatch = "Відповідати"
+# of these rules:
+ofTheseRules = "з правил нижче:"
+# Add rule
+addRule = "+ Правило"
+# Add group
+addGroup = "+ Група"
+# Order by
+orderBy = "Порядок"
+# then by
+thenBy = "потім"
+# ascending
+ascending = "за зростанням"
+# descending
+descending = "за спаданням"
+# Limit
+limit = "Ліміт"
+# of these:
+ofThese = "з цих:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Шукати:"
+# Jump
+jump = "Перейти"
+
+[history]
+# Search for:
+searchFor = "Шукати:"
+# Play
+play = "Відтворити"
+# Today {time}
+todayTime = "Сьогодні {time}"
+# Yesterday {time}
+yesterdayTime = "Учора {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (не знайдено)"
+# Output device
+outputDevice = "Пристрій виводу"
+# Open with Popamp
+openWithPopamp = "Відкривати в Popamp"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "Типовий плеєр Windows дозволяє вибрати в Параметрах."
+# Default apps
+defaultApps = "Типові програми"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Виберіть Popamp у Finder: Отримати інформацію, потім Відкривати в програмі."
+# Forget them now
+forgetThemNow = "Забути їх зараз"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Забуто прослуховування й оцінки {n} відсутнього файлу.", "Забуто прослуховування й оцінки {n} відсутніх файлів.", "Забуто прослуховування й оцінки {n} відсутніх файлів."]
+
+  [prefs.page]
+  # Windows
+  windows = "Вікна"
+  # Playlist
+  playlist = "Плейлист"
+  # Playback
+  playback = "Відтворення"
+  # Media Library
+  mediaLibrary = "Медіатека"
+  # Desktop
+  desktop = "Робочий стіл"
+  # Internet
+  internet = "Інтернет"
+  # Shortcuts
+  shortcuts = "Скорочення"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Прилипання вікон одне до одного"
+  # Easy move
+  easyMove = "Легке переміщення"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Тримати вікна в межах екрана"
+  # Always on top
+  alwaysOnTop = "Поверх усіх вікон"
+  # Double size
+  doubleSize = "Подвійний розмір"
+  # Use skin cursors
+  useSkinCursors = "Курсори зі скіна"
+  # Scroll song title
+  scrollSongTitle = "Прокручувати назву пісні"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Притіняти неактивний плейлист"
+  # Show playlist numbers
+  showPlaylistNumbers = "Номери в плейлисті"
+  # Zero-pad numbers
+  zeroPadNumbers = "Номери з початковими нулями"
+  # Advance to next track
+  advanceToNextTrack = "Переходити до наступного треку"
+  # Icon in the system tray
+  iconInSystemTray = "Значок у системному лотку"
+  # Minimize to the tray
+  minimizeToTray = "Згортати в лоток"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Сповіщати про кожен новий трек"
+  # Check for a new version
+  checkForNewVersion = "Перевіряти нові версії"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Глобальні клавіші (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "Не закривати вікно аналізу ReplayGain"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Сканувати теки під час запуску"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Сканувати теки періодично"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Розмір шрифту плейлиста"
+  # Title format
+  titleFormat = "Формат назви"
+  # Fade-out (ms)
+  fadeOutMs = "Затухання (мс)"
+  # Crossfade (ms)
+  crossfadeMs = "Перехід (мс)"
+  # Output buffer (ms)
+  outputBufferMs = "Буфер виводу (мс)"
+  # HTTP proxy
+  httpProxy = "HTTP-проксі"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Зараховувати прослуховування після (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Сканувати кожні (хвилин)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: введіть ціле число"
+  # Font size
+  fontSize = "Розмір шрифту"
+  # Fade-out
+  fadeOut = "Затухання"
+  # Crossfade
+  crossfade = "Перехід"
+  # Output buffer
+  outputBuffer = "Буфер виводу"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Зараховувати прослуховування: від 50 до 100, крок 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Сканувати кожні: від 1 до {max} хвилин"
+  # Title format: must not be empty
+  titleFormatEmpty = "Формат назви: не може бути порожнім"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI SoundFont: файлу немає (лишіть порожнім для системного)"
+  # Language
+  language = "Мова"
+  # As the system ({language})
+  systemLanguage = "Як у системі ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["Історія й оцінки відсутніх файлів зберігаються {n} день.", "Історія й оцінки відсутніх файлів зберігаються {n} дні.", "Історія й оцінки відсутніх файлів зберігаються {n} днів."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} відсутній файл зберігає дані {days} днів.", "{n} відсутні файли зберігають дані {days} днів.", "{n} відсутніх файлів зберігають дані {days} днів."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Клацання або коліщатко над заголовком вікна (повним чи згорнутим):"
+  # Window
+  window = "Вікно"
+  # Mouse
+  mouse = "Миша"
+  # Action
+  action = "Дія"
+  # Assign
+  assign = "Призначити"
+  # Main
+  main = "Головне"
+  # Equalizer
+  equalizer = "Еквалайзер"
+  # Playlist
+  playlist = "Плейлист"
+  # Right Mouse
+  rightMouse = "Права кнопка"
+  # Middle Mouse
+  middleMouse = "Середня кнопка"
+  # Scroll Up
+  scrollUp = "Коліщатко вгору"
+  # Scroll Down
+  scrollDown = "Коліщатко вниз"
+  # Previous track
+  previousTrack = "Попередній трек"
+  # Next track
+  nextTrack = "Наступний трек"
+  # Pause
+  pause = "Пауза"
+  # Stop
+  stop = "Стоп"
+  # Shuffle on/off
+  shuffleOnOff = "Випадково увімк./вимк."
+  # Repeat on/off
+  repeatOnOff = "Повтор увімк./вимк."
+  # Vol Up
+  volUp = "Гучніше"
+  # Vol Down
+  volDown = "Тихіше"
+
+[fileTypes]
+# Audio files
+audioFiles = "Аудіофайли"
+# Playlists
+playlists = "Плейлисти"
+# Skins
+skins = "Скіни"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Типи файлів: не вдалося додати Popamp у меню: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Типи файлів: не вдалося записати {file}: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: виберіть треки для аналізу"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: аналіз скасовано"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: проаналізовано {done} з {total}"
+# , turn it on in Options > ReplayGain
+turnItOn = ", увімкніть у Параметри > ReplayGain"
+# Cancelling: finishing the tracks under way
+cancelling = "Скасування: завершуються поточні треки"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Аналіз: {done} з {n} треку", "Аналіз: {done} з {n} треків", "Аналіз: {done} з {n} треків"]
+# Cancelled: nothing was saved
+cancelled = "Скасовано: нічого не збережено"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Готово: проаналізовано {done} з {n} треку", "Готово: проаналізовано {done} з {n} треків", "Готово: проаналізовано {done} з {n} треків"]
+# , {failed} failed
+nFailed = ", помилок: {failed}"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain вимкнено: увімкніть у Параметри > ReplayGain"
+# Saved to {file}
+savedToFile = "Збережено в {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Не закривати це вікно після аналізу"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Встановити з файлу…"
+# Gallery…
+gallery = "Галерея…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Скіни з skins.webamp.org належать їхнім авторам."
+# More
+more = "Ще"
+# Download & use
+downloadAndUse = "Завантажити й увімкнути"
+# Loading preview…
+loadingPreview = "Завантаження перегляду…"
+# Downloading {name}…
+downloadingName = "Завантаження {name}…"
+# Using {name}.
+usingName = "Увімкнено {name}."
+# Museum: {e}
+loadError = "Музей: {e}"
+# No preview: {e}
+noPreviewError = "Немає перегляду: {e}"
+# Nothing found.
+nothingFound = "Нічого не знайдено."
+# {n} skin. | {n} skins.
+nSkins = ["{n} скін.", "{n} скіни.", "{n} скінів."]
+
+[gallery]
+# Skins
+skins = "Скіни"
+# Plug-ins
+plugIns = "Плагіни"
+# Visualizations
+visualizations = "Візуалізації"
+# Popular
+popular = "Популярні"
+# Top rated
+topRated = "Найкраща оцінка"
+# New
+new = "Нові"
+# May run {programs}
+mayRunPrograms = "Може запускати {programs}"
+# " and "
+andJoin = " і "
+# May connect to {hosts}
+mayConnectToHosts = "Може з’єднуватися з {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Може читати дозволені вами теки"
+# Install
+install = "Встановити"
+# Update
+update = "Оновити"
+# Use
+use = "Увімкнути"
+# Installed
+installed = "Встановлено"
+# Loading the catalog…
+loadingCatalog = "Завантаження каталогу…"
+# " (update)"
+updateMark = " (оновлення)"
+# " (installed)"
+installedMark = " (встановлено)"
+# Loading the preview…
+loadingPreview = "Завантаження перегляду…"
+# No preview
+noPreview = "Немає перегляду"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Плагінам потрібен Popamp Plus"
+# Nothing found
+nothingFound = "Нічого не знайдено"
+# Using {name}.
+usingName = "Увімкнено {name}."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} встановлено. Увімкніть у Параметри > Плагіни."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} вже є в {folder}; галерея його не чіпає."
+# Downloading {name}…
+downloadingName = "Завантаження {name}…"
+# {n} in the gallery
+nInGallery = "{n} у галереї"
+# , {n} to update
+nToUpdate = ", {n} до оновлення"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} плагіну потрібен Popamp Plus", "; {n} плагінам потрібен Popamp Plus", "; {n} плагінам потрібен Popamp Plus"]
+# Gallery: {e}
+loadError = "Галерея: {e}"
+# Skin
+skin = "Скін"
+# Plug-in
+plugIn = "Плагін"
+# DSP plug-in
+dspPlugIn = "DSP-плагін"
+# Source plug-in
+sourcePlugIn = "Плагін джерела"
+# Decoder plug-in
+decoderPlugIn = "Плагін декодера"
+# Visual plug-in
+visualPlugIn = "Плагін візуалізації"
+# {kind} plug-in
+kindPlugIn = "Плагін {kind}"
+# {what} by {author}
+whatByAuthor = "{what}, автор: {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Не просить жодних дозволів."
+# License: {license}
+licenseLicense = "Ліцензія: {license}"
+# Not rated yet
+notRatedYet = "Ще без оцінок"
+# Rated {rating} of 5 by {n}
+ratedBy = "Оцінка {rating} з 5, оцінок: {n}"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} завантаження", "{rated}, {n} завантаження", "{rated}, {n} завантажень"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "НЕ ВДАЛОСЯ ВИЛУЧИТИ ПЛАГІН: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "ПЛАГІН {name} ЗУПИНЕНО: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Плагіни додають у Popamp джерела, типи файлів, звукові ефекти й візуалізації. Вони вимкнені, доки ви їх не ввімкнете."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Щоб увімкнути плагін, виберіть його в списку ліворуч, прочитайте, що він робить і що йому дозволено, і позначте «Увімкнено». Його налаштування — нижче."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "OK зберігає вибір; «Скасувати» його відкидає."
+# Plug-ins
+plugIns = "Плагіни"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "У {dir} їх поки немає."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Кожен — тека в {dir}."
+# {name} is removed.
+nameIsRemoved = "{name} вилучено."
+# {name} (removed)
+nameRemoved = "{name} (вилучено)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Встановлено пакунком (popamp-plugin-{folder}): вилучайте його менеджером пакунків."
+# Enabled
+enabled = "Увімкнено"
+# Show the commands it runs
+showCommandsItRuns = "Показувати команди, які він запускає"
+# Settings
+settings = "Налаштування"
+# Permissions
+permissions = "Дозволи"
+# Connect to {address} ({why})
+connectToAddressWhy = "З’єднання з {address} ({why})"
+# Connect to {address}
+connectToAddress = "З’єднання з {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Теки, які він може читати, через ; (~ — уся ваша домашня тека):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Приховані теки й теки самого плеєра лишаються закритими."
+# Journal
+journal = "Журнал"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "НЕ ВДАЛОСЯ ВІДКРИТИ ЖУРНАЛ: {file}"
+# Broken: {e}
+broken = "Пошкоджено: {e}"
+# Did not load: {e}
+didNotLoad = "Не завантажився: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Зупинено після збою: {why}. OK запускає його знову."
+
+[hotkeys]
+# Play
+play = "Відтворити"
+# Pause
+pause = "Пауза"
+# Stop
+stop = "Стоп"
+# Previous track
+previousTrack = "Попередній трек"
+# Next track
+nextTrack = "Наступний трек"
+# Volume up
+volumeUp = "Гучніше"
+# Volume down
+volumeDown = "Тихіше"
+# Back 5 seconds
+back5Seconds = "Назад на 5 секунд"
+# Forward 5 seconds
+forward5Seconds = "Вперед на 5 секунд"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "ВИЙШОВ POPAMP {version}, ДИВІТЬСЯ ГОЛОВНЕ МЕНЮ"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "НЕ ВДАЛОСЯ ВІДКРИТИ БРАУЗЕР"

@@ -1,0 +1,1193 @@
+# Deutsche Übersetzung der Popamp-Oberfläche.
+# Über jeder Zeile steht ihr englischer Text aus en.toml.
+# Texte mit einer Zahl haben zwei Formen: 1 Datei, 2 Dateien.
+
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Abbrechen"
+# Remove
+remove = "Entfernen"
+# Save
+save = "Speichern"
+# Close
+close = "Schließen"
+# Search
+search = "Suchen"
+# Loading…
+loading = "Wird geladen…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Popamp-Equalizer"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Popamp-Wiedergabeliste"
+# Popamp Media Library
+popampMediaLibrary = "Popamp-Medienbibliothek"
+# Jump to file
+jumpToFile = "Zu Datei springen"
+# File info
+fileInfo = "Dateiinfo"
+# Popamp Preferences
+popampPreferences = "Popamp-Einstellungen"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp Skin Museum"
+# Popamp Gallery
+popampGallery = "Popamp-Galerie"
+# Album art
+albumArt = "Albumcover"
+# Skin browser
+skinBrowser = "Skin-Browser"
+# History
+history = "Verlauf"
+# ReplayGain scan
+replayGainScan = "ReplayGain-Analyse"
+# Smart playlist
+smartPlaylist = "Intelligente Wiedergabeliste"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "MEDIENBIBLIOTHEK"
+# NOTHING TO ADD
+nothingToAdd = "NICHTS HINZUZUFÜGEN"
+# CONNECTING…
+connecting = "VERBINDE…"
+# VOLUME: {pct}%
+volumePct = "LAUTSTÄRKE: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "BALANCE: MITTE"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "BALANCE: {pct}% LINKS"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "BALANCE: {pct}% RECHTS"
+# ERROR: {message}
+error = "FEHLER: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} DB"
+# PREAMP: {db} DB
+preampDb = "VORVERSTÄRKER: {db} DB"
+# SKIN ERROR: {e}
+skinError = "SKIN-FEHLER: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "STOPP NACH AKTUELLEM: AN"
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "STOPP NACH AKTUELLEM: AUS"
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "MANUELL WEITER: AUS"
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "MANUELL WEITER: AN"
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nEin Audioplayer im Stil von Winamp für macOS, Linux und Windows, geschrieben in Rust.\nDekodierung durch Symphonia. Klassische (.wsz) und Vektor-Skins (.psz).\n\nKonfiguration: {config}"
+# About {name}
+aboutName = "Über {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "Über Popamp…"
+  # Play
+  play = "Abspielen"
+  # File…
+  file = "Datei…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "Ordner…"
+  # View file info…
+  viewFileInfo = "Dateiinfo anzeigen…"
+  # Album art
+  albumArt = "Albumcover"
+  # History…
+  history = "Verlauf…"
+  # Bookmarks
+  bookmarks = "Lesezeichen"
+  # Main Window
+  mainWindow = "Hauptfenster"
+  # Playlist Editor
+  playlistEditor = "Wiedergabeliste"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Media Library
+  mediaLibrary = "Medienbibliothek"
+  # Arrange windows
+  arrangeWindows = "Fenster anordnen"
+  # Top left
+  arrangeTopLeft = "Oben links"
+  # Top right
+  arrangeTopRight = "Oben rechts"
+  # Colours
+  colours = "Farben"
+  # On
+  on = "An"
+  # Off
+  off = "Aus"
+  # Position
+  position = "Position"
+  # Top of the screen
+  topOfScreen = "Oberer Bildschirmrand"
+  # Bottom of the screen
+  bottomOfScreen = "Unterer Bildschirmrand"
+  # Size
+  size = "Größe"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "Volle Breite, unter Seitenleisten"
+  # Toolbar mode
+  toolbarMode = "Leistenmodus"
+  # Options
+  options = "Optionen"
+  # Playback
+  playback = "Wiedergabe"
+  # Previous
+  previous = "Zurück"
+  # Pause
+  pause = "Pause"
+  # Stop
+  stop = "Stopp"
+  # Next
+  next = "Weiter"
+  # Stop w/ fadeout
+  stopWithFadeout = "Stopp mit Ausblenden"
+  # Stop after current
+  stopAfterCurrent = "Stopp nach aktuellem Titel"
+  # Back 5 seconds
+  back5Seconds = "5 Sekunden zurück"
+  # Fwd 5 seconds
+  fwd5Seconds = "5 Sekunden vor"
+  # Start of list
+  startOfList = "Anfang der Liste"
+  # End of list
+  endOfList = "Ende der Liste"
+  # 10 tracks back
+  n10TracksBack = "10 Titel zurück"
+  # 10 tracks fwd
+  n10TracksFwd = "10 Titel vor"
+  # Jump to time…
+  jumpToTime = "Zu Zeit springen…"
+  # Jump to file…
+  jumpToFile = "Zu Datei springen…"
+  # Visualization
+  visualization = "Visualisierung"
+  # Skins
+  skins = "Skins"
+  # Exit
+  exit = "Beenden"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Einstellungen…"
+  # Plug-ins…
+  plugIns = "Plug-ins…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerie (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Verstrichene Zeit"
+  # Time remaining
+  timeRemaining = "Verbleibende Zeit"
+  # Always On Top
+  alwaysOnTop = "Immer im Vordergrund"
+  # Double Size
+  doubleSize = "Doppelte Größe"
+  # Size
+  size = "Größe"
+  # EasyMove
+  easyMove = "EasyMove"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Angedockte Fenster mitbewegen"
+  # Windowshade
+  windowshade = "Fenster einrollen"
+  # Repeat
+  repeat = "Wiederholen"
+  # Shuffle
+  shuffle = "Zufällig"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Manuell zum nächsten Titel"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Aus"
+  # Track gain
+  trackGain = "Titel-Gain"
+  # Album gain
+  albumGain = "Album-Gain"
+  # Title format
+  titleFormat = "Titelformat"
+  # Artist - Title
+  artistTitle = "Interpret - Titel"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Interpret - Album - ## - Titel"
+  # Title
+  title = "Titel"
+  # File name
+  fileName = "Dateiname"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Winamp-Bänder (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "ISO-Bänder (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Limiter (verhindert Übersteuerung)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Skin-Browser…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerie (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Skin Museum (online)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Spektrumanalysator"
+  # Oscilloscope
+  oscilloscope = "Oszilloskop"
+  # Off
+  off = "Aus"
+  # Normal style
+  normalStyle = "Normaler Stil"
+  # Fire style
+  fireStyle = "Feuer-Stil"
+  # Line style
+  lineStyle = "Linien-Stil"
+  # Show peaks
+  showPeaks = "Spitzen anzeigen"
+  # Thick bands
+  thickBands = "Breite Bänder"
+  # Scope: dots
+  scopeDots = "Oszilloskop: Punkte"
+  # Scope: lines
+  scopeLines = "Oszilloskop: Linien"
+  # Scope: solid
+  scopeSolid = "Oszilloskop: gefüllt"
+  # Scope: afterglow
+  scopeAfterglow = "Oszilloskop: Nachleuchten"
+
+  [menu.equalizer]
+  # (none)
+  none = "(keine)"
+  # Load
+  load = "Laden"
+  # Auto-load presets
+  autoLoadPresets = "Automatische Presets"
+  # Default
+  default = "Standard"
+  # From EQF…
+  fromEQF = "Aus EQF…"
+  # Preset…
+  preset = "Preset…"
+  # Auto-load preset…
+  autoLoadPreset = "Automatisches Preset…"
+  # To EQF…
+  toEQF = "Als EQF…"
+  # Delete
+  delete = "Löschen"
+  # Reset to flat
+  resetToFlat = "Auf neutral zurücksetzen"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Scharfe Skalierung"
+  # Whole multiples only
+  wholeMultiplesOnly = "Nur ganze Vielfache"
+  # Nearest pixel
+  nearestPixel = "Nächstes Pixel"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Eintrag abspielen"
+  # Remove item(s)
+  removeItems = "Einträge entfernen"
+  # Crop item(s)
+  cropItems = "Nur Auswahl behalten"
+  # View file info…
+  viewFileInfo = "Dateiinfo anzeigen…"
+  # Playlist entry…
+  playlistEntry = "Listeneintrag…"
+  # Bookmark item(s)
+  bookmarkItems = "Als Lesezeichen"
+  # Scan ReplayGain
+  scanReplayGain = "ReplayGain analysieren"
+  # Sort
+  sort = "Sortieren"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "HTML-Wiedergabeliste erstellen…"
+  # Options
+  options = "Optionen"
+  # Sort list by title
+  sortListByTitle = "Nach Titel sortieren"
+  # Sort list by filename
+  sortListByFilename = "Nach Dateiname sortieren"
+  # Sort list by path and filename
+  sortListByPath = "Nach Pfad und Dateiname sortieren"
+  # Reverse list
+  reverseList = "Liste umkehren"
+  # Randomize list
+  randomizeList = "Liste mischen"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Fehlende Dateien entfernen"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Ausgewählte Dateien von der Festplatte löschen…"
+  # Previous
+  previous = "Zurück"
+  # Start of list
+  startOfList = "Anfang der Liste"
+  # Rewind 5 seconds
+  rewind5Seconds = "5 Sekunden zurückspulen"
+  # Play/restart
+  playRestart = "Abspielen/Neu starten"
+  # Open URL…
+  openURL = "URL öffnen…"
+  # Open file…
+  openFile = "Datei öffnen…"
+  # Pause/Unpause
+  pauseUnpause = "Pause/Fortsetzen"
+  # Stop
+  stop = "Stopp"
+  # Stop w/ fadeout
+  stopWithFadeout = "Stopp mit Ausblenden"
+  # Stop after current
+  stopAfterCurrent = "Stopp nach aktuellem Titel"
+  # Next
+  next = "Weiter"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "5 Sekunden vorspulen"
+  # End of list
+  endOfList = "Ende der Liste"
+  # Open folder…
+  openFolder = "Ordner öffnen…"
+  # Jump to time…
+  jumpToTime = "Zu Zeit springen…"
+  # Forward 5 seconds
+  forward5Seconds = "5 Sekunden vor"
+  # Repeat
+  repeat = "Wiederholen"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Manuell zum nächsten Titel"
+  # Shuffle
+  shuffle = "Zufällig"
+  # Time elapsed
+  timeElapsed = "Verstrichene Zeit"
+  # Time remaining
+  timeRemaining = "Verbleibende Zeit"
+  # View file info…
+  viewFileInfo = "Dateiinfo anzeigen…"
+  # Jump to file…
+  jumpToFile = "Zu Datei springen…"
+  # Autoscroll song name
+  autoscrollSongName = "Titelname laufen lassen"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["LESEZEICHEN HINZUGEFÜGT", "{n} LESEZEICHEN HINZUGEFÜGT"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Aktuellen Titel als Lesezeichen"
+  # Remove bookmark…
+  removeBookmark = "Lesezeichen entfernen…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Popamp anzeigen"
+  # Previous
+  previous = "Zurück"
+  # Play
+  play = "Abspielen"
+  # Pause
+  pause = "Pause"
+  # Stop
+  stop = "Stopp"
+  # Next
+  next = "Weiter"
+  # Shuffle
+  shuffle = "Zufällig"
+  # Repeat
+  repeat = "Wiederholen"
+  # Exit
+  exit = "Beenden"
+
+  [menu.update]
+  # Download…
+  download = "Herunterladen…"
+  # Update through your package manager
+  throughPackageManager = "Über die Paketverwaltung aktualisieren"
+  # Skip this version
+  skipThisVersion = "Diese Version überspringen"
+  # Popamp {version} is out
+  popampVersionIsOut = "Popamp {version} ist erschienen"
+
+[dialog]
+# Media files
+mediaFiles = "Mediendateien"
+# All files
+allFiles = "Alle Dateien"
+# Open file(s)
+openFiles = "Dateien öffnen"
+# Open folder
+openFolder = "Ordner öffnen"
+# Add folders to the media library
+addLibraryFolders = "Ordner zur Medienbibliothek hinzufügen"
+# Open URL
+openURL = "URL öffnen"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "URL zum Öffnen eingeben (Stream oder Wiedergabeliste):"
+# Load playlist
+loadPlaylist = "Wiedergabeliste laden"
+# Save playlist
+savePlaylist = "Wiedergabeliste speichern"
+# Generate HTML playlist
+generateHtmlPlaylist = "HTML-Wiedergabeliste erstellen"
+# Jump to time
+jumpToTime = "Zu Zeit springen"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Springen zu (m:ss), Titellänge {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Listeneintrag bearbeiten"
+# Location:
+location = "Ort:"
+# Remove bookmark
+removeBookmark = "Lesezeichen entfernen"
+# Bookmark
+bookmark = "Lesezeichen"
+# EQ presets
+eqPresets = "EQ-Presets"
+# Preset
+preset = "Preset"
+# Save EQ preset
+saveEQPreset = "EQ-Preset speichern"
+# Preset name:
+presetName = "Name des Presets:"
+# Load EQ preset file
+loadEQPresetFile = "EQ-Preset-Datei laden"
+# Save EQ preset file
+saveEQPresetFile = "EQ-Preset-Datei speichern"
+# Install skin
+installSkin = "Skin installieren"
+# Choose a cover picture
+chooseCoverPicture = "Coverbild wählen"
+# Remove plug-in
+removePlugIn = "Plug-in entfernen"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Plug-in {name} entfernen?\n\nSein Ordner wird gelöscht:\n{folder}"
+# New playlist
+newPlaylist = "Neue Wiedergabeliste"
+# Playlist name:
+playlistName = "Name der Wiedergabeliste:"
+# Rename playlist
+renamePlaylist = "Wiedergabeliste umbenennen"
+# Delete playlist
+deletePlaylist = "Wiedergabeliste löschen"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Wiedergabeliste „{name}“ löschen?\n\nIhre Titel bleiben in der Bibliothek."
+# Write cover
+writeCover = "Cover schreiben"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["„{image}“ als Cover in {n} Titel schreiben?\n\n{files}", "„{image}“ als Cover in {n} Titel schreiben?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Intelligente Wiedergabeliste löschen"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Intelligente Wiedergabeliste „{name}“ löschen?"
+# Delete files
+deleteFiles = "Dateien löschen"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["{n} Datei endgültig von der Festplatte löschen?\n\n{files}", "{n} Dateien endgültig von der Festplatte löschen?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "SPEICHERN FEHLGESCHLAGEN: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "LEERE EQ-DATEI"
+# EQ FILE ERROR: {e}
+eqFileError = "FEHLER IN EQ-DATEI: {e}"
+# INSTALL FAILED: {e}
+installFailed = "INSTALLATION FEHLGESCHLAGEN: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Gestoppt"
+# Paused
+paused = "Pausiert"
+
+[fileInfo]
+# No cover
+noCover = "Kein Cover"
+# Change…
+change = "Ändern…"
+# Not saved: {e}
+notSaved = "Nicht gespeichert: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} ist kein JPEG-, PNG-, GIF- oder BMP-Bild."
+# A stream's tags cannot be changed.
+streamTagsFixed = "Die Tags eines Streams lassen sich nicht ändern."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Dieser Titel gehört zu einem Abbild der ganzen CD; seine Tags stehen im CUE-Sheet."
+# The file is not there.
+fileIsNotThere = "Die Datei ist nicht vorhanden."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp kann diese Datei nicht lesen: Sie ist vielleicht beschädigt oder wird noch heruntergeladen."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp kann die Tags von MP3-, FLAC-, Ogg-Vorbis- und MP4-Dateien ändern."
+# Location
+location = "Ort"
+# Nothing to play
+nothingToPlay = "Nichts abzuspielen"
+# No file selected.
+noFileSelected = "Keine Datei ausgewählt."
+# Title
+title = "Titel"
+# Station
+station = "Sender"
+# Now playing
+nowPlaying = "Läuft gerade"
+# Artist
+artist = "Interpret"
+# Album
+album = "Album"
+# Album artist
+albumArtist = "Album-Interpret"
+# Year
+year = "Jahr"
+# Track
+track = "Titelnummer"
+# Disc
+disc = "CD"
+# Genre
+genre = "Genre"
+# Composer
+composer = "Komponist"
+# Comment
+comment = "Kommentar"
+# Codec
+codec = "Codec"
+# Length
+length = "Länge"
+# , {b} kbps
+bitrateKbps = ", {b} kbit/s"
+# Format
+format = "Format"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz, {n} Kanal{bitrate}", "{r} Hz, {n} Kanäle{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB (Titel)"
+
+[library]
+# Playlists
+playlists = "Wiedergabelisten"
+# Smart playlists
+smartPlaylists = "Intelligente Listen"
+# Folders
+folders = "Ordner"
+# All music
+allMusic = "Alle Musik"
+# Scanning: {done}
+scanningDone = "Durchsuche: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} Titel", "{n} Titel"]
+# No cover
+noCover = "Kein Cover"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Alle ({n} Interpret)", "Alle ({n} Interpreten)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Alle ({n} Album)", "Alle ({n} Alben)"]
+# (no artist)
+noArtist = "(kein Interpret)"
+# (no album)
+noAlbum = "(kein Album)"
+# Search: type here
+searchTypeHere = "Suche: hier tippen"
+# The library is empty.
+libraryIsEmpty = "Die Bibliothek ist leer."
+# Add a folder with music.
+addFolderWithMusic = "Füge einen Ordner mit Musik hinzu."
+# Recently added
+smartRecentlyAdded = "Kürzlich hinzugefügt"
+# Last played
+smartLastPlayed = "Zuletzt gespielt"
+# Most played
+smartMostPlayed = "Meistgespielt"
+# Never played
+smartNeverPlayed = "Nie gespielt"
+# Random 50
+smartRandom50 = "Zufällige 50"
+# Favourites
+smartFavourites = "Favoriten"
+# No rating
+noRating = "Keine Bewertung"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "BIBLIOTHEK: KEIN JPEG-, PNG-, GIF- ODER BMP-BILD"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "BIBLIOTHEK: IN DIESE DATEIEN PASST KEIN COVER"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["BIBLIOTHEK: COVER IN {n} DATEI GESCHRIEBEN", "BIBLIOTHEK: COVER IN {n} DATEIEN GESCHRIEBEN"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["BIBLIOTHEK: COVER IN {n} DATEI GESCHRIEBEN, {failed} FEHLGESCHLAGEN", "BIBLIOTHEK: COVER IN {n} DATEIEN GESCHRIEBEN, {failed} FEHLGESCHLAGEN"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "BIBLIOTHEK: DER ORDNER IST SCHON DA"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "BIBLIOTHEK: DIE ORDNER SIND SCHON DA"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["BIBLIOTHEK: {n} TITEL IN DIE WIEDERGABELISTE", "BIBLIOTHEK: {n} TITEL IN DIE WIEDERGABELISTE"]
+# New smart playlist
+newSmartPlaylist = "Neue intelligente Liste"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "ES GIBT SCHON EINE LISTE NAMENS {name}"
+
+  [library.column]
+  # Artist
+  artist = "Interpret"
+  # Title
+  title = "Titel"
+  # Album
+  album = "Album"
+  # Time
+  time = "Zeit"
+  # Genre
+  genre = "Genre"
+  # Year
+  year = "Jahr"
+  # Rating
+  rating = "Bewertung"
+  # Track number
+  trackNumber = "Titelnummer"
+  # File name
+  fileName = "Dateiname"
+  # Comment
+  comment = "Kommentar"
+  # Kbps
+  kbps = "kbit/s"
+  # Bit rate
+  bitRate = "Bitrate"
+  # Plays
+  plays = "Wiedergaben"
+  # Last played
+  lastPlayed = "Zuletzt gespielt"
+  # Added
+  added = "Hinzugefügt"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} kbit/s"
+  # Albums
+  albums = "Alben"
+  # Tracks
+  tracks = "Titel"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Spalten zurücksetzen"
+  # Play
+  play = "Abspielen"
+  # Enqueue
+  enqueue = "Einreihen"
+  # Rate
+  rate = "Bewerten"
+  # File info…
+  fileInfo = "Dateiinfo…"
+  # Remove from “{name}”
+  removeFromName = "Aus „{name}“ entfernen"
+  # New playlist…
+  newPlaylist = "Neue Wiedergabeliste…"
+  # Rename “{name}”…
+  renameName = "„{name}“ umbenennen…"
+  # Delete “{name}”
+  deleteName = "„{name}“ löschen"
+  # New smart playlist…
+  newSmartPlaylist = "Neue intelligente Liste…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Suche als intelligente Liste speichern…"
+  # Edit “{name}”…
+  editName = "„{name}“ bearbeiten…"
+  # Add folder…
+  addFolder = "Ordner hinzufügen…"
+  # Rescan folders
+  rescanFolders = "Ordner neu einlesen"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "„{name}“ aus der Bibliothek entfernen"
+  # Maximized
+  maximized = "Maximiert"
+
+[smartPlaylist]
+# all
+all = "allen"
+# any
+any = "einer"
+# No limit
+noLimit = "Keine Grenze"
+# Tracks
+tracks = "Titel"
+# Minutes
+minutes = "Minuten"
+# Any text
+anyText = "Beliebiger Text"
+# Title
+title = "Titel"
+# Artist
+artist = "Interpret"
+# Album
+album = "Album"
+# Genre
+genre = "Genre"
+# Year
+year = "Jahr"
+# Track number
+trackNumber = "Titelnummer"
+# Length (seconds)
+lengthSeconds = "Länge (Sekunden)"
+# File path
+filePath = "Dateipfad"
+# Rating (stars)
+ratingStars = "Bewertung (Sterne)"
+# Plays
+plays = "Wiedergaben"
+# Last played
+lastPlayed = "Zuletzt gespielt"
+# Date added
+dateAdded = "Hinzugefügt am"
+# is
+is = "ist"
+# contains
+contains = "enthält"
+# is less than
+isLessThan = "ist kleiner als"
+# is more than
+isMoreThan = "ist größer als"
+# is empty
+isEmpty = "ist leer"
+# in the last (days)
+inLastDays = "in den letzten (Tagen)"
+# Random
+random = "Zufällig"
+# Rule {n}: {e}.
+ruleError = "Regel {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "Die Wiedergabeliste braucht einen Namen."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "Die Grenze muss eine ganze Zahl über 0 sein."
+# Name:
+name = "Name:"
+# Tracks that match
+tracksThatMatch = "Titel, die"
+# of these rules:
+ofTheseRules = "dieser Regeln entsprechen:"
+# Add rule
+addRule = "+ Regel"
+# Add group
+addGroup = "+ Gruppe"
+# Order by
+orderBy = "Sortierung"
+# then by
+thenBy = "dann"
+# ascending
+ascending = "aufsteigend"
+# descending
+descending = "absteigend"
+# Limit
+limit = "Grenze"
+# of these:
+ofThese = "davon:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Suchen nach:"
+# Jump
+jump = "Springen"
+
+[history]
+# Search for:
+searchFor = "Suchen nach:"
+# Play
+play = "Abspielen"
+# Today {time}
+todayTime = "Heute {time}"
+# Yesterday {time}
+yesterdayTime = "Gestern {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (nicht gefunden)"
+# Output device
+outputDevice = "Ausgabegerät"
+# Open with Popamp
+openWithPopamp = "Mit Popamp öffnen"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "Den Standardplayer wählen Sie in den Windows-Einstellungen."
+# Default apps
+defaultApps = "Standard-Apps"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Wählen Sie Popamp im Finder: Informationen, dann Öffnen mit."
+# Forget them now
+forgetThemNow = "Jetzt vergessen"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Wiedergaben und Bewertungen von {n} fehlenden Datei vergessen.", "Wiedergaben und Bewertungen von {n} fehlenden Dateien vergessen."]
+
+  [prefs.page]
+  # Windows
+  windows = "Fenster"
+  # Playlist
+  playlist = "Wiedergabeliste"
+  # Playback
+  playback = "Wiedergabe"
+  # Media Library
+  mediaLibrary = "Medienbibliothek"
+  # Desktop
+  desktop = "Desktop"
+  # Internet
+  internet = "Internet"
+  # Shortcuts
+  shortcuts = "Tastenkürzel"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Fenster aneinander einrasten"
+  # Easy move
+  easyMove = "Einfaches Verschieben"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Fenster auf dem Bildschirm halten"
+  # Always on top
+  alwaysOnTop = "Immer im Vordergrund"
+  # Double size
+  doubleSize = "Doppelte Größe"
+  # Use skin cursors
+  useSkinCursors = "Mauszeiger des Skins verwenden"
+  # Scroll song title
+  scrollSongTitle = "Titelname laufen lassen"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Inaktive Wiedergabeliste abdunkeln"
+  # Show playlist numbers
+  showPlaylistNumbers = "Nummern in der Liste anzeigen"
+  # Zero-pad numbers
+  zeroPadNumbers = "Nummern mit Nullen auffüllen"
+  # Advance to next track
+  advanceToNextTrack = "Zum nächsten Titel weiter"
+  # Icon in the system tray
+  iconInSystemTray = "Symbol im Infobereich"
+  # Minimize to the tray
+  minimizeToTray = "In den Infobereich minimieren"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Bei jedem neuen Titel benachrichtigen"
+  # Check for a new version
+  checkForNewVersion = "Nach neuer Version suchen"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Globale Tastenkürzel (Strg+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "ReplayGain-Fenster offen lassen"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Ordner beim Start durchsuchen"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Ordner regelmäßig durchsuchen"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Schriftgröße der Liste"
+  # Title format
+  titleFormat = "Titelformat"
+  # Fade-out (ms)
+  fadeOutMs = "Ausblenden (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "Überblenden (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "Ausgabepuffer (ms)"
+  # HTTP proxy
+  httpProxy = "HTTP-Proxy"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI-SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Als gespielt zählen nach (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Durchsuchen alle (Minuten)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: ganze Zahl eingeben"
+  # Font size
+  fontSize = "Schriftgröße"
+  # Fade-out
+  fadeOut = "Ausblenden"
+  # Crossfade
+  crossfade = "Überblenden"
+  # Output buffer
+  outputBuffer = "Ausgabepuffer"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Als gespielt zählen: 50 bis 100, in Fünferschritten"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Durchsuchen alle: 1 bis {max} Minuten"
+  # Title format: must not be empty
+  titleFormatEmpty = "Titelformat: darf nicht leer sein"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI-SoundFont: Datei nicht vorhanden (leer lassen für die des Systems)"
+  # Language
+  language = "Sprache"
+  # As the system ({language})
+  systemLanguage = "Wie das System ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["Wiedergaben und Bewertungen fehlender Dateien: {n} Tag.", "Wiedergaben und Bewertungen fehlender Dateien: {n} Tage."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} fehlende Datei behält ihre Daten {days} Tage.", "{n} fehlende Dateien behalten ihre Daten {days} Tage."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Ein Klick oder das Mausrad über einer Titelleiste (voll oder eingerollt):"
+  # Window
+  window = "Fenster"
+  # Mouse
+  mouse = "Maus"
+  # Action
+  action = "Aktion"
+  # Assign
+  assign = "Zuweisen"
+  # Main
+  main = "Hauptfenster"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Playlist
+  playlist = "Wiedergabeliste"
+  # Right Mouse
+  rightMouse = "Rechte Maustaste"
+  # Middle Mouse
+  middleMouse = "Mittlere Maustaste"
+  # Scroll Up
+  scrollUp = "Rad hoch"
+  # Scroll Down
+  scrollDown = "Rad runter"
+  # Previous track
+  previousTrack = "Vorheriger Titel"
+  # Next track
+  nextTrack = "Nächster Titel"
+  # Pause
+  pause = "Pause"
+  # Stop
+  stop = "Stopp"
+  # Shuffle on/off
+  shuffleOnOff = "Zufällig an/aus"
+  # Repeat on/off
+  repeatOnOff = "Wiederholen an/aus"
+  # Vol Up
+  volUp = "Lauter"
+  # Vol Down
+  volDown = "Leiser"
+
+[fileTypes]
+# Audio files
+audioFiles = "Audiodateien"
+# Playlists
+playlists = "Wiedergabelisten"
+# Skins
+skins = "Skins"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Dateitypen: Popamp lässt sich nicht ins Menü aufnehmen: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Dateitypen: {file} lässt sich nicht schreiben: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: Titel zum Analysieren auswählen"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: Analyse abgebrochen"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: {done} von {total} analysiert"
+# , turn it on in Options > ReplayGain
+turnItOn = ", einschalten unter Optionen > ReplayGain"
+# Cancelling: finishing the tracks under way
+cancelling = "Breche ab: laufende Titel werden fertig"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Analysiere: {done} von {n} Titel", "Analysiere: {done} von {n} Titeln"]
+# Cancelled: nothing was saved
+cancelled = "Abgebrochen: nichts gespeichert"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Fertig: {done} von {n} Titel analysiert", "Fertig: {done} von {n} Titeln analysiert"]
+# , {failed} failed
+nFailed = ", {failed} fehlgeschlagen"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain ist aus: einschalten unter Optionen > ReplayGain"
+# Saved to {file}
+savedToFile = "Gespeichert in {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Dieses Fenster nach der Analyse offen lassen"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Aus Datei installieren…"
+# Gallery…
+gallery = "Galerie…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Skins von skins.webamp.org gehören ihren Autoren."
+# More
+more = "Mehr"
+# Download & use
+downloadAndUse = "Laden und verwenden"
+# Loading preview…
+loadingPreview = "Vorschau wird geladen…"
+# Downloading {name}…
+downloadingName = "Lade {name} herunter…"
+# Using {name}.
+usingName = "{name} wird verwendet."
+# Museum: {e}
+loadError = "Museum: {e}"
+# No preview: {e}
+noPreviewError = "Keine Vorschau: {e}"
+# Nothing found.
+nothingFound = "Nichts gefunden."
+# {n} skin. | {n} skins.
+nSkins = ["{n} Skin.", "{n} Skins."]
+
+[gallery]
+# Skins
+skins = "Skins"
+# Plug-ins
+plugIns = "Plug-ins"
+# Visualizations
+visualizations = "Visualisierungen"
+# Popular
+popular = "Beliebt"
+# Top rated
+topRated = "Bestbewertet"
+# New
+new = "Neu"
+# May run {programs}
+mayRunPrograms = "Darf {programs} starten"
+# " and "
+andJoin = " und "
+# May connect to {hosts}
+mayConnectToHosts = "Darf sich mit {hosts} verbinden"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Darf die von Ihnen erlaubten Ordner lesen"
+# Install
+install = "Installieren"
+# Update
+update = "Aktualisieren"
+# Use
+use = "Verwenden"
+# Installed
+installed = "Installiert"
+# Loading the catalog…
+loadingCatalog = "Katalog wird geladen…"
+# " (update)"
+updateMark = " (Update)"
+# " (installed)"
+installedMark = " (installiert)"
+# Loading the preview…
+loadingPreview = "Vorschau wird geladen…"
+# No preview
+noPreview = "Keine Vorschau"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Plug-ins brauchen Popamp Plus"
+# Nothing found
+nothingFound = "Nichts gefunden"
+# Using {name}.
+usingName = "{name} wird verwendet."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} ist installiert. Einschalten unter Optionen > Plug-ins."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} liegt schon in {folder}; die Galerie lässt es unangetastet."
+# Downloading {name}…
+downloadingName = "Lade {name} herunter…"
+# {n} in the gallery
+nInGallery = "{n} in der Galerie"
+# , {n} to update
+nToUpdate = ", {n} zu aktualisieren"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} Plug-in braucht Popamp Plus", "; {n} Plug-ins brauchen Popamp Plus"]
+# Gallery: {e}
+loadError = "Galerie: {e}"
+# Skin
+skin = "Skin"
+# Plug-in
+plugIn = "Plug-in"
+# DSP plug-in
+dspPlugIn = "DSP-Plug-in"
+# Source plug-in
+sourcePlugIn = "Quell-Plug-in"
+# Decoder plug-in
+decoderPlugIn = "Decoder-Plug-in"
+# Visual plug-in
+visualPlugIn = "Visualisierungs-Plug-in"
+# {kind} plug-in
+kindPlugIn = "{kind}-Plug-in"
+# {what} by {author}
+whatByAuthor = "{what} von {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Verlangt keine Berechtigungen."
+# License: {license}
+licenseLicense = "Lizenz: {license}"
+# Not rated yet
+notRatedYet = "Noch nicht bewertet"
+# Rated {rating} of 5 by {n}
+ratedBy = "Bewertet mit {rating} von 5 von {n}"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} Download", "{rated}, {n} Downloads"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "PLUG-IN LÄSST SICH NICHT ENTFERNEN: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "PLUG-IN {name} ANGEHALTEN: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Plug-ins erweitern Popamp um Quellen, Dateitypen, Klangeffekte und Visualisierungen. Sie sind aus, bis Sie sie einschalten."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Zum Einschalten wählen Sie es in der Liste links, lesen, was es tut und was es darf, und haken Aktiviert an. Seine Einstellungen stehen darunter."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "OK übernimmt Ihre Auswahl; Abbrechen verwirft sie."
+# Plug-ins
+plugIns = "Plug-ins"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "In {dir} gibt es noch keine."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Jedes ist ein Ordner in {dir}."
+# {name} is removed.
+nameIsRemoved = "{name} ist entfernt."
+# {name} (removed)
+nameRemoved = "{name} (entfernt)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Als Paket installiert (popamp-plugin-{folder}): Entfernen Sie es mit Ihrer Paketverwaltung."
+# Enabled
+enabled = "Aktiviert"
+# Show the commands it runs
+showCommandsItRuns = "Befehle anzeigen, die es ausführt"
+# Settings
+settings = "Einstellungen"
+# Permissions
+permissions = "Berechtigungen"
+# Connect to {address} ({why})
+connectToAddressWhy = "Verbindung zu {address} ({why})"
+# Connect to {address}
+connectToAddress = "Verbindung zu {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Ordner, die es lesen darf, getrennt durch ; (~ ist Ihr ganzes Home):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Versteckte Ordner und die des Players bleiben verschlossen."
+# Journal
+journal = "Protokoll"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "PROTOKOLL LÄSST SICH NICHT ÖFFNEN: {file}"
+# Broken: {e}
+broken = "Defekt: {e}"
+# Did not load: {e}
+didNotLoad = "Nicht geladen: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Nach einem Fehler angehalten: {why}. OK startet es neu."
+
+[hotkeys]
+# Play
+play = "Abspielen"
+# Pause
+pause = "Pause"
+# Stop
+stop = "Stopp"
+# Previous track
+previousTrack = "Vorheriger Titel"
+# Next track
+nextTrack = "Nächster Titel"
+# Volume up
+volumeUp = "Lauter"
+# Volume down
+volumeDown = "Leiser"
+# Back 5 seconds
+back5Seconds = "5 Sekunden zurück"
+# Forward 5 seconds
+forward5Seconds = "5 Sekunden vor"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "POPAMP {version} IST ERSCHIENEN, SIEHE HAUPTMENÜ"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "BROWSER LÄSST SICH NICHT ÖFFNEN"
