@@ -1,0 +1,1193 @@
+# Nederlandse vertaling van de interface van Popamp.
+# Boven elke regel staat de Engelse tekst uit en.toml.
+# Teksten met een getal hebben twee vormen: 1 bestand, 2 bestanden.
+
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Annuleren"
+# Remove
+remove = "Verwijderen"
+# Save
+save = "Opslaan"
+# Close
+close = "Sluiten"
+# Search
+search = "Zoeken"
+# Loading…
+loading = "Laden…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Popamp-equalizer"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Popamp-afspeellijst"
+# Popamp Media Library
+popampMediaLibrary = "Popamp-mediabibliotheek"
+# Jump to file
+jumpToFile = "Naar bestand springen"
+# File info
+fileInfo = "Bestandsinfo"
+# Popamp Preferences
+popampPreferences = "Popamp-voorkeuren"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp Skin Museum"
+# Popamp Gallery
+popampGallery = "Popamp-galerij"
+# Album art
+albumArt = "Albumhoes"
+# Skin browser
+skinBrowser = "Skinbrowser"
+# History
+history = "Geschiedenis"
+# ReplayGain scan
+replayGainScan = "ReplayGain-analyse"
+# Smart playlist
+smartPlaylist = "Slimme afspeellijst"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "MEDIABIBLIOTHEEK"
+# NOTHING TO ADD
+nothingToAdd = "NIETS OM TOE TE VOEGEN"
+# CONNECTING…
+connecting = "VERBINDEN…"
+# VOLUME: {pct}%
+volumePct = "VOLUME: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "BALANS: MIDDEN"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "BALANS: {pct}% LINKS"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "BALANS: {pct}% RECHTS"
+# ERROR: {message}
+error = "FOUT: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} DB"
+# PREAMP: {db} DB
+preampDb = "VOORVERSTERKER: {db} DB"
+# SKIN ERROR: {e}
+skinError = "SKINFOUT: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "STOPPEN NA HUIDIGE: AAN"
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "STOPPEN NA HUIDIGE: UIT"
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "HANDMATIG VERDER: UIT"
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "HANDMATIG VERDER: AAN"
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nEen audiospeler in de stijl van Winamp voor macOS, Linux en Windows, geschreven in Rust.\nDecodering door Symphonia. Klassieke (.wsz) en vector-skins (.psz).\n\nConfiguratie: {config}"
+# About {name}
+aboutName = "Over {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "Over Popamp…"
+  # Play
+  play = "Afspelen"
+  # File…
+  file = "Bestand…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "Map…"
+  # View file info…
+  viewFileInfo = "Bestandsinfo bekijken…"
+  # Album art
+  albumArt = "Albumhoes"
+  # History…
+  history = "Geschiedenis…"
+  # Bookmarks
+  bookmarks = "Bladwijzers"
+  # Main Window
+  mainWindow = "Hoofdvenster"
+  # Playlist Editor
+  playlistEditor = "Afspeellijst"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Media Library
+  mediaLibrary = "Mediabibliotheek"
+  # Arrange windows
+  arrangeWindows = "Vensters schikken"
+  # Top left
+  arrangeTopLeft = "Linksboven"
+  # Top right
+  arrangeTopRight = "Rechtsboven"
+  # Colours
+  colours = "Kleuren"
+  # On
+  on = "Aan"
+  # Off
+  off = "Uit"
+  # Position
+  position = "Positie"
+  # Top of the screen
+  topOfScreen = "Boven aan het scherm"
+  # Bottom of the screen
+  bottomOfScreen = "Onder aan het scherm"
+  # Size
+  size = "Grootte"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "Volle breedte, onder zijpanelen"
+  # Toolbar mode
+  toolbarMode = "Balkmodus"
+  # Options
+  options = "Opties"
+  # Playback
+  playback = "Afspelen"
+  # Previous
+  previous = "Vorige"
+  # Pause
+  pause = "Pauze"
+  # Stop
+  stop = "Stoppen"
+  # Next
+  next = "Volgende"
+  # Stop w/ fadeout
+  stopWithFadeout = "Stoppen met uitfaden"
+  # Stop after current
+  stopAfterCurrent = "Stoppen na huidige"
+  # Back 5 seconds
+  back5Seconds = "5 seconden terug"
+  # Fwd 5 seconds
+  fwd5Seconds = "5 seconden vooruit"
+  # Start of list
+  startOfList = "Begin van de lijst"
+  # End of list
+  endOfList = "Einde van de lijst"
+  # 10 tracks back
+  n10TracksBack = "10 nummers terug"
+  # 10 tracks fwd
+  n10TracksFwd = "10 nummers vooruit"
+  # Jump to time…
+  jumpToTime = "Naar tijd springen…"
+  # Jump to file…
+  jumpToFile = "Naar bestand springen…"
+  # Visualization
+  visualization = "Visualisatie"
+  # Skins
+  skins = "Skins"
+  # Exit
+  exit = "Afsluiten"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Voorkeuren…"
+  # Plug-ins…
+  plugIns = "Plug-ins…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerij (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Verstreken tijd"
+  # Time remaining
+  timeRemaining = "Resterende tijd"
+  # Always On Top
+  alwaysOnTop = "Altijd bovenaan"
+  # Larger Size
+  largerSize = "Vergroot formaat"
+  # Size
+  size = "Grootte"
+  # EasyMove
+  easyMove = "EasyMove"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Gekoppelde vensters samen verplaatsen"
+  # Windowshade
+  windowshade = "Venster oprollen"
+  # Repeat
+  repeat = "Herhalen"
+  # Shuffle
+  shuffle = "Willekeurig"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Handmatig verder in de lijst"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Uit"
+  # Track gain
+  trackGain = "Nummerversterking"
+  # Album gain
+  albumGain = "Albumversterking"
+  # Title format
+  titleFormat = "Titelopmaak"
+  # Artist - Title
+  artistTitle = "Artiest - Titel"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Artiest - Album - ## - Titel"
+  # Title
+  title = "Titel"
+  # File name
+  fileName = "Bestandsnaam"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Winamp-banden (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "ISO-banden (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Limiter (voorkomt oversturing)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Skinbrowser…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerij (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Skin Museum (online)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Spectrumanalyse"
+  # Oscilloscope
+  oscilloscope = "Oscilloscoop"
+  # Off
+  off = "Uit"
+  # Normal style
+  normalStyle = "Normale stijl"
+  # Fire style
+  fireStyle = "Vuurstijl"
+  # Line style
+  lineStyle = "Lijnstijl"
+  # Show peaks
+  showPeaks = "Pieken tonen"
+  # Thick bands
+  thickBands = "Brede banden"
+  # Scope: dots
+  scopeDots = "Oscilloscoop: punten"
+  # Scope: lines
+  scopeLines = "Oscilloscoop: lijnen"
+  # Scope: solid
+  scopeSolid = "Oscilloscoop: gevuld"
+  # Scope: afterglow
+  scopeAfterglow = "Oscilloscoop: nagloed"
+
+  [menu.equalizer]
+  # (none)
+  none = "(geen)"
+  # Load
+  load = "Laden"
+  # Auto-load presets
+  autoLoadPresets = "Automatische presets"
+  # Default
+  default = "Standaard"
+  # From EQF…
+  fromEQF = "Uit EQF…"
+  # Preset…
+  preset = "Preset…"
+  # Auto-load preset…
+  autoLoadPreset = "Automatische preset…"
+  # To EQF…
+  toEQF = "Naar EQF…"
+  # Delete
+  delete = "Verwijderen"
+  # Reset to flat
+  resetToFlat = "Vlak zetten"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Scherp schalen"
+  # Whole multiples only
+  wholeMultiplesOnly = "Alleen hele veelvouden"
+  # Nearest pixel
+  nearestPixel = "Dichtstbijzijnde pixel"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Item afspelen"
+  # Remove item(s)
+  removeItems = "Items verwijderen"
+  # Crop item(s)
+  cropItems = "Alleen selectie houden"
+  # View file info…
+  viewFileInfo = "Bestandsinfo bekijken…"
+  # Playlist entry…
+  playlistEntry = "Lijstitem…"
+  # Bookmark item(s)
+  bookmarkItems = "Als bladwijzer"
+  # Scan ReplayGain
+  scanReplayGain = "ReplayGain analyseren"
+  # Sort
+  sort = "Sorteren"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "HTML-afspeellijst maken…"
+  # Options
+  options = "Opties"
+  # Sort list by title
+  sortListByTitle = "Sorteren op titel"
+  # Sort list by filename
+  sortListByFilename = "Sorteren op bestandsnaam"
+  # Sort list by path and filename
+  sortListByPath = "Sorteren op pad en bestandsnaam"
+  # Reverse list
+  reverseList = "Lijst omkeren"
+  # Randomize list
+  randomizeList = "Lijst husselen"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Ontbrekende bestanden verwijderen"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Geselecteerde bestanden van schijf wissen…"
+  # Previous
+  previous = "Vorige"
+  # Start of list
+  startOfList = "Begin van de lijst"
+  # Rewind 5 seconds
+  rewind5Seconds = "5 seconden terugspoelen"
+  # Play/restart
+  playRestart = "Afspelen/opnieuw"
+  # Open URL…
+  openURL = "URL openen…"
+  # Open file…
+  openFile = "Bestand openen…"
+  # Pause/Unpause
+  pauseUnpause = "Pauze/hervatten"
+  # Stop
+  stop = "Stoppen"
+  # Stop w/ fadeout
+  stopWithFadeout = "Stoppen met uitfaden"
+  # Stop after current
+  stopAfterCurrent = "Stoppen na huidige"
+  # Next
+  next = "Volgende"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "5 seconden vooruitspoelen"
+  # End of list
+  endOfList = "Einde van de lijst"
+  # Open folder…
+  openFolder = "Map openen…"
+  # Jump to time…
+  jumpToTime = "Naar tijd springen…"
+  # Forward 5 seconds
+  forward5Seconds = "5 seconden vooruit"
+  # Repeat
+  repeat = "Herhalen"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Handmatig verder in de lijst"
+  # Shuffle
+  shuffle = "Willekeurig"
+  # Time elapsed
+  timeElapsed = "Verstreken tijd"
+  # Time remaining
+  timeRemaining = "Resterende tijd"
+  # View file info…
+  viewFileInfo = "Bestandsinfo bekijken…"
+  # Jump to file…
+  jumpToFile = "Naar bestand springen…"
+  # Autoscroll song name
+  autoscrollSongName = "Titel laten schuiven"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["BLADWIJZER TOEGEVOEGD", "{n} BLADWIJZERS TOEGEVOEGD"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Huidige als bladwijzer"
+  # Remove bookmark…
+  removeBookmark = "Bladwijzer verwijderen…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Popamp tonen"
+  # Previous
+  previous = "Vorige"
+  # Play
+  play = "Afspelen"
+  # Pause
+  pause = "Pauze"
+  # Stop
+  stop = "Stoppen"
+  # Next
+  next = "Volgende"
+  # Shuffle
+  shuffle = "Willekeurig"
+  # Repeat
+  repeat = "Herhalen"
+  # Exit
+  exit = "Afsluiten"
+
+  [menu.update]
+  # Download…
+  download = "Downloaden…"
+  # Update through your package manager
+  throughPackageManager = "Bijwerken via je pakketbeheerder"
+  # Skip this version
+  skipThisVersion = "Deze versie overslaan"
+  # Popamp {version} is out
+  popampVersionIsOut = "Popamp {version} is uit"
+
+[dialog]
+# Media files
+mediaFiles = "Mediabestanden"
+# All files
+allFiles = "Alle bestanden"
+# Open file(s)
+openFiles = "Bestanden openen"
+# Open folder
+openFolder = "Map openen"
+# Add folders to the media library
+addLibraryFolders = "Mappen toevoegen aan de mediabibliotheek"
+# Open URL
+openURL = "URL openen"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "Voer een URL in (een stream of een afspeellijst):"
+# Load playlist
+loadPlaylist = "Afspeellijst laden"
+# Save playlist
+savePlaylist = "Afspeellijst opslaan"
+# Generate HTML playlist
+generateHtmlPlaylist = "HTML-afspeellijst maken"
+# Jump to time
+jumpToTime = "Naar tijd springen"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Springen naar (m:ss), lengte van het nummer {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Lijstitem bewerken"
+# Location:
+location = "Locatie:"
+# Remove bookmark
+removeBookmark = "Bladwijzer verwijderen"
+# Bookmark
+bookmark = "Bladwijzer"
+# EQ presets
+eqPresets = "EQ-presets"
+# Preset
+preset = "Preset"
+# Save EQ preset
+saveEQPreset = "EQ-preset opslaan"
+# Preset name:
+presetName = "Naam van de preset:"
+# Load EQ preset file
+loadEQPresetFile = "EQ-presetbestand laden"
+# Save EQ preset file
+saveEQPresetFile = "EQ-presetbestand opslaan"
+# Install skin
+installSkin = "Skin installeren"
+# Choose a cover picture
+chooseCoverPicture = "Kies een hoesafbeelding"
+# Remove plug-in
+removePlugIn = "Plug-in verwijderen"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Plug-in {name} verwijderen?\n\nDe map ervan wordt gewist:\n{folder}"
+# New playlist
+newPlaylist = "Nieuwe afspeellijst"
+# Playlist name:
+playlistName = "Naam van de afspeellijst:"
+# Rename playlist
+renamePlaylist = "Afspeellijst hernoemen"
+# Delete playlist
+deletePlaylist = "Afspeellijst verwijderen"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Afspeellijst ‘{name}’ verwijderen?\n\nDe nummers blijven in de bibliotheek."
+# Write cover
+writeCover = "Hoes schrijven"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["‘{image}’ als hoes in {n} nummer schrijven?\n\n{files}", "‘{image}’ als hoes in {n} nummers schrijven?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Slimme afspeellijst verwijderen"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Slimme afspeellijst ‘{name}’ verwijderen?"
+# Delete files
+deleteFiles = "Bestanden wissen"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["{n} bestand definitief van schijf wissen?\n\n{files}", "{n} bestanden definitief van schijf wissen?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "OPSLAAN MISLUKT: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "LEEG EQ-BESTAND"
+# EQ FILE ERROR: {e}
+eqFileError = "FOUT IN EQ-BESTAND: {e}"
+# INSTALL FAILED: {e}
+installFailed = "INSTALLATIE MISLUKT: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Gestopt"
+# Paused
+paused = "Gepauzeerd"
+
+[fileInfo]
+# No cover
+noCover = "Geen hoes"
+# Change…
+change = "Wijzigen…"
+# Not saved: {e}
+notSaved = "Niet opgeslagen: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} is geen JPEG-, PNG-, GIF- of BMP-afbeelding."
+# A stream's tags cannot be changed.
+streamTagsFixed = "De tags van een stream kunnen niet worden gewijzigd."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Dit nummer hoort bij een image van een hele schijf; de tags staan in het CUE-bestand."
+# The file is not there.
+fileIsNotThere = "Het bestand is er niet."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp kan dit bestand niet lezen: het is misschien beschadigd of wordt nog gedownload."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp kan de tags van MP3-, FLAC-, Ogg Vorbis- en MP4-bestanden wijzigen."
+# Location
+location = "Locatie"
+# Nothing to play
+nothingToPlay = "Niets om af te spelen"
+# No file selected.
+noFileSelected = "Geen bestand geselecteerd."
+# Title
+title = "Titel"
+# Station
+station = "Zender"
+# Now playing
+nowPlaying = "Nu aan het spelen"
+# Artist
+artist = "Artiest"
+# Album
+album = "Album"
+# Album artist
+albumArtist = "Albumartiest"
+# Year
+year = "Jaar"
+# Track
+track = "Nummer"
+# Disc
+disc = "Schijf"
+# Genre
+genre = "Genre"
+# Composer
+composer = "Componist"
+# Comment
+comment = "Opmerking"
+# Codec
+codec = "Codec"
+# Length
+length = "Lengte"
+# , {b} kbps
+bitrateKbps = ", {b} kbps"
+# Format
+format = "Formaat"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz, {n} kanaal{bitrate}", "{r} Hz, {n} kanalen{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB (nummer)"
+
+[library]
+# Playlists
+playlists = "Afspeellijsten"
+# Smart playlists
+smartPlaylists = "Slimme afspeellijsten"
+# Folders
+folders = "Mappen"
+# All music
+allMusic = "Alle muziek"
+# Scanning: {done}
+scanningDone = "Scannen: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} nummer", "{n} nummers"]
+# No cover
+noCover = "Geen hoes"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Alle ({n} artiest)", "Alle ({n} artiesten)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Alle ({n} album)", "Alle ({n} albums)"]
+# (no artist)
+noArtist = "(geen artiest)"
+# (no album)
+noAlbum = "(geen album)"
+# Search: type here
+searchTypeHere = "Zoeken: typ hier"
+# The library is empty.
+libraryIsEmpty = "De bibliotheek is leeg."
+# Add a folder with music.
+addFolderWithMusic = "Voeg een map met muziek toe."
+# Recently added
+smartRecentlyAdded = "Onlangs toegevoegd"
+# Last played
+smartLastPlayed = "Laatst gespeeld"
+# Most played
+smartMostPlayed = "Meest gespeeld"
+# Never played
+smartNeverPlayed = "Nooit gespeeld"
+# Random 50
+smartRandom50 = "Willekeurige 50"
+# Favourites
+smartFavourites = "Favorieten"
+# No rating
+noRating = "Geen waardering"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "BIBLIOTHEEK: GEEN JPEG-, PNG-, GIF- OF BMP-AFBEELDING"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "BIBLIOTHEEK: IN DEZE BESTANDEN PAST GEEN HOES"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["BIBLIOTHEEK: HOES IN {n} BESTAND GESCHREVEN", "BIBLIOTHEEK: HOES IN {n} BESTANDEN GESCHREVEN"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["BIBLIOTHEEK: HOES IN {n} BESTAND GESCHREVEN, {failed} MISLUKT", "BIBLIOTHEEK: HOES IN {n} BESTANDEN GESCHREVEN, {failed} MISLUKT"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "BIBLIOTHEEK: DE MAP IS ER AL"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "BIBLIOTHEEK: DE MAPPEN ZIJN ER AL"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["BIBLIOTHEEK: {n} NUMMER NAAR DE AFSPEELLIJST", "BIBLIOTHEEK: {n} NUMMERS NAAR DE AFSPEELLIJST"]
+# New smart playlist
+newSmartPlaylist = "Nieuwe slimme afspeellijst"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "ER IS AL EEN AFSPEELLIJST {name}"
+
+  [library.column]
+  # Artist
+  artist = "Artiest"
+  # Title
+  title = "Titel"
+  # Album
+  album = "Album"
+  # Time
+  time = "Tijd"
+  # Genre
+  genre = "Genre"
+  # Year
+  year = "Jaar"
+  # Rating
+  rating = "Waardering"
+  # Track number
+  trackNumber = "Nummer"
+  # File name
+  fileName = "Bestandsnaam"
+  # Comment
+  comment = "Opmerking"
+  # Kbps
+  kbps = "Kbps"
+  # Bit rate
+  bitRate = "Bitrate"
+  # Plays
+  plays = "Keer gespeeld"
+  # Last played
+  lastPlayed = "Laatst gespeeld"
+  # Added
+  added = "Toegevoegd"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} kbps"
+  # Albums
+  albums = "Albums"
+  # Tracks
+  tracks = "Nummers"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Kolommen herstellen"
+  # Play
+  play = "Afspelen"
+  # Enqueue
+  enqueue = "In de wachtrij"
+  # Rate
+  rate = "Waarderen"
+  # File info…
+  fileInfo = "Bestandsinfo…"
+  # Remove from “{name}”
+  removeFromName = "Verwijderen uit ‘{name}’"
+  # New playlist…
+  newPlaylist = "Nieuwe afspeellijst…"
+  # Rename “{name}”…
+  renameName = "‘{name}’ hernoemen…"
+  # Delete “{name}”
+  deleteName = "‘{name}’ verwijderen"
+  # New smart playlist…
+  newSmartPlaylist = "Nieuwe slimme afspeellijst…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Zoekopdracht als slimme afspeellijst opslaan…"
+  # Edit “{name}”…
+  editName = "‘{name}’ bewerken…"
+  # Add folder…
+  addFolder = "Map toevoegen…"
+  # Rescan folders
+  rescanFolders = "Mappen opnieuw scannen"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "‘{name}’ uit de bibliotheek verwijderen"
+  # Maximized
+  maximized = "Gemaximaliseerd"
+
+[smartPlaylist]
+# all
+all = "alle"
+# any
+any = "een van"
+# No limit
+noLimit = "Geen limiet"
+# Tracks
+tracks = "Nummers"
+# Minutes
+minutes = "Minuten"
+# Any text
+anyText = "Elke tekst"
+# Title
+title = "Titel"
+# Artist
+artist = "Artiest"
+# Album
+album = "Album"
+# Genre
+genre = "Genre"
+# Year
+year = "Jaar"
+# Track number
+trackNumber = "Nummer"
+# Length (seconds)
+lengthSeconds = "Lengte (seconden)"
+# File path
+filePath = "Bestandspad"
+# Rating (stars)
+ratingStars = "Waardering (sterren)"
+# Plays
+plays = "Keer gespeeld"
+# Last played
+lastPlayed = "Laatst gespeeld"
+# Date added
+dateAdded = "Datum toegevoegd"
+# is
+is = "is"
+# contains
+contains = "bevat"
+# is less than
+isLessThan = "is kleiner dan"
+# is more than
+isMoreThan = "is groter dan"
+# is empty
+isEmpty = "is leeg"
+# in the last (days)
+inLastDays = "in de laatste (dagen)"
+# Random
+random = "Willekeurig"
+# Rule {n}: {e}.
+ruleError = "Regel {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "De afspeellijst heeft een naam nodig."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "De limiet moet een heel getal boven 0 zijn."
+# Name:
+name = "Naam:"
+# Tracks that match
+tracksThatMatch = "Voldoen aan"
+# of these rules:
+ofTheseRules = "deze regels:"
+# Add rule
+addRule = "+ Regel"
+# Add group
+addGroup = "+ Groep"
+# Order by
+orderBy = "Sorteren"
+# then by
+thenBy = "dan"
+# ascending
+ascending = "oplopend"
+# descending
+descending = "aflopend"
+# Limit
+limit = "Limiet"
+# of these:
+ofThese = "hiervan:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Zoeken naar:"
+# Jump
+jump = "Springen"
+
+[history]
+# Search for:
+searchFor = "Zoeken naar:"
+# Play
+play = "Afspelen"
+# Today {time}
+todayTime = "Vandaag {time}"
+# Yesterday {time}
+yesterdayTime = "Gisteren {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (niet gevonden)"
+# Output device
+outputDevice = "Uitvoerapparaat"
+# Open with Popamp
+openWithPopamp = "Openen met Popamp"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "In de Instellingen van Windows kies je de standaardspeler."
+# Default apps
+defaultApps = "Standaard-apps"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Kies Popamp in de Finder: Toon info, dan Open met."
+# Forget them now
+forgetThemNow = "Nu vergeten"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Afspeelgegevens en waarderingen van {n} ontbrekend bestand vergeten.", "Afspeelgegevens en waarderingen van {n} ontbrekende bestanden vergeten."]
+
+  [prefs.page]
+  # Windows
+  windows = "Vensters"
+  # Playlist
+  playlist = "Afspeellijst"
+  # Playback
+  playback = "Afspelen"
+  # Media Library
+  mediaLibrary = "Mediabibliotheek"
+  # Desktop
+  desktop = "Bureaublad"
+  # Internet
+  internet = "Internet"
+  # Shortcuts
+  shortcuts = "Sneltoetsen"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Vensters aan elkaar laten klikken"
+  # Easy move
+  easyMove = "Makkelijk verplaatsen"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Vensters op het scherm houden"
+  # Always on top
+  alwaysOnTop = "Altijd bovenaan"
+  # Larger size
+  largerSize = "Vergroot formaat"
+  # Use skin cursors
+  useSkinCursors = "Cursors van de skin gebruiken"
+  # Scroll song title
+  scrollSongTitle = "Titel laten schuiven"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Inactieve afspeellijst dimmen"
+  # Show playlist numbers
+  showPlaylistNumbers = "Nummers in de lijst tonen"
+  # Zero-pad numbers
+  zeroPadNumbers = "Nummers aanvullen met nullen"
+  # Advance to next track
+  advanceToNextTrack = "Doorgaan naar het volgende nummer"
+  # Icon in the system tray
+  iconInSystemTray = "Pictogram in het systeemvak"
+  # Minimize to the tray
+  minimizeToTray = "Minimaliseren naar het systeemvak"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Melding bij elk nieuw nummer"
+  # Check for a new version
+  checkForNewVersion = "Op nieuwe versie controleren"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Globale sneltoetsen (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "ReplayGain-venster open laten"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Mappen scannen bij het opstarten"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Mappen regelmatig scannen"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Lettergrootte van de lijst"
+  # Title format
+  titleFormat = "Titelopmaak"
+  # Fade-out (ms)
+  fadeOutMs = "Uitfaden (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "Crossfade (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "Uitvoerbuffer (ms)"
+  # HTTP proxy
+  httpProxy = "HTTP-proxy"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI-SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Tellen als gespeeld na (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Scannen elke (minuten)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: voer een heel getal in"
+  # Font size
+  fontSize = "Lettergrootte"
+  # Fade-out
+  fadeOut = "Uitfaden"
+  # Crossfade
+  crossfade = "Crossfade"
+  # Output buffer
+  outputBuffer = "Uitvoerbuffer"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Tellen als gespeeld: 50 tot 100, in stappen van 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Scannen elke: 1 tot {max} minuten"
+  # Title format: must not be empty
+  titleFormatEmpty = "Titelopmaak: mag niet leeg zijn"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI-SoundFont: bestand bestaat niet (laat leeg voor die van het systeem)"
+  # Language
+  language = "Taal"
+  # As the system ({language})
+  systemLanguage = "Zoals het systeem ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["Ontbrekende bestanden: speelgegevens {n} dag bewaard.", "Ontbrekende bestanden: speelgegevens {n} dagen bewaard."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} ontbrekend bestand houdt zijn gegevens {days} dagen.", "{n} ontbrekende bestanden houden hun gegevens {days} dagen."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Een klik, of het wieltje, op een titelbalk (volledig of opgerold):"
+  # Window
+  window = "Venster"
+  # Mouse
+  mouse = "Muis"
+  # Action
+  action = "Actie"
+  # Assign
+  assign = "Toewijzen"
+  # Main
+  main = "Hoofdvenster"
+  # Equalizer
+  equalizer = "Equalizer"
+  # Playlist
+  playlist = "Afspeellijst"
+  # Right Mouse
+  rightMouse = "Rechtermuisknop"
+  # Middle Mouse
+  middleMouse = "Middelste muisknop"
+  # Scroll Up
+  scrollUp = "Wieltje omhoog"
+  # Scroll Down
+  scrollDown = "Wieltje omlaag"
+  # Previous track
+  previousTrack = "Vorig nummer"
+  # Next track
+  nextTrack = "Volgend nummer"
+  # Pause
+  pause = "Pauze"
+  # Stop
+  stop = "Stoppen"
+  # Shuffle on/off
+  shuffleOnOff = "Willekeurig aan/uit"
+  # Repeat on/off
+  repeatOnOff = "Herhalen aan/uit"
+  # Vol Up
+  volUp = "Harder"
+  # Vol Down
+  volDown = "Zachter"
+
+[fileTypes]
+# Audio files
+audioFiles = "Audiobestanden"
+# Playlists
+playlists = "Afspeellijsten"
+# Skins
+skins = "Skins"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Bestandstypen: kan Popamp niet aan het menu toevoegen: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Bestandstypen: kan {file} niet schrijven: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: selecteer de nummers om te analyseren"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: analyse geannuleerd"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: {done} van {total} geanalyseerd"
+# , turn it on in Options > ReplayGain
+turnItOn = ", zet het aan in Opties > ReplayGain"
+# Cancelling: finishing the tracks under way
+cancelling = "Annuleren: lopende nummers worden afgemaakt"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Analyseren: {done} van {n} nummer", "Analyseren: {done} van {n} nummers"]
+# Cancelled: nothing was saved
+cancelled = "Geannuleerd: niets opgeslagen"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Klaar: {done} van {n} nummer geanalyseerd", "Klaar: {done} van {n} nummers geanalyseerd"]
+# , {failed} failed
+nFailed = ", {failed} mislukt"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain staat uit: zet het aan in Opties > ReplayGain"
+# Saved to {file}
+savedToFile = "Opgeslagen in {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Dit venster open laten als de analyse klaar is"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Installeren uit bestand…"
+# Gallery…
+gallery = "Galerij…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Skins van skins.webamp.org zijn van hun makers."
+# More
+more = "Meer"
+# Download & use
+downloadAndUse = "Downloaden en gebruiken"
+# Loading preview…
+loadingPreview = "Voorbeeld laden…"
+# Downloading {name}…
+downloadingName = "{name} downloaden…"
+# Using {name}.
+usingName = "{name} in gebruik."
+# Museum: {e}
+loadError = "Museum: {e}"
+# No preview: {e}
+noPreviewError = "Geen voorbeeld: {e}"
+# Nothing found.
+nothingFound = "Niets gevonden."
+# {n} skin. | {n} skins.
+nSkins = ["{n} skin.", "{n} skins."]
+
+[gallery]
+# Skins
+skins = "Skins"
+# Plug-ins
+plugIns = "Plug-ins"
+# Visualizations
+visualizations = "Visualisaties"
+# Popular
+popular = "Populair"
+# Top rated
+topRated = "Best gewaardeerd"
+# New
+new = "Nieuw"
+# May run {programs}
+mayRunPrograms = "Mag {programs} starten"
+# " and "
+andJoin = " en "
+# May connect to {hosts}
+mayConnectToHosts = "Mag verbinden met {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Mag de mappen lezen die je toestaat"
+# Install
+install = "Installeren"
+# Update
+update = "Bijwerken"
+# Use
+use = "Gebruiken"
+# Installed
+installed = "Geïnstalleerd"
+# Loading the catalog…
+loadingCatalog = "Catalogus laden…"
+# " (update)"
+updateMark = " (update)"
+# " (installed)"
+installedMark = " (geïnstalleerd)"
+# Loading the preview…
+loadingPreview = "Voorbeeld laden…"
+# No preview
+noPreview = "Geen voorbeeld"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Plug-ins vereisen Popamp Plus"
+# Nothing found
+nothingFound = "Niets gevonden"
+# Using {name}.
+usingName = "{name} in gebruik."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} is geïnstalleerd. Zet het aan in Opties > Plug-ins."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} staat al in {folder}; de galerij laat het met rust."
+# Downloading {name}…
+downloadingName = "{name} downloaden…"
+# {n} in the gallery
+nInGallery = "{n} in de galerij"
+# , {n} to update
+nToUpdate = ", {n} bij te werken"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} plug-in vereist Popamp Plus", "; {n} plug-ins vereisen Popamp Plus"]
+# Gallery: {e}
+loadError = "Galerij: {e}"
+# Skin
+skin = "Skin"
+# Plug-in
+plugIn = "Plug-in"
+# DSP plug-in
+dspPlugIn = "DSP-plug-in"
+# Source plug-in
+sourcePlugIn = "Bron-plug-in"
+# Decoder plug-in
+decoderPlugIn = "Decoder-plug-in"
+# Visual plug-in
+visualPlugIn = "Visuele plug-in"
+# {kind} plug-in
+kindPlugIn = "{kind}-plug-in"
+# {what} by {author}
+whatByAuthor = "{what} door {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Vraagt geen rechten."
+# License: {license}
+licenseLicense = "Licentie: {license}"
+# Not rated yet
+notRatedYet = "Nog niet gewaardeerd"
+# Rated {rating} of 5 by {n}
+ratedBy = "{rating} van 5, door {n} gewaardeerd"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} download", "{rated}, {n} downloads"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "KAN PLUG-IN NIET VERWIJDEREN: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "PLUG-IN {name} GESTOPT: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Plug-ins voegen bronnen, bestandstypen, geluidseffecten en visualisaties toe aan Popamp. Ze staan uit tot je ze aanzet."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Om er een aan te zetten, kies je hem in de lijst links, lees je wat hij doet en mag, en vink je Ingeschakeld aan. De instellingen staan eronder."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "OK bewaart je keuze; Annuleren vergeet hem."
+# Plug-ins
+plugIns = "Plug-ins"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "Er zijn er nog geen in {dir}."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Elk is een map in {dir}."
+# {name} is removed.
+nameIsRemoved = "{name} is verwijderd."
+# {name} (removed)
+nameRemoved = "{name} (verwijderd)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Als pakket geïnstalleerd (popamp-plugin-{folder}): verwijder het met je pakketbeheerder."
+# Enabled
+enabled = "Ingeschakeld"
+# Show the commands it runs
+showCommandsItRuns = "Opdrachten tonen die hij uitvoert"
+# Settings
+settings = "Instellingen"
+# Permissions
+permissions = "Rechten"
+# Connect to {address} ({why})
+connectToAddressWhy = "Verbinden met {address} ({why})"
+# Connect to {address}
+connectToAddress = "Verbinden met {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Mappen die hij mag lezen, gescheiden door ; (~ is je hele thuismap):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Verborgen mappen en die van de speler blijven dicht."
+# Journal
+journal = "Logboek"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "KAN LOGBOEK NIET OPENEN: {file}"
+# Broken: {e}
+broken = "Defect: {e}"
+# Did not load: {e}
+didNotLoad = "Niet geladen: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Gestopt na een fout: {why}. OK start hem opnieuw."
+
+[hotkeys]
+# Play
+play = "Afspelen"
+# Pause
+pause = "Pauze"
+# Stop
+stop = "Stoppen"
+# Previous track
+previousTrack = "Vorig nummer"
+# Next track
+nextTrack = "Volgend nummer"
+# Volume up
+volumeUp = "Harder"
+# Volume down
+volumeDown = "Zachter"
+# Back 5 seconds
+back5Seconds = "5 seconden terug"
+# Forward 5 seconds
+forward5Seconds = "5 seconden vooruit"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "POPAMP {version} IS UIT, ZIE HET HOOFDMENU"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "KAN DE BROWSER NIET OPENEN"

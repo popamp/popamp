@@ -32,15 +32,15 @@ impl Key {
 
     fn description(self) -> &'static str {
         match self {
-            Key::Insert => "Play",
-            Key::Home => "Pause",
-            Key::End => "Stop",
-            Key::PageUp => "Previous track",
-            Key::PageDown => "Next track",
-            Key::Up => "Volume up",
-            Key::Down => "Volume down",
-            Key::Left => "Back 5 seconds",
-            Key::Right => "Forward 5 seconds",
+            Key::Insert => tr!("hotkeys.play"),
+            Key::Home => tr!("hotkeys.pause"),
+            Key::End => tr!("hotkeys.stop"),
+            Key::PageUp => tr!("hotkeys.previousTrack"),
+            Key::PageDown => tr!("hotkeys.nextTrack"),
+            Key::Up => tr!("hotkeys.volumeUp"),
+            Key::Down => tr!("hotkeys.volumeDown"),
+            Key::Left => tr!("hotkeys.back5Seconds"),
+            Key::Right => tr!("hotkeys.forward5Seconds"),
         }
     }
 

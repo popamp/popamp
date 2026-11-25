@@ -7,6 +7,7 @@
 use crate::fileinfo::{AlbumArt, FileInfo};
 #[cfg(linux_like)]
 use crate::filetypes::Group;
+use crate::i18n::Lang;
 use crate::model::{Model, UiReq};
 use crate::museum::{self, Fetched, Job};
 use crate::shortcuts;
@@ -149,16 +150,16 @@ impl Panel {
 
     pub fn title(&self) -> &'static str {
         match self {
-            Panel::Jump(_) => "Jump to file",
-            Panel::Info(_) => "File info",
-            Panel::Prefs(_) => "Popamp Preferences",
-            Panel::Museum(_) => "Winamp Skin Museum",
-            Panel::Gallery(_) => "Popamp Gallery",
-            Panel::Art(_) => "Album art",
-            Panel::Skins(_) => "Skin browser",
-            Panel::History(_) => "History",
-            Panel::Scan(_) => "ReplayGain scan",
-            Panel::Smart(_) => "Smart playlist",
+            Panel::Jump(_) => tr!("window.jumpToFile"),
+            Panel::Info(_) => tr!("window.fileInfo"),
+            Panel::Prefs(_) => tr!("window.popampPreferences"),
+            Panel::Museum(_) => tr!("window.winampSkinMuseum"),
+            Panel::Gallery(_) => tr!("window.popampGallery"),
+            Panel::Art(_) => tr!("window.albumArt"),
+            Panel::Skins(_) => tr!("window.skinBrowser"),
+            Panel::History(_) => tr!("window.history"),
+            Panel::Scan(_) => tr!("window.replayGainScan"),
+            Panel::Smart(_) => tr!("window.smartPlaylist"),
         }
     }
 
@@ -316,12 +317,12 @@ impl JumpToFile {
     fn new(model: &Model) -> JumpToFile {
         let (w, list_h) = (460, 4 + 16 * ROW_H);
         let mut form = Form::new(w, 10 + 24 + 8 + list_h + 10 + BUTTON.1 + 10);
-        form.add(Rect::new(10, 10, 70, 24), Widget::Label { text: "Search for:".into(), dim: false });
+        form.add(Rect::new(10, 10, 70, 24), Widget::Label { text: tr!("jumpToFile.searchFor").into(), dim: false });
         let search = form.add(Rect::new(80, 10, w - 90, 24), Widget::Input { text: String::new(), cursor: 0 });
         let list = form.add(Rect::new(10, 42, w - 20, list_h), Widget::List { rows: vec![], selected: None, scroll: 0 });
         let by = 42 + list_h + 10;
-        button(&mut form, w - 2 * BUTTON.0 - 16, by, "Jump", Act::Ok, true);
-        button(&mut form, w - BUTTON.0 - 10, by, "Close", Act::Close, false);
+        button(&mut form, w - 2 * BUTTON.0 - 16, by, tr!("jumpToFile.jump"), Act::Ok, true);
+        button(&mut form, w - BUTTON.0 - 10, by, tr!("common.close"), Act::Close, false);
         let mut p = JumpToFile { form, search, list, shown: vec![] };
         p.refilter(model);
         p
@@ -388,25 +389,25 @@ pub enum Flag {
 impl Flag {
     fn label(self) -> &'static str {
         match self {
-            Flag::Snap => "Snap windows together",
-            Flag::EasyMove => "Easy move",
-            Flag::KeepOnScreen => "Keep windows on screen",
-            Flag::AlwaysOnTop => "Always on top",
-            Flag::DoubleSize => "Double size",
-            Flag::SkinCursors => "Use skin cursors",
-            Flag::ScrollTitle => "Scroll song title",
-            Flag::DimInactive => "Dim inactive playlist",
-            Flag::ShowNumbers => "Show playlist numbers",
-            Flag::ZeroPad => "Zero-pad numbers",
-            Flag::AutoAdvance => "Advance to next track",
-            Flag::TrayIcon => "Icon in the system tray",
-            Flag::MinimizeToTray => "Minimize to the tray",
-            Flag::NotifyTracks => "Notify of each new track",
-            Flag::CheckUpdates => "Check for a new version",
-            Flag::GlobalHotkeys => "Global hotkeys (Ctrl+Alt)",
-            Flag::KeepScanOpen => "Keep the ReplayGain scan window open",
-            Flag::ScanAtStart => "Scan the folders at startup",
-            Flag::ScanPeriodically => "Scan the folders periodically",
+            Flag::Snap => tr!("prefs.option.snapWindowsTogether"),
+            Flag::EasyMove => tr!("prefs.option.easyMove"),
+            Flag::KeepOnScreen => tr!("prefs.option.keepWindowsOnScreen"),
+            Flag::AlwaysOnTop => tr!("prefs.option.alwaysOnTop"),
+            Flag::DoubleSize => tr!("prefs.option.largerSize"),
+            Flag::SkinCursors => tr!("prefs.option.useSkinCursors"),
+            Flag::ScrollTitle => tr!("prefs.option.scrollSongTitle"),
+            Flag::DimInactive => tr!("prefs.option.dimInactivePlaylist"),
+            Flag::ShowNumbers => tr!("prefs.option.showPlaylistNumbers"),
+            Flag::ZeroPad => tr!("prefs.option.zeroPadNumbers"),
+            Flag::AutoAdvance => tr!("prefs.option.advanceToNextTrack"),
+            Flag::TrayIcon => tr!("prefs.option.iconInSystemTray"),
+            Flag::MinimizeToTray => tr!("prefs.option.minimizeToTray"),
+            Flag::NotifyTracks => tr!("prefs.option.notifyOfEachNewTrack"),
+            Flag::CheckUpdates => tr!("prefs.option.checkForNewVersion"),
+            Flag::GlobalHotkeys => tr!("prefs.option.globalHotkeysCtrlAlt"),
+            Flag::KeepScanOpen => tr!("prefs.option.keepReplayGainWindowOpen"),
+            Flag::ScanAtStart => tr!("prefs.option.scanFoldersAtStartup"),
+            Flag::ScanPeriodically => tr!("prefs.option.scanFoldersPeriodically"),
         }
     }
 
@@ -487,15 +488,15 @@ pub enum Field {
 impl Field {
     fn label(self) -> &'static str {
         match self {
-            Field::FontSize => "Playlist font size",
-            Field::TitleFormat => "Title format",
-            Field::FadeMs => "Fade-out (ms)",
-            Field::CrossfadeMs => "Crossfade (ms)",
-            Field::BufferMs => "Output buffer (ms)",
-            Field::Proxy => "HTTP proxy",
-            Field::SoundFont => "MIDI SoundFont",
-            Field::ListenPercent => "Count a play after hearing (%)",
-            Field::RescanMinutes => "Scan every (minutes)",
+            Field::FontSize => tr!("prefs.field.playlistFontSize"),
+            Field::TitleFormat => tr!("prefs.field.titleFormat"),
+            Field::FadeMs => tr!("prefs.field.fadeOutMs"),
+            Field::CrossfadeMs => tr!("prefs.field.crossfadeMs"),
+            Field::BufferMs => tr!("prefs.field.outputBufferMs"),
+            Field::Proxy => tr!("prefs.field.httpProxy"),
+            Field::SoundFont => tr!("prefs.field.midiSoundFont"),
+            Field::ListenPercent => tr!("prefs.field.countPlayAfterHearing"),
+            Field::RescanMinutes => tr!("prefs.field.scanEveryMinutes"),
         }
     }
 
@@ -515,23 +516,23 @@ impl Field {
 
     /// Checks `text` without changing anything.
     fn check(self, text: &str) -> Result<(), String> {
-        let number = |what| text.trim().parse::<u32>().map(drop).map_err(|_| format!("{what}: enter a whole number"));
+        let number = |what| text.trim().parse::<u32>().map(drop).map_err(|_| tr!("prefs.field.wholeNumber", what));
         match self {
-            Field::FontSize => number("Font size"),
-            Field::FadeMs => number("Fade-out"),
-            Field::CrossfadeMs => number("Crossfade"),
-            Field::BufferMs => number("Output buffer"),
+            Field::FontSize => number(tr!("prefs.field.fontSize")),
+            Field::FadeMs => number(tr!("prefs.field.fadeOut")),
+            Field::CrossfadeMs => number(tr!("prefs.field.crossfade")),
+            Field::BufferMs => number(tr!("prefs.field.outputBuffer")),
             Field::ListenPercent => match text.trim().parse::<u32>() {
                 Ok(n) if (50..=100).contains(&n) && n % 5 == 0 => Ok(()),
-                _ => Err("Count a play: 50 to 100, in steps of 5".into()),
+                _ => Err(tr!("prefs.field.countPlayRange").into()),
             },
             Field::RescanMinutes => match text.trim().parse::<u32>() {
                 Ok(n) if (1..=MAX_RESCAN_MINUTES).contains(&n) => Ok(()),
-                _ => Err(format!("Scan every: 1 to {MAX_RESCAN_MINUTES} minutes")),
+                _ => Err(tr!("prefs.field.scanEveryRange", max = MAX_RESCAN_MINUTES)),
             },
-            Field::TitleFormat if text.trim().is_empty() => Err("Title format: must not be empty".into()),
+            Field::TitleFormat if text.trim().is_empty() => Err(tr!("prefs.field.titleFormatEmpty").into()),
             Field::SoundFont if !text.trim().is_empty() && !std::path::Path::new(text.trim()).is_file() => {
-                Err("MIDI SoundFont: no such file (leave it empty for the system's)".into())
+                Err(tr!("prefs.field.soundFontMissing").into())
             }
             Field::TitleFormat | Field::Proxy | Field::SoundFont => Ok(()),
         }
@@ -558,13 +559,23 @@ impl Field {
     }
 }
 
+/// The label and drop-down of the language in `r`, with `code` picked
+/// (empty for the system's); the drop-down's index.
+fn language_choice(form: &mut Form<Act>, page: usize, r: Rect, code: &str) -> usize {
+    form.add_on(page, Rect { w: LABEL_W, ..r }, Widget::Label { text: tr!("prefs.field.language").into(), dim: false });
+    let system = tr!("prefs.field.systemLanguage", language = crate::i18n::system_language().name());
+    let options = std::iter::once(system).chain(Lang::ALL.iter().map(|l| l.name().to_string())).collect();
+    let selected = Lang::ALL.iter().position(|l| l.code() == code).map_or(0, |n| n + 1);
+    form.add_on(page, Rect { x: r.x + LABEL_W, w: (r.w - LABEL_W).min(200), ..r }, Widget::Choice { options, selected })
+}
+
 /// What the Media Library page says of the plays and ratings kept for
 /// missing files.
 fn missing_text(model: &Model) -> String {
     let days = popamp_core::stats::KEEP_MISSING / 86_400;
     match model.library.lib.stats.missing() {
-        0 => format!("Plays and ratings of missing files are kept {days} days."),
-        n => format!("{n} missing files keep their plays and ratings {days} days."),
+        0 => trn!(days, "prefs.field.missingKeptDays"),
+        n => trn!(n, "prefs.field.nMissingKeptDays", days),
     }
 }
 
@@ -599,13 +610,13 @@ impl Section {
 
     fn label(self) -> &'static str {
         match self {
-            Section::Windows => "Windows",
-            Section::Playlist => "Playlist",
-            Section::Playback => "Playback",
-            Section::Library => "Media Library",
-            Section::Desktop => "Desktop",
-            Section::Internet => "Internet",
-            Section::Shortcuts => "Shortcuts",
+            Section::Windows => tr!("prefs.page.windows"),
+            Section::Playlist => tr!("prefs.page.playlist"),
+            Section::Playback => tr!("prefs.page.playback"),
+            Section::Library => tr!("prefs.page.mediaLibrary"),
+            Section::Desktop => tr!("prefs.page.desktop"),
+            Section::Internet => tr!("prefs.page.internet"),
+            Section::Shortcuts => tr!("prefs.page.shortcuts"),
         }
     }
 
@@ -649,6 +660,8 @@ pub struct Preferences {
     status: usize,
     /// Tells how many tracks' plays and ratings wait for their file.
     missing_note: usize,
+    /// The drop-down of languages: the system's, then [`Lang::ALL`].
+    language: usize,
     shortcuts: ShortcutEditor,
     /// The list of pages on the left.
     #[cfg_attr(not(feature = "plugins"), allow(dead_code))]
@@ -677,18 +690,20 @@ impl ShortcutEditor {
     /// `x`. Returns it, the bottom of its frame and how far down the
     /// options of its drop-downs reach.
     fn build(form: &mut Form<Act>, page: usize, (x, y, w): (i32, i32, i32), spec: &str) -> (ShortcutEditor, i32, i32) {
-        let note = "A click, or the wheel, over a title bar (full size or shaded):";
+        let note = tr!("prefs.shortcuts.help");
         form.add_on(page, Rect::new(x - 8, y - 6, w + 16, 20), Widget::Label { text: note.into(), dim: true });
         let col = w / 3;
         let y = y + 20;
-        for (n, head) in ["Window", "Mouse", "Action"].into_iter().enumerate() {
+        for (n, head) in
+            [tr!("prefs.shortcuts.window"), tr!("prefs.shortcuts.mouse"), tr!("prefs.shortcuts.action")].into_iter().enumerate()
+        {
             form.add_on(page, Rect::new(x + 5 + n as i32 * col, y, col, 18), Widget::Label { text: head.into(), dim: true });
         }
         let y = y + 20;
         let list_h = SHORTCUT_ROWS * ROW_H + 4;
         let list = form.add_on(page, Rect::new(x, y, w, list_h), Widget::List { rows: vec![], selected: None, scroll: 0 });
         let y = y + list_h + 8;
-        let names = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let names = |v: &[&'static str]| v.iter().map(|s| crate::i18n::tr(s).to_string()).collect::<Vec<_>>();
         let mut choice = |n: i32, options: Vec<String>| {
             form.add_on(page, Rect::new(x + n * col, y, col - 6, 24), Widget::Choice { options, selected: 0 })
         };
@@ -697,9 +712,9 @@ impl ShortcutEditor {
         let action = choice(2, names(&shortcuts::ACTIONS.map(|t| t.2)));
         let options_bottom = y + 24 + shortcuts::ACTIONS.len() as i32 * ROW_H + 4;
         let y = y + 24 + 8;
-        let add = Widget::Button { label: "Assign".into(), action: Act::AssignShortcut, default: false };
+        let add = Widget::Button { label: tr!("prefs.shortcuts.assign").into(), action: Act::AssignShortcut, default: false };
         form.add_on(page, Rect::new(x, y, BUTTON.0, BUTTON.1), add);
-        let remove = Widget::Button { label: "Remove".into(), action: Act::RemoveShortcut, default: false };
+        let remove = Widget::Button { label: tr!("common.remove").into(), action: Act::RemoveShortcut, default: false };
         form.add_on(page, Rect::new(x + BUTTON.0 + 6, y, BUTTON.0, BUTTON.1), remove);
         let mut editor = ShortcutEditor { rules: shortcuts::parse(spec), list, window, mouse, action, shown: None };
         editor.show_rules(form, None);
@@ -775,6 +790,7 @@ impl Preferences {
         let mut device_list = 0;
         let mut shortcuts = None;
         let mut missing_note = 0;
+        let mut language = 0;
         for (page, section) in Section::ALL.into_iter().enumerate() {
             let flags = section.flags();
             let rows = flags.len() as i32;
@@ -800,10 +816,15 @@ impl Preferences {
                 Section::Playback => {
                     if !devices.iter().any(|d| d.name == s.output_device) {
                         // Unplugged, or typed into the settings file: kept until changed.
-                        devices.push(Device { label: format!("{} (not found)", s.output_device), name: s.output_device.clone() });
+                        devices
+                            .push(Device { label: tr!("prefs.deviceNotFound", device = s.output_device), name: s.output_device.clone() });
                     }
                     let current = devices.iter().position(|d| d.name == s.output_device);
-                    form.add_on(page, Rect::new(x0 + 4, y, LABEL_W, 24), Widget::Label { text: "Output device".into(), dim: false });
+                    form.add_on(
+                        page,
+                        Rect::new(x0 + 4, y, LABEL_W, 24),
+                        Widget::Label { text: tr!("prefs.outputDevice").into(), dim: false },
+                    );
                     let list = Widget::List { rows: vec![], selected: None, scroll: 0 };
                     let r = Rect::new(x0 + 4 + LABEL_W, y, cw - 4 - LABEL_W, DEVICE_ROWS * ROW_H + 4);
                     device_list = form.add_on(page, r, list);
@@ -818,7 +839,9 @@ impl Preferences {
                     y = options_bottom;
                 }
                 Section::Desktop => {
-                    form.add_on(page, Rect::new(x0, y, cw, 22 + 3 * 22), Widget::Group { label: "Open with Popamp".into() });
+                    language = language_choice(&mut form, page, Rect::new(x0 + 4, y, cw - 4, 24), &s.language);
+                    y += 34;
+                    form.add_on(page, Rect::new(x0, y, cw, 22 + 3 * 22), Widget::Group { label: tr!("prefs.openWithPopamp").into() });
                     #[cfg(linux_like)]
                     {
                         let on = file_types.defaults();
@@ -830,14 +853,18 @@ impl Preferences {
                     }
                     #[cfg(windows)]
                     {
-                        let note = "Windows lets you choose the default player in its Settings.".into();
+                        let note = tr!("prefs.windowsDefaultApps").into();
                         form.add_on(page, Rect::new(x0 + 12, y + 20, cw - 24, 24), Widget::Label { text: note, dim: false });
                         let r = Rect::new(x0 + 12, y + 48, BUTTON.0 + 20, BUTTON.1);
-                        form.add_on(page, r, Widget::Button { label: "Default apps".into(), action: Act::DefaultApps, default: false });
+                        form.add_on(
+                            page,
+                            r,
+                            Widget::Button { label: tr!("prefs.defaultApps").into(), action: Act::DefaultApps, default: false },
+                        );
                     }
                     #[cfg(target_os = "macos")]
                     {
-                        let note = "Choose Popamp in Finder: Get Info, then Open with.".into();
+                        let note = tr!("prefs.macDefaultApps").into();
                         form.add_on(page, Rect::new(x0 + 12, y + 20, cw - 24, 24), Widget::Label { text: note, dim: false });
                     }
                     y += 30 + 3 * 22;
@@ -846,7 +873,11 @@ impl Preferences {
                     let r = Rect::new(x0 + 4, y, cw - 8, 24);
                     missing_note = form.add_on(page, r, Widget::Label { text: missing_text(model), dim: false });
                     let r = Rect::new(x0 + 4, y + 28, BUTTON.0 + 60, BUTTON.1);
-                    form.add_on(page, r, Widget::Button { label: "Forget them now".into(), action: Act::ForgetMissing, default: false });
+                    form.add_on(
+                        page,
+                        r,
+                        Widget::Button { label: tr!("prefs.forgetThemNow").into(), action: Act::ForgetMissing, default: false },
+                    );
                     y += 28 + BUTTON.1 + 10;
                 }
                 _ => {}
@@ -864,8 +895,8 @@ impl Preferences {
         // The pages scroll above the buttons when the screen is too low for them.
         form.set_view(Rect::new(x0 - 6, 0, w - x0 + 6, y - 6));
         let status = form.add(Rect::new(x0, y, w - 2 * BUTTON.0 - 22 - x0, BUTTON.1), Widget::Label { text: String::new(), dim: false });
-        button(&mut form, w - 2 * BUTTON.0 - 16, y, "OK", Act::Ok, true);
-        button(&mut form, w - BUTTON.0 - 10, y, "Cancel", Act::Close, false);
+        button(&mut form, w - 2 * BUTTON.0 - 16, y, tr!("common.ok"), Act::Ok, true);
+        button(&mut form, w - BUTTON.0 - 10, y, tr!("common.cancel"), Act::Close, false);
         form.h = y + BUTTON.1 + 10;
         // The list of sections runs down to the buttons, room to spare.
         let pages = form.add(Rect::new(10, 10, 140, form.h - 20), Widget::Pages { entries, selected: 0, action: Act::Section });
@@ -879,6 +910,7 @@ impl Preferences {
             device_list,
             status,
             missing_note,
+            language,
             shortcuts: shortcuts.expect("Preferences has a Shortcuts page"),
             pages,
             #[cfg(feature = "plugins")]
@@ -907,7 +939,7 @@ impl Preferences {
             }
             Event::Clicked(Act::ForgetMissing) => {
                 let n = model.forget_missing_stats();
-                self.form.set_label(self.missing_note, format!("Forgot the plays and ratings of {n} missing files."));
+                self.form.set_label(self.missing_note, trn!(n, "prefs.forgotMissing"));
                 true
             }
             Event::Selected => {
@@ -941,6 +973,11 @@ impl Preferences {
             model.settings_mut().output_device = d.name.clone();
         }
         model.settings_mut().title_shortcuts = shortcuts::format(&self.shortcuts.rules);
+        let code = self.form.choice(self.language).checked_sub(1).map_or("", |n| Lang::ALL[n].code());
+        if code != model.settings().language {
+            model.settings_mut().language = code.to_string();
+            crate::i18n::apply_setting(code);
+        }
         model.settings_mut().sanitize();
         model.push_engine_settings();
         // Plug-ins get the proxy when they load.
@@ -979,10 +1016,13 @@ impl SkinBrowser {
         let by = 10 + list_h + 10;
         form.add(
             Rect::new(10, by, 120, BUTTON.1),
-            Widget::Button { label: "Install from file…".into(), action: Act::InstallSkin, default: false },
+            Widget::Button { label: tr!("skinBrowser.installFromFile").into(), action: Act::InstallSkin, default: false },
         );
-        form.add(Rect::new(136, by, BUTTON.0, BUTTON.1), Widget::Button { label: "Gallery…".into(), action: Act::Gallery, default: false });
-        button(&mut form, w - BUTTON.0 - 10, by, "Close", Act::Close, true);
+        form.add(
+            Rect::new(136, by, BUTTON.0, BUTTON.1),
+            Widget::Button { label: tr!("skinBrowser.gallery").into(), action: Act::Gallery, default: false },
+        );
+        button(&mut form, w - BUTTON.0 - 10, by, tr!("common.close"), Act::Close, true);
         let mut p = SkinBrowser { form, list, skins: vec![], current: None };
         p.relist(model);
         p
@@ -1053,25 +1093,27 @@ pub struct SkinMuseum {
 }
 
 impl SkinMuseum {
-    const CREDIT: &'static str = "Skins from skins.webamp.org belong to their authors.";
+    fn credit() -> &'static str {
+        tr!("skinMuseum.credit")
+    }
 
     fn new() -> SkinMuseum {
         let (list_w, shot_w, shot_h) = (260, 275, 348);
         let w = 10 + list_w + 10 + shot_w + 10;
         let mut form = Form::new(w, 0);
         let search = form.add(Rect::new(10, 10, list_w - 80, 24), Widget::Input { text: String::new(), cursor: 0 });
-        button(&mut form, 10 + list_w - 74, 10, "Search", Act::Search, true);
+        button(&mut form, 10 + list_w - 74, 10, tr!("common.search"), Act::Search, true);
         let list_h = 4 + 16 * ROW_H;
         let list = form.add(Rect::new(10, 42, list_w, list_h), Widget::List { rows: vec![], selected: None, scroll: 0 });
-        button(&mut form, 10, 42 + list_h + 8, "More", Act::More, false);
+        button(&mut form, 10, 42 + list_h + 8, tr!("skinMuseum.more"), Act::More, false);
         let shot = form.add(Rect::new(10 + list_w + 10, 10, shot_w, shot_h), Widget::Image { image: None, note: String::new() });
         let y = 10 + shot_h + 14;
-        let status = form.add(Rect::new(10, y, w - 2 * BUTTON.0 - 36, BUTTON.1), Widget::Label { text: Self::CREDIT.into(), dim: true });
+        let status = form.add(Rect::new(10, y, w - 2 * BUTTON.0 - 36, BUTTON.1), Widget::Label { text: Self::credit().into(), dim: true });
         form.add(
             Rect::new(w - 2 * BUTTON.0 - 56, y, BUTTON.0 + 40, BUTTON.1),
-            Widget::Button { label: "Download & use".into(), action: Act::Ok, default: false },
+            Widget::Button { label: tr!("skinMuseum.downloadAndUse").into(), action: Act::Ok, default: false },
         );
-        button(&mut form, w - BUTTON.0 - 10, y, "Close", Act::Close, false);
+        button(&mut form, w - BUTTON.0 - 10, y, tr!("common.close"), Act::Close, false);
         form.h = y + BUTTON.1 + 10;
         let mut p = SkinMuseum {
             form,
@@ -1101,7 +1143,7 @@ impl SkinMuseum {
 
     fn request_page(&mut self) {
         self.loading = true;
-        self.form.set_label(self.status, "Loading…".into());
+        self.form.set_label(self.status, tr!("common.loading").into());
         self.jobs.push(Job::Page { query: self.query.clone(), offset: self.entries.len() });
     }
 
@@ -1115,7 +1157,7 @@ impl SkinMuseum {
         match self.shots.get(&md5) {
             Some(img) => self.form.set_image(self.shot, Some(img.clone()), ""),
             None => {
-                self.form.set_image(self.shot, None, "Loading preview…");
+                self.form.set_image(self.shot, None, tr!("skinMuseum.loadingPreview"));
                 self.jobs.push(Job::Screenshot { md5 });
             }
         }
@@ -1128,7 +1170,7 @@ impl SkinMuseum {
             Event::Selected => self.show_selected(),
             Event::Clicked(Act::Ok) | Event::Activated => {
                 if let Some(entry) = self.selected().cloned() {
-                    self.form.set_label(self.status, format!("Downloading {}…", entry.name()));
+                    self.form.set_label(self.status, tr!("skinMuseum.downloadingName", name = entry.name()));
                     self.jobs.push(Job::Download { entry, dir: model.paths.skins_dir() });
                 }
             }
@@ -1146,7 +1188,7 @@ impl SkinMuseum {
                 let note = match result {
                     Ok(path) => {
                         model.set_skin(Some(path));
-                        format!("Using {name}.")
+                        tr!("skinMuseum.usingName", name)
                     }
                     Err(e) => format!("{name}: {e}"),
                 };
@@ -1163,7 +1205,7 @@ impl SkinMuseum {
         self.loading = false;
         match result {
             Ok(page) => self.add_page(page),
-            Err(e) => self.form.set_label(self.status, format!("Museum: {e}")),
+            Err(e) => self.form.set_label(self.status, tr!("skinMuseum.loadError", e)),
         }
     }
 
@@ -1176,7 +1218,7 @@ impl SkinMuseum {
                     self.show_selected();
                 }
             }
-            Err(e) if showing => self.form.set_image(self.shot, None, &format!("No preview: {e}")),
+            Err(e) if showing => self.form.set_image(self.shot, None, &tr!("skinMuseum.noPreviewError", e)),
             Err(_) => {}
         }
     }
@@ -1193,8 +1235,8 @@ impl SkinMuseum {
             self.form.push_rows(self.list, names);
         }
         let note = match self.entries.len() {
-            0 => "Nothing found.".to_string(),
-            n => format!("{n} skins. {}", Self::CREDIT),
+            0 => tr!("skinMuseum.nothingFound").to_string(),
+            n => format!("{} {}", trn!(n, "skinMuseum.nSkins"), Self::credit()),
         };
         self.form.set_label(self.status, note);
     }

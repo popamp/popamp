@@ -12,7 +12,7 @@
 | Skins | `Alt+S`, or put `.wsz`/`.psz` files in the skins folder (below) |
 | Equalizer keys | `1`–`0` / `Q`–`P` raise/lower bands, `N` on/off, `S` presets |
 | Tags and cover / album art | `Alt+3` (File info) / `Alt+A` |
-| Double size / shade | `Ctrl+D` / `Ctrl+W` (or double-click the title bar) |
+| Larger size (2x unless another size is chosen under Size) / shade | `Ctrl+D` / `Ctrl+W` (or double-click the title bar) |
 | Media library | `Alt+L`, or the main menu |
 
 In the media library window, typing searches (`Esc` clears it), `Tab` /

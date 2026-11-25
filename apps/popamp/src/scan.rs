@@ -60,7 +60,7 @@ impl Model {
         let locations: Vec<String> =
             self.playlist.entries().iter().filter(|e| e.selected && !e.is_url()).map(|e| e.location.clone()).collect();
         if locations.is_empty() {
-            return self.flash("ReplayGain: select the tracks to scan");
+            return self.flash(tr!("replayGain.selectTracks"));
         }
         let cancel = Arc::new(AtomicBool::new(false));
         let (events, sources, cx, total) = (self.events.clone(), self.sources.clone(), self.source_context(), locations.len());
@@ -95,7 +95,7 @@ impl Model {
             }
             ScanEvent::Done(None) => {
                 self.scan = ScanState::Finished(Ending::Cancelled);
-                self.show_scan("ReplayGain: scan cancelled".into());
+                self.show_scan(tr!("replayGain.scanCancelled").into());
             }
             ScanEvent::Done(Some(results)) => self.scan_done(results),
         }
@@ -136,9 +136,9 @@ impl Model {
 
 /// What the marquee says when a scan ends.
 fn scan_summary(total: usize, failed: usize, on: bool) -> String {
-    let mut s = format!("ReplayGain: {} of {total} scanned", total - failed);
+    let mut s = tr!("replayGain.doneOfTotal", done = total - failed, total);
     if !on {
-        s.push_str(", turn it on in Options > ReplayGain");
+        s.push_str(tr!("replayGain.turnItOn"));
     }
     s
 }
@@ -146,19 +146,21 @@ fn scan_summary(total: usize, failed: usize, on: bool) -> String {
 /// The lines the scan window shows for `scan`, and its button.
 fn window_text(scan: &ScanState, on: bool, file: &str) -> ([String; 3], &'static str) {
     match scan {
-        ScanState::Idle => (Default::default(), "OK"),
+        ScanState::Idle => (Default::default(), tr!("common.ok")),
         ScanState::Running { cancel, .. } if cancel.load(Ordering::Relaxed) => {
-            (["Cancelling: finishing the tracks under way".into(), String::new(), String::new()], "Cancel")
+            ([tr!("replayGain.cancelling").into(), String::new(), String::new()], tr!("common.cancel"))
         }
-        ScanState::Running { done, total, .. } => ([format!("Scanning: {done} of {total} tracks"), String::new(), String::new()], "Cancel"),
-        ScanState::Finished(Ending::Cancelled) => (["Cancelled: nothing was saved".into(), String::new(), String::new()], "OK"),
+        ScanState::Running { done, total, .. } => {
+            ([trn!(*total, "replayGain.scanningDoneOfNTracks", done), String::new(), String::new()], tr!("common.cancel"))
+        }
+        ScanState::Finished(Ending::Cancelled) => ([tr!("replayGain.cancelled").into(), String::new(), String::new()], tr!("common.ok")),
         ScanState::Finished(Ending::Scanned { total, failed }) => {
-            let mut done = format!("Done: {} of {total} tracks scanned", total - failed);
+            let mut done = trn!(*total, "replayGain.doneOfNTracks", done = total - failed);
             if *failed > 0 {
-                done += &format!(", {failed} failed");
+                done += &tr!("replayGain.nFailed", failed);
             }
-            let hint = if on { String::new() } else { "ReplayGain is off: turn it on in Options > ReplayGain".into() };
-            ([done, format!("Saved to {file}"), hint], "OK")
+            let hint = if on { String::new() } else { tr!("replayGain.isOff").into() };
+            ([done, tr!("replayGain.savedToFile", file), hint], tr!("common.ok"))
         }
     }
 }
@@ -185,16 +187,12 @@ impl ScanPanel {
         let keep = Flag::KeepScanOpen;
         form.add(
             Rect::new(14, y, w - 28, 20),
-            Widget::Check {
-                label: "Keep this window open when the scan ends".into(),
-                checked: keep.get(model.settings()),
-                action: Act::Flag(keep),
-            },
+            Widget::Check { label: tr!("replayGain.keepWindowOpen").into(), checked: keep.get(model.settings()), action: Act::Flag(keep) },
         );
         // One button: Cancel while the scan runs, then OK.
         let button = form.add(
             Rect::new(w - BUTTON.0 - 10, y + 32, BUTTON.0, BUTTON.1),
-            Widget::Button { label: "Cancel".into(), action: Act::Close, default: true },
+            Widget::Button { label: tr!("common.cancel").into(), action: Act::Close, default: true },
         );
         let mut p = ScanPanel { form, lines, button, shown: Default::default(), saw_running: false, close: false };
         p.refresh(model);

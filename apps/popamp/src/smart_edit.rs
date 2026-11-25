@@ -25,37 +25,37 @@ fn rules_h(rows: usize) -> i32 {
 }
 /// How far a group's rules are indented.
 const INDENT: i32 = 24;
-const MATCHES: [&str; 2] = ["all", "any"];
-const LIMITS: [&str; 3] = ["No limit", "Tracks", "Minutes"];
+const MATCHES: [&str; 2] = [tr_const!("smartPlaylist.all"), tr_const!("smartPlaylist.any")];
+const LIMITS: [&str; 3] = [tr_const!("smartPlaylist.noLimit"), tr_const!("smartPlaylist.tracks"), tr_const!("smartPlaylist.minutes")];
 /// The levels of order the form offers; more in the file are kept.
 const LEVELS: usize = 2;
 
 fn field_label(f: Field) -> &'static str {
     match f {
-        Field::Any => "Any text",
-        Field::Title => "Title",
-        Field::Artist => "Artist",
-        Field::Album => "Album",
-        Field::Genre => "Genre",
-        Field::Year => "Year",
-        Field::Number => "Track number",
-        Field::Length => "Length (seconds)",
-        Field::Path => "File path",
-        Field::Rating => "Rating (stars)",
-        Field::Plays => "Plays",
-        Field::Played => "Last played",
-        Field::Added => "Date added",
+        Field::Any => tr_const!("smartPlaylist.anyText"),
+        Field::Title => tr_const!("smartPlaylist.title"),
+        Field::Artist => tr_const!("smartPlaylist.artist"),
+        Field::Album => tr_const!("smartPlaylist.album"),
+        Field::Genre => tr_const!("smartPlaylist.genre"),
+        Field::Year => tr_const!("smartPlaylist.year"),
+        Field::Number => tr_const!("smartPlaylist.trackNumber"),
+        Field::Length => tr_const!("smartPlaylist.lengthSeconds"),
+        Field::Path => tr_const!("smartPlaylist.filePath"),
+        Field::Rating => tr_const!("smartPlaylist.ratingStars"),
+        Field::Plays => tr_const!("smartPlaylist.plays"),
+        Field::Played => tr_const!("smartPlaylist.lastPlayed"),
+        Field::Added => tr_const!("smartPlaylist.dateAdded"),
     }
 }
 
 fn op_label(op: Op) -> &'static str {
     match op {
-        Op::Is => "is",
-        Op::Has => "contains",
-        Op::Less => "is less than",
-        Op::Greater => "is more than",
-        Op::Missing => "is empty",
-        Op::InLast => "in the last (days)",
+        Op::Is => tr_const!("smartPlaylist.is"),
+        Op::Has => tr_const!("smartPlaylist.contains"),
+        Op::Less => tr_const!("smartPlaylist.isLessThan"),
+        Op::Greater => tr_const!("smartPlaylist.isMoreThan"),
+        Op::Missing => tr_const!("smartPlaylist.isEmpty"),
+        Op::InLast => tr_const!("smartPlaylist.inLastDays"),
     }
 }
 
@@ -68,7 +68,7 @@ fn sort_choices() -> Vec<SortBy> {
 fn sort_label(by: SortBy) -> &'static str {
     match by {
         SortBy::Field(f) => field_label(f),
-        SortBy::Random => "Random",
+        SortBy::Random => tr_const!("smartPlaylist.random"),
     }
 }
 
@@ -123,7 +123,9 @@ fn tree(rows: &[Row], at: &mut usize, depth: usize) -> Result<Vec<Rule>, String>
     while let Some(row) = rows.get(*at).filter(|r| r.depth == depth) {
         *at += 1;
         rules.push(match &row.item {
-            Item::Test { field, op, value } => Rule::Test(Test::from_text(*field, *op, value).map_err(|e| format!("Rule {}: {e}.", *at))?),
+            Item::Test { field, op, value } => {
+                Rule::Test(Test::from_text(*field, *op, value).map_err(|e| tr!("smartPlaylist.ruleError", n = *at, e))?)
+            }
             Item::Group(matching) => Rule::Group { matching: *matching, rules: tree(rows, at, depth + 1)? },
         });
     }
@@ -173,11 +175,11 @@ impl Draft {
     fn to_list(&self) -> Result<SmartList, String> {
         let name = self.name.trim();
         if name.is_empty() {
-            return Err("The playlist needs a name.".into());
+            return Err(tr!("smartPlaylist.playlistNeedsName").into());
         }
         let mut at = 0;
         let rules = tree(&self.rows, &mut at, 0)?;
-        let number = || self.limit_text.trim().parse().ok().filter(|&n| n > 0).ok_or("The limit needs a whole number above 0.");
+        let number = || self.limit_text.trim().parse().ok().filter(|&n| n > 0).ok_or(tr!("smartPlaylist.limitNeedsNumber"));
         let limit = match self.limit {
             None => None,
             Some(Limit::Tracks(_)) => Some(Limit::Tracks(number()? as usize)),
@@ -231,39 +233,45 @@ impl SmartEditor {
         let below = RULES_Y + rules_h + 10;
         let mut form = Form::new(W, below + 3 * ROW + 10 + BUTTON.1 + 10);
         form.set_view(Rect::new(10, RULES_Y, W - 20, rules_h));
-        form.add(Rect::new(10, 10, 60, 24), Widget::Label { text: "Name:".into(), dim: false });
+        form.add(Rect::new(10, 10, 60, 24), Widget::Label { text: tr!("smartPlaylist.name").into(), dim: false });
         self.name = form.add(Rect::new(70, 10, W - 80, 24), Widget::Input { text: self.draft.name.clone(), cursor: 0 });
-        form.add(Rect::new(10, 44, 120, 24), Widget::Label { text: "Tracks that match".into(), dim: false });
+        form.add(Rect::new(10, 44, 120, 24), Widget::Label { text: tr!("smartPlaylist.tracksThatMatch").into(), dim: false });
         self.matching = form.add(Rect::new(130, 44, 70, 24), choice(&MATCHES, self.draft.matching as usize));
-        form.add(Rect::new(210, 44, 200, 24), Widget::Label { text: "of these rules:".into(), dim: false });
+        form.add(Rect::new(210, 44, 200, 24), Widget::Label { text: tr!("smartPlaylist.ofTheseRules").into(), dim: false });
         self.rows = (0..self.draft.rows.len()).map(|i| self.add_row(&mut form, i)).collect();
         let y = RULES_Y + 4 + self.draft.rows.len() as i32 * ROW + 4;
         form.add_on(
             0,
             Rect::new(14, y, BUTTON.0, BUTTON.1),
-            Widget::Button { label: "Add rule".into(), action: Act::SmartAdd(None), default: false },
+            Widget::Button { label: tr!("smartPlaylist.addRule").into(), action: Act::SmartAdd(None), default: false },
         );
         form.add_on(
             0,
             Rect::new(20 + BUTTON.0, y, BUTTON.0, BUTTON.1),
-            Widget::Button { label: "Add group".into(), action: Act::SmartGroup, default: false },
+            Widget::Button { label: tr!("smartPlaylist.addGroup").into(), action: Act::SmartGroup, default: false },
         );
 
         let choices = sort_choices();
         for level in 0..LEVELS {
             let (x, y) = (10 + level as i32 * 320, below);
-            let text = if level == 0 { "Order by" } else { "then by" };
+            let text = if level == 0 { tr!("smartPlaylist.orderBy") } else { tr!("smartPlaylist.thenBy") };
             form.add(Rect::new(x, y, 64, 24), Widget::Label { text: text.into(), dim: false });
             let key = self.draft.sort.get(level);
             let picked = key.and_then(|k| choices.iter().position(|&b| b == k.by)).map_or(0, |n| n + 1);
             let options: Vec<&str> = std::iter::once("—").chain(choices.iter().map(|&b| sort_label(b))).collect();
             let by = form.add(Rect::new(x + 64, y, 130, 24), choice(&options, picked));
-            let dir = form.add(Rect::new(x + 200, y, 100, 24), choice(&["ascending", "descending"], key.is_some_and(|k| k.desc) as usize));
+            let dir = form.add(
+                Rect::new(x + 200, y, 100, 24),
+                choice(
+                    &[tr_const!("smartPlaylist.ascending"), tr_const!("smartPlaylist.descending")],
+                    key.is_some_and(|k| k.desc) as usize,
+                ),
+            );
             form.set_disabled(dir, key.is_some_and(|k| k.by == SortBy::Random));
             self.sort[level] = (by, dir);
         }
         let y = below + ROW + 4;
-        form.add(Rect::new(10, y, 64, 24), Widget::Label { text: "Limit".into(), dim: false });
+        form.add(Rect::new(10, y, 64, 24), Widget::Label { text: tr!("smartPlaylist.limit").into(), dim: false });
         let kind = match self.draft.limit {
             None => 0,
             Some(Limit::Tracks(_)) => 1,
@@ -275,16 +283,16 @@ impl SmartEditor {
         self.limit = (limit_kind, limit_value);
         let by = form.h - BUTTON.1 - 10;
         self.error = form.add(Rect::new(10, by - ROW - 2, W - 20, 24), Widget::Label { text: String::new(), dim: false });
-        button(&mut form, W - 2 * BUTTON.0 - 16, by, "OK", Act::Ok, true);
-        button(&mut form, W - BUTTON.0 - 10, by, "Cancel", Act::Close, false);
+        button(&mut form, W - 2 * BUTTON.0 - 16, by, tr!("common.ok"), Act::Ok, true);
+        button(&mut form, W - BUTTON.0 - 10, by, tr!("common.cancel"), Act::Close, false);
         self.form = form;
     }
 
     fn add_row(&self, form: &mut Form<Act>, i: usize) -> RowControls {
         let row = &self.draft.rows[i];
         let (x, y) = (14 + row.depth as i32 * INDENT, RULES_Y + 4 + i as i32 * ROW);
-        let remove = Rect::new(W - 14 - 64, y, 64, 24);
-        form.add_on(0, remove, Widget::Button { label: "Remove".into(), action: Act::SmartRemove(i), default: false });
+        let remove = Rect::new(W - 14 - BUTTON.0, y, BUTTON.0, BUTTON.1);
+        form.add_on(0, remove, Widget::Button { label: tr!("common.remove").into(), action: Act::SmartRemove(i), default: false });
         match &row.item {
             Item::Test { field, op, value } => {
                 let labels: Vec<&str> = Field::ALL.iter().map(|&f| field_label(f)).collect();
@@ -300,9 +308,13 @@ impl SmartEditor {
             }
             Item::Group(matching) => {
                 let matching = form.add_on(0, Rect::new(x, y, 70, 24), choice(&MATCHES, *matching as usize));
-                form.add_on(0, Rect::new(x + 76, y, 60, 24), Widget::Label { text: "of these:".into(), dim: false });
+                form.add_on(0, Rect::new(x + 76, y, 60, 24), Widget::Label { text: tr!("smartPlaylist.ofThese").into(), dim: false });
                 let add = Rect::new(x + 140, y, BUTTON.0, BUTTON.1);
-                form.add_on(0, add, Widget::Button { label: "Add rule".into(), action: Act::SmartAdd(Some(i)), default: false });
+                form.add_on(
+                    0,
+                    add,
+                    Widget::Button { label: tr!("smartPlaylist.addRule").into(), action: Act::SmartAdd(Some(i)), default: false },
+                );
                 RowControls::Group { matching }
             }
         }
@@ -401,8 +413,9 @@ fn read_test(f: &Form<Act>, was: &Item, (field, op, value): (usize, usize, usize
     Item::Test { field: new, op, value: f.text(value).to_string() }
 }
 
-fn choice(options: &[&str], selected: usize) -> Widget<Act> {
-    Widget::Choice { options: options.iter().map(|o| o.to_string()).collect(), selected }
+/// A drop-down of `options`, marked with `tr_const!`, in the user's language.
+fn choice(options: &[&'static str], selected: usize) -> Widget<Act> {
+    Widget::Choice { options: options.iter().map(|o| crate::i18n::tr(o).to_string()).collect(), selected }
 }
 
 #[cfg(test)]

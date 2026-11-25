@@ -66,8 +66,8 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
                 c.arg("--multiple");
             }
             if !filter.is_empty() {
-                c.arg(format!("--file-filter=Media | {}", filter.join(" ")));
-                c.arg("--file-filter=All files | *");
+                c.arg(format!("--file-filter={} | {}", tr!("dialog.mediaFiles"), filter.join(" ")));
+                c.arg(format!("--file-filter={} | *", tr!("dialog.allFiles")));
             }
             if let Some(s) = start {
                 c.arg(format!("--filename={}/", s.display()));
@@ -106,7 +106,7 @@ pub fn execute(req: &Request) -> Result<Vec<String>, DialogError> {
             let mut c = Command::new("kdialog");
             c.args(["--title", title, "--getopenfilename"]);
             c.arg(start.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| ".".into()));
-            c.arg(format!("{}|Media files", filter.join(" ")));
+            c.arg(format!("{}|{}", filter.join(" "), tr!("dialog.mediaFiles")));
             if *multiple {
                 c.args(["--multiple", "--separate-output"]);
             }

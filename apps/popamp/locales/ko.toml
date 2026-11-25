@@ -1,0 +1,1193 @@
+# 한국어 번역 (Korean translation of the Popamp interface, made with AI: corrections welcome).
+# Above each line: its English text from en.toml.
+# Counted texts have one form in Korean: ["{n}곡"].
+
+[common]
+# OK
+ok = "확인"
+# Cancel
+cancel = "취소"
+# Remove
+remove = "삭제"
+# Save
+save = "저장"
+# Close
+close = "닫기"
+# Search
+search = "검색"
+# Loading…
+loading = "불러오는 중…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Popamp 이퀄라이저"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Popamp 재생목록"
+# Popamp Media Library
+popampMediaLibrary = "Popamp 미디어 라이브러리"
+# Jump to file
+jumpToFile = "파일로 이동"
+# File info
+fileInfo = "파일 정보"
+# Popamp Preferences
+popampPreferences = "Popamp 환경 설정"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp 스킨 뮤지엄"
+# Popamp Gallery
+popampGallery = "Popamp 갤러리"
+# Album art
+albumArt = "앨범 아트"
+# Skin browser
+skinBrowser = "스킨 선택"
+# History
+history = "기록"
+# ReplayGain scan
+replayGainScan = "ReplayGain 스캔"
+# Smart playlist
+smartPlaylist = "스마트 재생목록"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "미디어 라이브러리"
+# NOTHING TO ADD
+nothingToAdd = "추가할 항목 없음"
+# CONNECTING…
+connecting = "연결 중…"
+# VOLUME: {pct}%
+volumePct = "볼륨: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "밸런스: 가운데"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "밸런스: 왼쪽 {pct}%"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "밸런스: 오른쪽 {pct}%"
+# ERROR: {message}
+error = "오류: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} DB"
+# PREAMP: {db} DB
+preampDb = "프리앰프: {db} DB"
+# SKIN ERROR: {e}
+skinError = "스킨 오류: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "현재 곡 후 정지: 켬"
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "현재 곡 후 정지: 끔"
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "수동 넘김: 끔"
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "수동 넘김: 켬"
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nRust로 만든 macOS, Linux, Windows용 Winamp 스타일 오디오 플레이어.\n디코딩: Symphonia. 클래식(.wsz) 및 벡터(.psz) 스킨 지원.\n\n설정 파일: {config}"
+# About {name}
+aboutName = "{name} 정보"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "Popamp 정보…"
+  # Play
+  play = "재생"
+  # File…
+  file = "파일…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "폴더…"
+  # View file info…
+  viewFileInfo = "파일 정보…"
+  # Album art
+  albumArt = "앨범 아트"
+  # History…
+  history = "기록…"
+  # Bookmarks
+  bookmarks = "북마크"
+  # Main Window
+  mainWindow = "메인 창"
+  # Playlist Editor
+  playlistEditor = "재생목록"
+  # Equalizer
+  equalizer = "이퀄라이저"
+  # Media Library
+  mediaLibrary = "미디어 라이브러리"
+  # Arrange windows
+  arrangeWindows = "창 배치"
+  # Top left
+  arrangeTopLeft = "왼쪽 위로"
+  # Top right
+  arrangeTopRight = "오른쪽 위로"
+  # Colours
+  colours = "색상"
+  # On
+  on = "켬"
+  # Off
+  off = "끔"
+  # Position
+  position = "위치"
+  # Top of the screen
+  topOfScreen = "화면 위"
+  # Bottom of the screen
+  bottomOfScreen = "화면 아래"
+  # Size
+  size = "크기"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "전체 너비, 사이드 패널 아래"
+  # Toolbar mode
+  toolbarMode = "툴바 모드"
+  # Options
+  options = "옵션"
+  # Playback
+  playback = "재생 제어"
+  # Previous
+  previous = "이전"
+  # Pause
+  pause = "일시정지"
+  # Stop
+  stop = "정지"
+  # Next
+  next = "다음"
+  # Stop w/ fadeout
+  stopWithFadeout = "페이드아웃 후 정지"
+  # Stop after current
+  stopAfterCurrent = "현재 곡 후 정지"
+  # Back 5 seconds
+  back5Seconds = "5초 뒤로"
+  # Fwd 5 seconds
+  fwd5Seconds = "5초 앞으로"
+  # Start of list
+  startOfList = "목록 처음"
+  # End of list
+  endOfList = "목록 끝"
+  # 10 tracks back
+  n10TracksBack = "10곡 뒤로"
+  # 10 tracks fwd
+  n10TracksFwd = "10곡 앞으로"
+  # Jump to time…
+  jumpToTime = "시간으로 이동…"
+  # Jump to file…
+  jumpToFile = "파일로 이동…"
+  # Visualization
+  visualization = "시각화"
+  # Skins
+  skins = "스킨"
+  # Exit
+  exit = "종료"
+
+  [menu.options]
+  # Preferences…
+  preferences = "환경 설정…"
+  # Plug-ins…
+  plugIns = "플러그인…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "갤러리 (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "경과 시간"
+  # Time remaining
+  timeRemaining = "남은 시간"
+  # Always On Top
+  alwaysOnTop = "항상 위"
+  # Larger Size
+  largerSize = "확대 크기"
+  # Size
+  size = "크기"
+  # EasyMove
+  easyMove = "아무 곳이나 잡고 이동"
+  # Move docked windows together
+  moveDockedWindowsTogether = "붙은 창 함께 이동"
+  # Windowshade
+  windowshade = "접은 모양"
+  # Repeat
+  repeat = "반복"
+  # Shuffle
+  shuffle = "셔플"
+  # Manual playlist advance
+  manualPlaylistAdvance = "재생목록 수동 넘김"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "끔"
+  # Track gain
+  trackGain = "곡 기준"
+  # Album gain
+  albumGain = "앨범 기준"
+  # Title format
+  titleFormat = "제목 형식"
+  # Artist - Title
+  artistTitle = "아티스트 - 제목"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "아티스트 - 앨범 - ## - 제목"
+  # Title
+  title = "제목"
+  # File name
+  fileName = "파일 이름"
+  # Equalizer
+  equalizer = "이퀄라이저"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Winamp 대역 (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "ISO 대역 (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "리미터 (클리핑 방지)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "스킨 선택…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "갤러리 (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "스킨 뮤지엄 (온라인)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "스펙트럼 분석기"
+  # Oscilloscope
+  oscilloscope = "오실로스코프"
+  # Off
+  off = "끔"
+  # Normal style
+  normalStyle = "기본 스타일"
+  # Fire style
+  fireStyle = "불꽃 스타일"
+  # Line style
+  lineStyle = "선 스타일"
+  # Show peaks
+  showPeaks = "피크 표시"
+  # Thick bands
+  thickBands = "굵은 막대"
+  # Scope: dots
+  scopeDots = "스코프: 점"
+  # Scope: lines
+  scopeLines = "스코프: 선"
+  # Scope: solid
+  scopeSolid = "스코프: 채움"
+  # Scope: afterglow
+  scopeAfterglow = "스코프: 잔상"
+
+  [menu.equalizer]
+  # (none)
+  none = "(없음)"
+  # Load
+  load = "불러오기"
+  # Auto-load presets
+  autoLoadPresets = "자동 로드 프리셋"
+  # Default
+  default = "기본값"
+  # From EQF…
+  fromEQF = "EQF 파일에서…"
+  # Preset…
+  preset = "프리셋…"
+  # Auto-load preset…
+  autoLoadPreset = "자동 로드 프리셋…"
+  # To EQF…
+  toEQF = "EQF 파일로…"
+  # Delete
+  delete = "삭제"
+  # Reset to flat
+  resetToFlat = "초기화"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "선명한 확대"
+  # Whole multiples only
+  wholeMultiplesOnly = "정수 배율만"
+  # Nearest pixel
+  nearestPixel = "최근접 픽셀"
+
+  [menu.playlist]
+  # Play item
+  playItem = "재생"
+  # Remove item(s)
+  removeItems = "선택 항목 빼기"
+  # Crop item(s)
+  cropItems = "선택 항목만 남기기"
+  # View file info…
+  viewFileInfo = "파일 정보…"
+  # Playlist entry…
+  playlistEntry = "재생목록 항목…"
+  # Bookmark item(s)
+  bookmarkItems = "북마크에 추가"
+  # Scan ReplayGain
+  scanReplayGain = "ReplayGain 스캔"
+  # Sort
+  sort = "정렬"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "HTML 재생목록 만들기…"
+  # Options
+  options = "옵션"
+  # Sort list by title
+  sortListByTitle = "제목으로 정렬"
+  # Sort list by filename
+  sortListByFilename = "파일 이름으로 정렬"
+  # Sort list by path and filename
+  sortListByPath = "경로와 파일 이름으로 정렬"
+  # Reverse list
+  reverseList = "목록 뒤집기"
+  # Randomize list
+  randomizeList = "목록 섞기"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "없는 파일 빼기"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "선택한 파일을 디스크에서 삭제…"
+  # Previous
+  previous = "이전"
+  # Start of list
+  startOfList = "목록 처음"
+  # Rewind 5 seconds
+  rewind5Seconds = "5초 뒤로"
+  # Play/restart
+  playRestart = "재생/처음부터"
+  # Open URL…
+  openURL = "URL 열기…"
+  # Open file…
+  openFile = "파일 열기…"
+  # Pause/Unpause
+  pauseUnpause = "일시정지/계속"
+  # Stop
+  stop = "정지"
+  # Stop w/ fadeout
+  stopWithFadeout = "페이드아웃 후 정지"
+  # Stop after current
+  stopAfterCurrent = "현재 곡 후 정지"
+  # Next
+  next = "다음"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "5초 앞으로"
+  # End of list
+  endOfList = "목록 끝"
+  # Open folder…
+  openFolder = "폴더 열기…"
+  # Jump to time…
+  jumpToTime = "시간으로 이동…"
+  # Forward 5 seconds
+  forward5Seconds = "5초 앞으로"
+  # Repeat
+  repeat = "반복"
+  # Manual playlist advance
+  manualPlaylistAdvance = "재생목록 수동 넘김"
+  # Shuffle
+  shuffle = "셔플"
+  # Time elapsed
+  timeElapsed = "경과 시간"
+  # Time remaining
+  timeRemaining = "남은 시간"
+  # View file info…
+  viewFileInfo = "파일 정보…"
+  # Jump to file…
+  jumpToFile = "파일로 이동…"
+  # Autoscroll song name
+  autoscrollSongName = "곡 제목 자동 스크롤"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["북마크 {n}개 추가"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "현재 곡을 북마크에 추가"
+  # Remove bookmark…
+  removeBookmark = "북마크 삭제…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Popamp 보기"
+  # Previous
+  previous = "이전"
+  # Play
+  play = "재생"
+  # Pause
+  pause = "일시정지"
+  # Stop
+  stop = "정지"
+  # Next
+  next = "다음"
+  # Shuffle
+  shuffle = "셔플"
+  # Repeat
+  repeat = "반복"
+  # Exit
+  exit = "종료"
+
+  [menu.update]
+  # Download…
+  download = "다운로드…"
+  # Update through your package manager
+  throughPackageManager = "패키지 관리자로 업데이트하세요"
+  # Skip this version
+  skipThisVersion = "이 버전 건너뛰기"
+  # Popamp {version} is out
+  popampVersionIsOut = "Popamp {version} 출시"
+
+[dialog]
+# Media files
+mediaFiles = "미디어 파일"
+# All files
+allFiles = "모든 파일"
+# Open file(s)
+openFiles = "파일 열기"
+# Open folder
+openFolder = "폴더 열기"
+# Add folders to the media library
+addLibraryFolders = "미디어 라이브러리에 폴더 추가"
+# Open URL
+openURL = "URL 열기"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "열 URL을 입력하세요 (스트림 또는 재생목록):"
+# Load playlist
+loadPlaylist = "재생목록 불러오기"
+# Save playlist
+savePlaylist = "재생목록 저장"
+# Generate HTML playlist
+generateHtmlPlaylist = "HTML 재생목록 만들기"
+# Jump to time
+jumpToTime = "시간으로 이동"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "이동할 위치 (m:ss), 곡 길이 {len}:"
+# Edit playlist entry
+editPlaylistEntry = "재생목록 항목 편집"
+# Location:
+location = "위치:"
+# Remove bookmark
+removeBookmark = "북마크 삭제"
+# Bookmark
+bookmark = "북마크"
+# EQ presets
+eqPresets = "EQ 프리셋"
+# Preset
+preset = "프리셋"
+# Save EQ preset
+saveEQPreset = "EQ 프리셋 저장"
+# Preset name:
+presetName = "프리셋 이름:"
+# Load EQ preset file
+loadEQPresetFile = "EQ 프리셋 파일 불러오기"
+# Save EQ preset file
+saveEQPresetFile = "EQ 프리셋 파일 저장"
+# Install skin
+installSkin = "스킨 설치"
+# Choose a cover picture
+chooseCoverPicture = "커버 이미지 선택"
+# Remove plug-in
+removePlugIn = "플러그인 삭제"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "플러그인 {name}을(를) 삭제할까요?\n\n다음 폴더가 삭제됩니다:\n{folder}"
+# New playlist
+newPlaylist = "새 재생목록"
+# Playlist name:
+playlistName = "재생목록 이름:"
+# Rename playlist
+renamePlaylist = "재생목록 이름 바꾸기"
+# Delete playlist
+deletePlaylist = "재생목록 삭제"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "재생목록 “{name}”을(를) 삭제할까요?\n\n곡은 라이브러리에 남습니다."
+# Write cover
+writeCover = "커버 저장"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["“{image}”을(를) {n}곡에 커버로 저장할까요?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "스마트 재생목록 삭제"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "스마트 재생목록 “{name}”을(를) 삭제할까요?"
+# Delete files
+deleteFiles = "파일 삭제"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["파일 {n}개를 디스크에서 완전히 삭제할까요?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "저장 실패: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "빈 EQ 파일"
+# EQ FILE ERROR: {e}
+eqFileError = "EQ 파일 오류: {e}"
+# INSTALL FAILED: {e}
+installFailed = "설치 실패: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "정지됨"
+# Paused
+paused = "일시정지"
+
+[fileInfo]
+# No cover
+noCover = "커버 없음"
+# Change…
+change = "변경…"
+# Not saved: {e}
+notSaved = "저장 안 됨: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file}은(는) JPEG, PNG, GIF, BMP 이미지가 아닙니다."
+# A stream's tags cannot be changed.
+streamTagsFixed = "스트림의 태그는 바꿀 수 없습니다."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "이 곡은 디스크 이미지의 일부입니다. 태그는 CUE 시트에 있습니다."
+# The file is not there.
+fileIsNotThere = "파일이 없습니다."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp가 이 파일을 읽을 수 없습니다. 손상되었거나 아직 다운로드 중일 수 있습니다."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp는 MP3, FLAC, Ogg Vorbis, MP4 파일의 태그를 바꿀 수 있습니다."
+# Location
+location = "위치"
+# Nothing to play
+nothingToPlay = "재생할 항목 없음"
+# No file selected.
+noFileSelected = "선택한 파일이 없습니다."
+# Title
+title = "제목"
+# Station
+station = "방송국"
+# Now playing
+nowPlaying = "지금 재생 중"
+# Artist
+artist = "아티스트"
+# Album
+album = "앨범"
+# Album artist
+albumArtist = "앨범 아티스트"
+# Year
+year = "연도"
+# Track
+track = "트랙"
+# Disc
+disc = "디스크"
+# Genre
+genre = "장르"
+# Composer
+composer = "작곡가"
+# Comment
+comment = "설명"
+# Codec
+codec = "코덱"
+# Length
+length = "길이"
+# , {b} kbps
+bitrateKbps = ", {b} kbps"
+# Format
+format = "형식"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz, {n}채널{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB (곡)"
+
+[library]
+# Playlists
+playlists = "재생목록"
+# Smart playlists
+smartPlaylists = "스마트 재생목록"
+# Folders
+folders = "폴더"
+# All music
+allMusic = "모든 음악"
+# Scanning: {done}
+scanningDone = "스캔 중: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n}곡"]
+# No cover
+noCover = "커버 없음"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["전체 (아티스트 {n}명)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["전체 (앨범 {n}개)"]
+# (no artist)
+noArtist = "(아티스트 없음)"
+# (no album)
+noAlbum = "(앨범 없음)"
+# Search: type here
+searchTypeHere = "검색: 여기에 입력"
+# The library is empty.
+libraryIsEmpty = "라이브러리가 비어 있습니다."
+# Add a folder with music.
+addFolderWithMusic = "음악 폴더를 추가하세요."
+# Recently added
+smartRecentlyAdded = "최근 추가"
+# Last played
+smartLastPlayed = "최근 재생"
+# Most played
+smartMostPlayed = "많이 들은 곡"
+# Never played
+smartNeverPlayed = "안 들은 곡"
+# Random 50
+smartRandom50 = "무작위 50곡"
+# Favourites
+smartFavourites = "즐겨찾기"
+# No rating
+noRating = "평점 없음"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "라이브러리: JPEG, PNG, GIF, BMP 이미지가 아닙니다"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "라이브러리: 이 파일에는 커버를 넣을 수 없습니다"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["라이브러리: 파일 {n}개에 커버 저장"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["라이브러리: 파일 {n}개에 커버 저장, 실패 {failed}"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "라이브러리: 이미 있는 폴더입니다"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "라이브러리: 이미 있는 폴더입니다"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["라이브러리: {n}곡을 재생목록에 추가"]
+# New smart playlist
+newSmartPlaylist = "새 스마트 재생목록"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "재생목록 {name}이(가) 이미 있습니다"
+
+  [library.column]
+  # Artist
+  artist = "아티스트"
+  # Title
+  title = "제목"
+  # Album
+  album = "앨범"
+  # Time
+  time = "시간"
+  # Genre
+  genre = "장르"
+  # Year
+  year = "연도"
+  # Rating
+  rating = "평점"
+  # Track number
+  trackNumber = "트랙 번호"
+  # File name
+  fileName = "파일 이름"
+  # Comment
+  comment = "설명"
+  # Kbps
+  kbps = "Kbps"
+  # Bit rate
+  bitRate = "비트레이트"
+  # Plays
+  plays = "재생 횟수"
+  # Last played
+  lastPlayed = "마지막 재생"
+  # Added
+  added = "추가한 날짜"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} kbps"
+  # Albums
+  albums = "앨범"
+  # Tracks
+  tracks = "곡"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "열 초기화"
+  # Play
+  play = "재생"
+  # Enqueue
+  enqueue = "대기열에 추가"
+  # Rate
+  rate = "평점"
+  # File info…
+  fileInfo = "파일 정보…"
+  # Remove from “{name}”
+  removeFromName = "“{name}”에서 빼기"
+  # New playlist…
+  newPlaylist = "새 재생목록…"
+  # Rename “{name}”…
+  renameName = "“{name}” 이름 바꾸기…"
+  # Delete “{name}”
+  deleteName = "“{name}” 삭제"
+  # New smart playlist…
+  newSmartPlaylist = "새 스마트 재생목록…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "검색을 스마트 재생목록으로 저장…"
+  # Edit “{name}”…
+  editName = "“{name}” 편집…"
+  # Add folder…
+  addFolder = "폴더 추가…"
+  # Rescan folders
+  rescanFolders = "폴더 다시 스캔"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "라이브러리에서 “{name}” 빼기"
+  # Maximized
+  maximized = "최대화"
+
+[smartPlaylist]
+# all
+all = "모두"
+# any
+any = "하나 이상"
+# No limit
+noLimit = "제한 없음"
+# Tracks
+tracks = "곡"
+# Minutes
+minutes = "분"
+# Any text
+anyText = "모든 텍스트"
+# Title
+title = "제목"
+# Artist
+artist = "아티스트"
+# Album
+album = "앨범"
+# Genre
+genre = "장르"
+# Year
+year = "연도"
+# Track number
+trackNumber = "트랙 번호"
+# Length (seconds)
+lengthSeconds = "길이 (초)"
+# File path
+filePath = "파일 경로"
+# Rating (stars)
+ratingStars = "평점 (별)"
+# Plays
+plays = "재생 횟수"
+# Last played
+lastPlayed = "마지막 재생"
+# Date added
+dateAdded = "추가한 날짜"
+# is
+is = "같음"
+# contains
+contains = "포함"
+# is less than
+isLessThan = "미만"
+# is more than
+isMoreThan = "초과"
+# is empty
+isEmpty = "비어 있음"
+# in the last (days)
+inLastDays = "최근 (일)"
+# Random
+random = "무작위"
+# Rule {n}: {e}.
+ruleError = "규칙 {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "재생목록 이름이 필요합니다."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "제한에는 0보다 큰 정수가 필요합니다."
+# Name:
+name = "이름:"
+# Tracks that match
+tracksThatMatch = "일치 조건"
+# of these rules:
+ofTheseRules = "아래 규칙:"
+# Add rule
+addRule = "+ 규칙"
+# Add group
+addGroup = "+ 그룹"
+# Order by
+orderBy = "정렬"
+# then by
+thenBy = "다음으로"
+# ascending
+ascending = "오름차순"
+# descending
+descending = "내림차순"
+# Limit
+limit = "제한"
+# of these:
+ofThese = "다음 중:"
+
+[jumpToFile]
+# Search for:
+searchFor = "검색:"
+# Jump
+jump = "이동"
+
+[history]
+# Search for:
+searchFor = "검색:"
+# Play
+play = "재생"
+# Today {time}
+todayTime = "오늘 {time}"
+# Yesterday {time}
+yesterdayTime = "어제 {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (찾을 수 없음)"
+# Output device
+outputDevice = "출력 장치"
+# Open with Popamp
+openWithPopamp = "Popamp로 열기"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "기본 플레이어는 Windows 설정에서 고를 수 있습니다."
+# Default apps
+defaultApps = "기본 앱"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Finder에서 Popamp를 선택하고 '정보 가져오기'에서 '다음으로 열기'를 지정하세요."
+# Forget them now
+forgetThemNow = "지금 지우기"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["없어진 파일 {n}개의 재생 기록과 평점을 지웠습니다."]
+
+  [prefs.page]
+  # Windows
+  windows = "창"
+  # Playlist
+  playlist = "재생목록"
+  # Playback
+  playback = "재생 제어"
+  # Media Library
+  mediaLibrary = "미디어 라이브러리"
+  # Desktop
+  desktop = "데스크톱"
+  # Internet
+  internet = "인터넷"
+  # Shortcuts
+  shortcuts = "단축 동작"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "창끼리 달라붙기"
+  # Easy move
+  easyMove = "아무 곳이나 잡고 이동"
+  # Keep windows on screen
+  keepWindowsOnScreen = "창을 화면 안에 두기"
+  # Always on top
+  alwaysOnTop = "항상 위"
+  # Larger size
+  largerSize = "확대 크기"
+  # Use skin cursors
+  useSkinCursors = "스킨 커서 사용"
+  # Scroll song title
+  scrollSongTitle = "곡 제목 스크롤"
+  # Dim inactive playlist
+  dimInactivePlaylist = "비활성 재생목록 흐리게"
+  # Show playlist numbers
+  showPlaylistNumbers = "재생목록 번호 표시"
+  # Zero-pad numbers
+  zeroPadNumbers = "번호 앞에 0 채우기"
+  # Advance to next track
+  advanceToNextTrack = "다음 곡으로 넘어가기"
+  # Icon in the system tray
+  iconInSystemTray = "시스템 트레이 아이콘"
+  # Minimize to the tray
+  minimizeToTray = "트레이로 최소화"
+  # Notify of each new track
+  notifyOfEachNewTrack = "새 곡마다 알림"
+  # Check for a new version
+  checkForNewVersion = "새 버전 확인"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "전역 단축키 (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "ReplayGain 스캔 창 열어 두기"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "시작할 때 폴더 스캔"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "주기적으로 폴더 스캔"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "재생목록 글꼴 크기"
+  # Title format
+  titleFormat = "제목 형식"
+  # Fade-out (ms)
+  fadeOutMs = "페이드아웃 (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "크로스페이드 (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "출력 버퍼 (ms)"
+  # HTTP proxy
+  httpProxy = "HTTP 프록시"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI 사운드폰트"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "재생으로 셀 비율 (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "스캔 간격 (분)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: 정수를 입력하세요"
+  # Font size
+  fontSize = "글꼴 크기"
+  # Fade-out
+  fadeOut = "페이드아웃"
+  # Crossfade
+  crossfade = "크로스페이드"
+  # Output buffer
+  outputBuffer = "출력 버퍼"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "재생 횟수 기준: 50~100, 5 단위"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "스캔 간격: 1~{max}분"
+  # Title format: must not be empty
+  titleFormatEmpty = "제목 형식: 비워 둘 수 없습니다"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI 사운드폰트: 파일이 없습니다 (시스템 기본값을 쓰려면 비워 두세요)"
+  # Language
+  language = "언어"
+  # As the system ({language})
+  systemLanguage = "시스템 설정 ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["없어진 파일의 재생 기록과 평점은 {n}일 보관됩니다."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["없어진 파일 {n}개: 재생 기록과 평점을 {days}일 보관"]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "창 제목 표시줄에서 클릭 또는 휠:"
+  # Window
+  window = "창"
+  # Mouse
+  mouse = "마우스"
+  # Action
+  action = "동작"
+  # Assign
+  assign = "지정"
+  # Main
+  main = "메인 창"
+  # Equalizer
+  equalizer = "이퀄라이저"
+  # Playlist
+  playlist = "재생목록"
+  # Right Mouse
+  rightMouse = "오른쪽 버튼"
+  # Middle Mouse
+  middleMouse = "가운데 버튼"
+  # Scroll Up
+  scrollUp = "휠 위로"
+  # Scroll Down
+  scrollDown = "휠 아래로"
+  # Previous track
+  previousTrack = "이전 곡"
+  # Next track
+  nextTrack = "다음 곡"
+  # Pause
+  pause = "일시정지"
+  # Stop
+  stop = "정지"
+  # Shuffle on/off
+  shuffleOnOff = "셔플"
+  # Repeat on/off
+  repeatOnOff = "반복"
+  # Vol Up
+  volUp = "볼륨 높이기"
+  # Vol Down
+  volDown = "볼륨 낮추기"
+
+[fileTypes]
+# Audio files
+audioFiles = "오디오 파일"
+# Playlists
+playlists = "재생목록"
+# Skins
+skins = "스킨"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "파일 형식: 메뉴에 Popamp를 추가할 수 없습니다: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "파일 형식: {file}에 쓸 수 없습니다: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: 스캔할 곡을 선택하세요"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: 스캔 취소됨"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: {total}곡 중 {done}곡 스캔"
+# , turn it on in Options > ReplayGain
+turnItOn = ", 옵션 > ReplayGain에서 켜세요"
+# Cancelling: finishing the tracks under way
+cancelling = "취소 중: 진행 중인 곡을 마무리하는 중"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["스캔 중: {n}곡 중 {done}곡"]
+# Cancelled: nothing was saved
+cancelled = "취소됨: 저장된 것이 없습니다"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["완료: {n}곡 중 {done}곡 스캔"]
+# , {failed} failed
+nFailed = ", 실패 {failed}"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain이 꺼져 있습니다: 옵션 > ReplayGain에서 켜세요"
+# Saved to {file}
+savedToFile = "{file}에 저장됨"
+# Keep this window open when the scan ends
+keepWindowOpen = "스캔이 끝나도 이 창 열어 두기"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "파일에서 설치…"
+# Gallery…
+gallery = "갤러리…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "skins.webamp.org의 스킨은 각 제작자의 것입니다."
+# More
+more = "더 보기"
+# Download & use
+downloadAndUse = "다운로드"
+# Loading preview…
+loadingPreview = "미리보기 불러오는 중…"
+# Downloading {name}…
+downloadingName = "{name} 다운로드 중…"
+# Using {name}.
+usingName = "{name} 적용됨."
+# Museum: {e}
+loadError = "뮤지엄: {e}"
+# No preview: {e}
+noPreviewError = "미리보기 없음: {e}"
+# Nothing found.
+nothingFound = "찾은 항목이 없습니다."
+# {n} skin. | {n} skins.
+nSkins = ["스킨 {n}개."]
+
+[gallery]
+# Skins
+skins = "스킨"
+# Plug-ins
+plugIns = "플러그인"
+# Visualizations
+visualizations = "시각화"
+# Popular
+popular = "인기"
+# Top rated
+topRated = "평점 높은 순"
+# New
+new = "새로 추가"
+# May run {programs}
+mayRunPrograms = "{programs}을(를) 실행할 수 있음"
+# " and "
+andJoin = ", "
+# May connect to {hosts}
+mayConnectToHosts = "{hosts}에 연결할 수 있음"
+# May read the folders you allow
+mayReadFoldersYouAllow = "허용한 폴더를 읽을 수 있음"
+# Install
+install = "설치"
+# Update
+update = "업데이트"
+# Use
+use = "적용"
+# Installed
+installed = "설치됨"
+# Loading the catalog…
+loadingCatalog = "목록 불러오는 중…"
+# " (update)"
+updateMark = " (업데이트)"
+# " (installed)"
+installedMark = " (설치됨)"
+# Loading the preview…
+loadingPreview = "미리보기 불러오는 중…"
+# No preview
+noPreview = "미리보기 없음"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "플러그인은 Popamp Plus가 필요합니다"
+# Nothing found
+nothingFound = "찾은 항목 없음"
+# Using {name}.
+usingName = "{name} 적용됨."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} 설치 완료. 옵션 > 플러그인에서 켜세요."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id}은(는) 이미 {folder}에 있어 갤러리가 건드리지 않습니다."
+# Downloading {name}…
+downloadingName = "{name} 다운로드 중…"
+# {n} in the gallery
+nInGallery = "갤러리에 {n}개"
+# , {n} to update
+nToUpdate = ", 업데이트 {n}개"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; 플러그인 {n}개는 Popamp Plus 필요"]
+# Gallery: {e}
+loadError = "갤러리: {e}"
+# Skin
+skin = "스킨"
+# Plug-in
+plugIn = "플러그인"
+# DSP plug-in
+dspPlugIn = "DSP 플러그인"
+# Source plug-in
+sourcePlugIn = "소스 플러그인"
+# Decoder plug-in
+decoderPlugIn = "디코더 플러그인"
+# Visual plug-in
+visualPlugIn = "시각화 플러그인"
+# {kind} plug-in
+kindPlugIn = "{kind} 플러그인"
+# {what} by {author}
+whatByAuthor = "{what}, 제작: {author}"
+# Asks for no permissions.
+asksForNoPermissions = "권한을 요청하지 않습니다."
+# License: {license}
+licenseLicense = "라이선스: {license}"
+# Not rated yet
+notRatedYet = "아직 평점 없음"
+# Rated {rating} of 5 by {n}
+ratedBy = "평점 {rating}/5 ({n}명)"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, 다운로드 {n}회"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "플러그인을 삭제할 수 없습니다: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "플러그인 {name} 중지됨: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "플러그인은 Popamp에 소스, 파일 형식, 음향 효과, 시각화를 더합니다. 직접 켜기 전에는 꺼져 있습니다."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "켜려면 왼쪽 목록에서 고르고, 하는 일과 권한을 읽은 다음 '사용'에 체크하세요. 설정은 그 아래에 있습니다."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "확인을 누르면 선택이 저장되고, 취소를 누르면 버려집니다."
+# Plug-ins
+plugIns = "플러그인"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "{dir}에 아직 없습니다."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "각각 {dir} 안의 폴더입니다."
+# {name} is removed.
+nameIsRemoved = "{name} 삭제 완료."
+# {name} (removed)
+nameRemoved = "{name} (삭제됨)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "패키지(popamp-plugin-{folder})로 설치됨: 패키지 관리자로 삭제하세요."
+# Enabled
+enabled = "사용"
+# Show the commands it runs
+showCommandsItRuns = "실행하는 명령 보기"
+# Settings
+settings = "설정"
+# Permissions
+permissions = "권한"
+# Connect to {address} ({why})
+connectToAddressWhy = "{address}에 연결 ({why})"
+# Connect to {address}
+connectToAddress = "{address}에 연결"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "읽을 수 있는 폴더, ;로 구분 (~는 홈 폴더 전체):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "숨김 폴더와 플레이어 자체 폴더는 열리지 않습니다."
+# Journal
+journal = "기록"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "기록을 열 수 없습니다: {file}"
+# Broken: {e}
+broken = "손상됨: {e}"
+# Did not load: {e}
+didNotLoad = "불러오지 못함: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "오류로 중지됨: {why}. 확인을 누르면 다시 시작합니다."
+
+[hotkeys]
+# Play
+play = "재생"
+# Pause
+pause = "일시정지"
+# Stop
+stop = "정지"
+# Previous track
+previousTrack = "이전 곡"
+# Next track
+nextTrack = "다음 곡"
+# Volume up
+volumeUp = "볼륨 높이기"
+# Volume down
+volumeDown = "볼륨 낮추기"
+# Back 5 seconds
+back5Seconds = "5초 뒤로"
+# Forward 5 seconds
+forward5Seconds = "5초 앞으로"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "POPAMP {version} 출시, 메인 메뉴를 보세요"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "브라우저를 열 수 없습니다"

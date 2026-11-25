@@ -155,6 +155,8 @@ commands! {
     LibraryColumnsReset = 50073,
     ToggleLibraryMaximize = 50074,
     LibraryAudition = 50075,
+    ArrangeTopLeft = 50076,
+    ArrangeTopRight = 50077,
 }
 
 #[cfg(test)]

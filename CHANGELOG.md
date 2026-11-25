@@ -6,14 +6,69 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-25
+
+### Added
+
+- **The interface in 13 languages besides English**: Czech, Dutch,
+  French, German, Greek, Italian, Polish, Portuguese (Brazil), Russian,
+  Spanish, Ukrainian, Korean and Simplified Chinese. Menus, windows and
+  messages follow the system's language, or the one picked in
+  Preferences > Desktop. All but the Russian were made with AI;
+  corrections are welcome. The desktop entry and the software centre
+  description come in the same languages, and the Windows installer
+  speaks the ones Inno Setup ships.
+- **Translations by key**: the texts live in `apps/popamp/locales`, the
+  English in `en.toml`, in sections such as `[library.menu]`; each
+  translation keeps its file's keys in the same order with the English
+  in a comment above each line, and a test checks all of it.
+- **Arrange windows** (main menu, Ctrl+Shift+Left or Ctrl+Shift+Right):
+  the main window goes into the top left or top right corner of its
+  screen, past the panels; the equalizer goes under it, the playlist under
+  that, as wide as the main window and down to the bottom; the library
+  goes on the main window's free side, level with its top, out to the
+  screen's edge and down to the bottom. A maximized library comes back
+  to its own size for it. Under Wayland the main window stays where it
+  is and the others are arranged against it; on COSMIC the playlist and
+  the library reach the screen's edges and a maximized library comes back
+  to its own size too. Elsewhere on Wayland the library stays as it is.
+
+### Changed
+
+- **Options menu**: Skin browser… is left to the Skins menu.
+- **The playlist and the library reach the bottom of the screen**: past
+  the last step of its height that fits, a window dragged down ends right
+  at the screen's bottom edge instead of a step short of it, and a drag
+  away from the edge goes back to the steps. When a bigger window size
+  would push either window's bottom off the screen, it is cut right at
+  the edge; the library is kept on the screen too now.
+- **Double Size is now Larger Size** (Ctrl+D): it switches to the size
+  chosen under Options → Size, which need not be twice; 2x until another
+  is chosen.
+
 ### Fixed
 
+- **Windows on the right edge of the screen stay on it** when they grow
+  or shrink (Larger Size, Options → Size): docked windows snapped to the
+  right edge went past it as they grew. They move back left; one that is
+  still too tall after the playlist is cut moves up. Windows the user
+  left hanging over an edge stay where they are.
+- **A change of the desktop's scale while Popamp runs** (X11, Windows):
+  the windows grew or shrank with it and were drawn cut off or with a
+  black margin; they keep their size now. The docked windows may need
+  arranging again (Ctrl+Shift+Left/Right) after it.
+- **Gallery**: the Top rated sort button is translated.
+- **Library**: the Folders branch is there before any folder is added.
 - **CUE sheets from EAC with gaps appended to the previous track**: when a
   sheet names each track's own file after its TRACK line (the pregap kept
   at the end of the file before), every track played the file before its
   own, the first track showed 0:00 and the last file came up a second
   time. A track now plays from the file its INDEX 01 is in. A library that
-  read such a sheet before reads it again once the sheet changes (touch it).
+  read such a sheet before reads it again on Rescan folders.
+- **Rescan folders reads every file again**: it kept the tags it had for a
+  file whose size and change time stayed the same, so a fix in the program
+  or a tag edit that kept them did not show. The scans that come by
+  themselves, at startup and every few minutes, still skip such files.
 
 ## [1.2.0] - 2026-11-24
 
@@ -796,7 +851,8 @@ First release.
 - **Packaging:** desktop entry, `.wsz` MIME type, icons and a per-user
   install script.
 
-[Unreleased]: https://github.com/popamp/popamp/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/popamp/popamp/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/popamp/popamp/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/popamp/popamp/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/popamp/popamp/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/popamp/popamp/compare/v1.0.3...v1.0.4

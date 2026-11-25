@@ -94,8 +94,8 @@ fn form(width: i16, label: &str, field: Field) -> ((i16, i16), Vec<Control>) {
             id: FIELD,
             text: String::new(),
         },
-        button(cancel_x - 4 - BUTTON.0, IDOK, BS_DEFPUSHBUTTON, "OK"),
-        button(cancel_x, IDCANCEL, 0, "Cancel"),
+        button(cancel_x - 4 - BUTTON.0, IDOK, BS_DEFPUSHBUTTON, tr!("common.ok")),
+        button(cancel_x, IDCANCEL, 0, tr!("common.cancel")),
     ];
     ((width, buttons_y + BUTTON.1 + MARGIN), controls)
 }
@@ -234,7 +234,7 @@ mod system {
 
     fn open(title: &str, options: FILEOPENDIALOGOPTIONS, filter: &[String], start: Option<&Path>) -> windows::core::Result<Vec<String>> {
         let (media, all) = (HSTRING::from(filter.join(";")), HSTRING::from("*.*"));
-        let (media_name, all_name) = (HSTRING::from("Media files"), HSTRING::from("All files"));
+        let (media_name, all_name) = (HSTRING::from(tr!("dialog.mediaFiles")), HSTRING::from(tr!("dialog.allFiles")));
         let types = [
             COMDLG_FILTERSPEC { pszName: PCWSTR(media_name.as_ptr()), pszSpec: PCWSTR(media.as_ptr()) },
             COMDLG_FILTERSPEC { pszName: PCWSTR(all_name.as_ptr()), pszSpec: PCWSTR(all.as_ptr()) },

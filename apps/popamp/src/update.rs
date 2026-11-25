@@ -124,7 +124,7 @@ impl Model {
         if !newer(&release.version, running) || release.version == self.settings().update_skip {
             return;
         }
-        let text = format!("POPAMP {} IS OUT, SEE THE MAIN MENU", release.version);
+        let text = tr!("update.newVersionOut", version = release.version);
         self.transient = Some((text, Instant::now() + Duration::from_secs(8)));
         self.update = Some(release);
     }
@@ -134,18 +134,18 @@ impl Model {
         use crate::menu::{MenuAction, MenuItem};
         let r = self.update.as_ref()?;
         let get = match Channel::of_this_copy() {
-            Channel::Site => MenuItem::action("Download…", "", MenuAction::UpdateDownload),
-            Channel::Packages => MenuItem::label("Update through your package manager"),
+            Channel::Site => MenuItem::action(tr!("menu.update.download"), "", MenuAction::UpdateDownload),
+            Channel::Packages => MenuItem::label(tr!("menu.update.throughPackageManager")),
         };
-        let skip = MenuItem::action("Skip this version", "", MenuAction::UpdateSkip);
-        Some(MenuItem::sub(&format!("Popamp {} is out", r.version), vec![get, skip]))
+        let skip = MenuItem::action(tr!("menu.update.skipThisVersion"), "", MenuAction::UpdateSkip);
+        Some(MenuItem::sub(&tr!("menu.update.popampVersionIsOut", version = r.version), vec![get, skip]))
     }
 
     pub fn update_download(&mut self) {
         let Some(r) = &self.update else { return };
         if let Err(e) = open_page(&r.url) {
             log::warn!("{}: {e}", r.url);
-            self.flash("CANNOT OPEN THE BROWSER");
+            self.flash(tr!("update.cannotOpenBrowser"));
         }
     }
 

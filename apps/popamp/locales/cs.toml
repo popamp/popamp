@@ -1,0 +1,1193 @@
+# Český překlad rozhraní Popamp.
+# Nad každým řádkem je jeho anglický text z en.toml.
+# Texty s číslem mají tři tvary: 1 soubor, 2 soubory, 5 souborů.
+
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Zrušit"
+# Remove
+remove = "Odebrat"
+# Save
+save = "Uložit"
+# Close
+close = "Zavřít"
+# Search
+search = "Hledat"
+# Loading…
+loading = "Načítání…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Ekvalizér Popamp"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Playlist Popamp"
+# Popamp Media Library
+popampMediaLibrary = "Knihovna médií Popamp"
+# Jump to file
+jumpToFile = "Přejít na soubor"
+# File info
+fileInfo = "Informace o souboru"
+# Popamp Preferences
+popampPreferences = "Nastavení Popamp"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp Skin Museum"
+# Popamp Gallery
+popampGallery = "Galerie Popamp"
+# Album art
+albumArt = "Obal alba"
+# Skin browser
+skinBrowser = "Prohlížeč skinů"
+# History
+history = "Historie"
+# ReplayGain scan
+replayGainScan = "Analýza ReplayGain"
+# Smart playlist
+smartPlaylist = "Chytrý playlist"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "KNIHOVNA MÉDIÍ"
+# NOTHING TO ADD
+nothingToAdd = "NENÍ CO PŘIDAT"
+# CONNECTING…
+connecting = "PŘIPOJOVÁNÍ…"
+# VOLUME: {pct}%
+volumePct = "HLASITOST: {pct} %"
+# BALANCE: CENTER
+balanceCenter = "VYVÁŽENÍ: STŘED"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "VYVÁŽENÍ: {pct} % VLEVO"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "VYVÁŽENÍ: {pct} % VPRAVO"
+# ERROR: {message}
+error = "CHYBA: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} DB"
+# PREAMP: {db} DB
+preampDb = "PŘEDZESILOVAČ: {db} DB"
+# SKIN ERROR: {e}
+skinError = "CHYBA SKINU: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "STOP PO AKTUÁLNÍ: ZAP."
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "STOP PO AKTUÁLNÍ: VYP."
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "RUČNÍ POSUN: VYP."
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "RUČNÍ POSUN: ZAP."
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nZvukový přehrávač ve stylu Winampu pro macOS, Linux a Windows, napsaný v Rustu.\nDekódování: Symphonia. Klasické (.wsz) a vektorové (.psz) skiny.\n\nKonfigurace: {config}"
+# About {name}
+aboutName = "O aplikaci {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "O aplikaci Popamp…"
+  # Play
+  play = "Přehrát"
+  # File…
+  file = "Soubor…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "Složka…"
+  # View file info…
+  viewFileInfo = "Informace o souboru…"
+  # Album art
+  albumArt = "Obal alba"
+  # History…
+  history = "Historie…"
+  # Bookmarks
+  bookmarks = "Záložky"
+  # Main Window
+  mainWindow = "Hlavní okno"
+  # Playlist Editor
+  playlistEditor = "Playlist"
+  # Equalizer
+  equalizer = "Ekvalizér"
+  # Media Library
+  mediaLibrary = "Knihovna médií"
+  # Arrange windows
+  arrangeWindows = "Uspořádat okna"
+  # Top left
+  arrangeTopLeft = "Vlevo nahoru"
+  # Top right
+  arrangeTopRight = "Vpravo nahoru"
+  # Colours
+  colours = "Barvy"
+  # On
+  on = "Zap."
+  # Off
+  off = "Vyp."
+  # Position
+  position = "Umístění"
+  # Top of the screen
+  topOfScreen = "Nahoře na obrazovce"
+  # Bottom of the screen
+  bottomOfScreen = "Dole na obrazovce"
+  # Size
+  size = "Velikost"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "Plná šířka, pod bočními panely"
+  # Toolbar mode
+  toolbarMode = "Režim lišty"
+  # Options
+  options = "Možnosti"
+  # Playback
+  playback = "Přehrávání"
+  # Previous
+  previous = "Předchozí"
+  # Pause
+  pause = "Pozastavit"
+  # Stop
+  stop = "Zastavit"
+  # Next
+  next = "Další"
+  # Stop w/ fadeout
+  stopWithFadeout = "Zastavit se zeslabením"
+  # Stop after current
+  stopAfterCurrent = "Zastavit po aktuální"
+  # Back 5 seconds
+  back5Seconds = "O 5 sekund zpět"
+  # Fwd 5 seconds
+  fwd5Seconds = "O 5 sekund vpřed"
+  # Start of list
+  startOfList = "Začátek seznamu"
+  # End of list
+  endOfList = "Konec seznamu"
+  # 10 tracks back
+  n10TracksBack = "O 10 skladeb zpět"
+  # 10 tracks fwd
+  n10TracksFwd = "O 10 skladeb vpřed"
+  # Jump to time…
+  jumpToTime = "Přejít na čas…"
+  # Jump to file…
+  jumpToFile = "Přejít na soubor…"
+  # Visualization
+  visualization = "Vizualizace"
+  # Skins
+  skins = "Skiny"
+  # Exit
+  exit = "Ukončit"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Nastavení…"
+  # Plug-ins…
+  plugIns = "Zásuvné moduly…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerie (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Uplynulý čas"
+  # Time remaining
+  timeRemaining = "Zbývající čas"
+  # Always On Top
+  alwaysOnTop = "Vždy navrchu"
+  # Larger Size
+  largerSize = "Zvětšená velikost"
+  # Size
+  size = "Velikost"
+  # EasyMove
+  easyMove = "EasyMove"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Přesouvat připojená okna spolu"
+  # Windowshade
+  windowshade = "Sbalit okno"
+  # Repeat
+  repeat = "Opakovat"
+  # Shuffle
+  shuffle = "Náhodně"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ruční posun v playlistu"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Vyp."
+  # Track gain
+  trackGain = "Zisk skladby"
+  # Album gain
+  albumGain = "Zisk alba"
+  # Title format
+  titleFormat = "Formát názvu"
+  # Artist - Title
+  artistTitle = "Interpret - Název"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Interpret - Album - ## - Název"
+  # Title
+  title = "Název"
+  # File name
+  fileName = "Název souboru"
+  # Equalizer
+  equalizer = "Ekvalizér"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Pásma Winampu (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "Pásma ISO (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Limiter (brání přebuzení)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Prohlížeč skinů…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Galerie (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Skin Museum (online)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Spektrální analyzátor"
+  # Oscilloscope
+  oscilloscope = "Osciloskop"
+  # Off
+  off = "Vyp."
+  # Normal style
+  normalStyle = "Normální styl"
+  # Fire style
+  fireStyle = "Styl oheň"
+  # Line style
+  lineStyle = "Styl čáry"
+  # Show peaks
+  showPeaks = "Zobrazit špičky"
+  # Thick bands
+  thickBands = "Široká pásma"
+  # Scope: dots
+  scopeDots = "Osciloskop: body"
+  # Scope: lines
+  scopeLines = "Osciloskop: čáry"
+  # Scope: solid
+  scopeSolid = "Osciloskop: plný"
+  # Scope: afterglow
+  scopeAfterglow = "Osciloskop: dosvit"
+
+  [menu.equalizer]
+  # (none)
+  none = "(žádná)"
+  # Load
+  load = "Načíst"
+  # Auto-load presets
+  autoLoadPresets = "Automatické předvolby"
+  # Default
+  default = "Výchozí"
+  # From EQF…
+  fromEQF = "Z EQF…"
+  # Preset…
+  preset = "Předvolba…"
+  # Auto-load preset…
+  autoLoadPreset = "Automatická předvolba…"
+  # To EQF…
+  toEQF = "Do EQF…"
+  # Delete
+  delete = "Smazat"
+  # Reset to flat
+  resetToFlat = "Vynulovat"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Ostré škálování"
+  # Whole multiples only
+  wholeMultiplesOnly = "Jen celé násobky"
+  # Nearest pixel
+  nearestPixel = "Nejbližší pixel"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Přehrát položku"
+  # Remove item(s)
+  removeItems = "Odebrat položky"
+  # Crop item(s)
+  cropItems = "Ponechat jen výběr"
+  # View file info…
+  viewFileInfo = "Informace o souboru…"
+  # Playlist entry…
+  playlistEntry = "Položka playlistu…"
+  # Bookmark item(s)
+  bookmarkItems = "Přidat do záložek"
+  # Scan ReplayGain
+  scanReplayGain = "Analyzovat ReplayGain"
+  # Sort
+  sort = "Seřadit"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "Vytvořit HTML playlist…"
+  # Options
+  options = "Možnosti"
+  # Sort list by title
+  sortListByTitle = "Seřadit podle názvu"
+  # Sort list by filename
+  sortListByFilename = "Seřadit podle názvu souboru"
+  # Sort list by path and filename
+  sortListByPath = "Seřadit podle cesty a názvu souboru"
+  # Reverse list
+  reverseList = "Obrátit seznam"
+  # Randomize list
+  randomizeList = "Zamíchat seznam"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Odebrat chybějící soubory"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Smazat vybrané soubory z disku…"
+  # Previous
+  previous = "Předchozí"
+  # Start of list
+  startOfList = "Začátek seznamu"
+  # Rewind 5 seconds
+  rewind5Seconds = "Přetočit o 5 sekund zpět"
+  # Play/restart
+  playRestart = "Přehrát/od začátku"
+  # Open URL…
+  openURL = "Otevřít URL…"
+  # Open file…
+  openFile = "Otevřít soubor…"
+  # Pause/Unpause
+  pauseUnpause = "Pozastavit/pokračovat"
+  # Stop
+  stop = "Zastavit"
+  # Stop w/ fadeout
+  stopWithFadeout = "Zastavit se zeslabením"
+  # Stop after current
+  stopAfterCurrent = "Zastavit po aktuální"
+  # Next
+  next = "Další"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "Přetočit o 5 sekund vpřed"
+  # End of list
+  endOfList = "Konec seznamu"
+  # Open folder…
+  openFolder = "Otevřít složku…"
+  # Jump to time…
+  jumpToTime = "Přejít na čas…"
+  # Forward 5 seconds
+  forward5Seconds = "O 5 sekund vpřed"
+  # Repeat
+  repeat = "Opakovat"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Ruční posun v playlistu"
+  # Shuffle
+  shuffle = "Náhodně"
+  # Time elapsed
+  timeElapsed = "Uplynulý čas"
+  # Time remaining
+  timeRemaining = "Zbývající čas"
+  # View file info…
+  viewFileInfo = "Informace o souboru…"
+  # Jump to file…
+  jumpToFile = "Přejít na soubor…"
+  # Autoscroll song name
+  autoscrollSongName = "Posouvat název skladby"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["PŘIDÁNA {n} ZÁLOŽKA", "PŘIDÁNY {n} ZÁLOŽKY", "PŘIDÁNO {n} ZÁLOŽEK"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Přidat aktuální do záložek"
+  # Remove bookmark…
+  removeBookmark = "Odebrat záložku…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Zobrazit Popamp"
+  # Previous
+  previous = "Předchozí"
+  # Play
+  play = "Přehrát"
+  # Pause
+  pause = "Pozastavit"
+  # Stop
+  stop = "Zastavit"
+  # Next
+  next = "Další"
+  # Shuffle
+  shuffle = "Náhodně"
+  # Repeat
+  repeat = "Opakovat"
+  # Exit
+  exit = "Ukončit"
+
+  [menu.update]
+  # Download…
+  download = "Stáhnout…"
+  # Update through your package manager
+  throughPackageManager = "Aktualizovat správcem balíčků"
+  # Skip this version
+  skipThisVersion = "Přeskočit tuto verzi"
+  # Popamp {version} is out
+  popampVersionIsOut = "Vyšel Popamp {version}"
+
+[dialog]
+# Media files
+mediaFiles = "Mediální soubory"
+# All files
+allFiles = "Všechny soubory"
+# Open file(s)
+openFiles = "Otevřít soubory"
+# Open folder
+openFolder = "Otevřít složku"
+# Add folders to the media library
+addLibraryFolders = "Přidat složky do knihovny médií"
+# Open URL
+openURL = "Otevřít URL"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "Zadejte URL (stream nebo playlist):"
+# Load playlist
+loadPlaylist = "Načíst playlist"
+# Save playlist
+savePlaylist = "Uložit playlist"
+# Generate HTML playlist
+generateHtmlPlaylist = "Vytvořit HTML playlist"
+# Jump to time
+jumpToTime = "Přejít na čas"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Přejít na (m:ss), délka skladby {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Upravit položku playlistu"
+# Location:
+location = "Umístění:"
+# Remove bookmark
+removeBookmark = "Odebrat záložku"
+# Bookmark
+bookmark = "Záložka"
+# EQ presets
+eqPresets = "Předvolby ekvalizéru"
+# Preset
+preset = "Předvolba"
+# Save EQ preset
+saveEQPreset = "Uložit předvolbu"
+# Preset name:
+presetName = "Název předvolby:"
+# Load EQ preset file
+loadEQPresetFile = "Načíst soubor předvoleb"
+# Save EQ preset file
+saveEQPresetFile = "Uložit soubor předvoleb"
+# Install skin
+installSkin = "Nainstalovat skin"
+# Choose a cover picture
+chooseCoverPicture = "Vyberte obrázek obalu"
+# Remove plug-in
+removePlugIn = "Odebrat zásuvný modul"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Odebrat zásuvný modul {name}?\n\nJeho složka bude smazána:\n{folder}"
+# New playlist
+newPlaylist = "Nový playlist"
+# Playlist name:
+playlistName = "Název playlistu:"
+# Rename playlist
+renamePlaylist = "Přejmenovat playlist"
+# Delete playlist
+deletePlaylist = "Smazat playlist"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Smazat playlist „{name}“?\n\nJeho skladby zůstanou v knihovně."
+# Write cover
+writeCover = "Zapsat obal"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["Zapsat „{image}“ jako obal do {n} skladby?\n\n{files}", "Zapsat „{image}“ jako obal do {n} skladeb?\n\n{files}", "Zapsat „{image}“ jako obal do {n} skladeb?\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Smazat chytrý playlist"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Smazat chytrý playlist „{name}“?"
+# Delete files
+deleteFiles = "Smazat soubory"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["Trvale smazat {n} soubor z disku?\n\n{files}", "Trvale smazat {n} soubory z disku?\n\n{files}", "Trvale smazat {n} souborů z disku?\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "ULOŽENÍ SELHALO: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "PRÁZDNÝ SOUBOR EQ"
+# EQ FILE ERROR: {e}
+eqFileError = "CHYBA SOUBORU EQ: {e}"
+# INSTALL FAILED: {e}
+installFailed = "INSTALACE SELHALA: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Zastaveno"
+# Paused
+paused = "Pozastaveno"
+
+[fileInfo]
+# No cover
+noCover = "Bez obalu"
+# Change…
+change = "Změnit…"
+# Not saved: {e}
+notSaved = "Neuloženo: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "{file} není obrázek JPEG, PNG, GIF ani BMP."
+# A stream's tags cannot be changed.
+streamTagsFixed = "Štítky streamu nelze změnit."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Tato skladba je součástí obrazu celého disku; její štítky jsou v souboru CUE."
+# The file is not there.
+fileIsNotThere = "Soubor tu není."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Popamp tento soubor nedokáže přečíst: možná je poškozený nebo se ještě stahuje."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Popamp umí měnit štítky souborů MP3, FLAC, Ogg Vorbis a MP4."
+# Location
+location = "Umístění"
+# Nothing to play
+nothingToPlay = "Není co přehrát"
+# No file selected.
+noFileSelected = "Není vybrán žádný soubor."
+# Title
+title = "Název"
+# Station
+station = "Stanice"
+# Now playing
+nowPlaying = "Právě hraje"
+# Artist
+artist = "Interpret"
+# Album
+album = "Album"
+# Album artist
+albumArtist = "Interpret alba"
+# Year
+year = "Rok"
+# Track
+track = "Skladba"
+# Disc
+disc = "Disk"
+# Genre
+genre = "Žánr"
+# Composer
+composer = "Skladatel"
+# Comment
+comment = "Komentář"
+# Codec
+codec = "Kodek"
+# Length
+length = "Délka"
+# , {b} kbps
+bitrateKbps = ", {b} kb/s"
+# Format
+format = "Formát"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz, {n} kanál{bitrate}", "{r} Hz, {n} kanály{bitrate}", "{r} Hz, {n} kanálů{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB (skladba)"
+
+[library]
+# Playlists
+playlists = "Playlisty"
+# Smart playlists
+smartPlaylists = "Chytré playlisty"
+# Folders
+folders = "Složky"
+# All music
+allMusic = "Veškerá hudba"
+# Scanning: {done}
+scanningDone = "Prohledávání: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} skladba", "{n} skladby", "{n} skladeb"]
+# No cover
+noCover = "Bez obalu"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Vše ({n} interpret)", "Vše ({n} interpreti)", "Vše ({n} interpretů)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Vše ({n} album)", "Vše ({n} alba)", "Vše ({n} alb)"]
+# (no artist)
+noArtist = "(bez interpreta)"
+# (no album)
+noAlbum = "(bez alba)"
+# Search: type here
+searchTypeHere = "Hledat: pište sem"
+# The library is empty.
+libraryIsEmpty = "Knihovna je prázdná."
+# Add a folder with music.
+addFolderWithMusic = "Přidejte složku s hudbou."
+# Recently added
+smartRecentlyAdded = "Nedávno přidané"
+# Last played
+smartLastPlayed = "Naposledy hrané"
+# Most played
+smartMostPlayed = "Nejhranější"
+# Never played
+smartNeverPlayed = "Nikdy nehrané"
+# Random 50
+smartRandom50 = "Náhodných 50"
+# Favourites
+smartFavourites = "Oblíbené"
+# No rating
+noRating = "Bez hodnocení"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "KNIHOVNA: NENÍ TO OBRÁZEK JPEG, PNG, GIF ANI BMP"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "KNIHOVNA: DO TĚCHTO SOUBORŮ NELZE ZAPSAT OBAL"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORU", "KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORŮ", "KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORŮ"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORU, CHYB: {failed}", "KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORŮ, CHYB: {failed}", "KNIHOVNA: OBAL ZAPSÁN DO {n} SOUBORŮ, CHYB: {failed}"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "KNIHOVNA: SLOŽKA UŽ TAM JE"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "KNIHOVNA: SLOŽKY UŽ TAM JSOU"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["KNIHOVNA: {n} SKLADBA DO PLAYLISTU", "KNIHOVNA: {n} SKLADBY DO PLAYLISTU", "KNIHOVNA: {n} SKLADEB DO PLAYLISTU"]
+# New smart playlist
+newSmartPlaylist = "Nový chytrý playlist"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "PLAYLIST {name} UŽ EXISTUJE"
+
+  [library.column]
+  # Artist
+  artist = "Interpret"
+  # Title
+  title = "Název"
+  # Album
+  album = "Album"
+  # Time
+  time = "Čas"
+  # Genre
+  genre = "Žánr"
+  # Year
+  year = "Rok"
+  # Rating
+  rating = "Hodnocení"
+  # Track number
+  trackNumber = "Číslo skladby"
+  # File name
+  fileName = "Název souboru"
+  # Comment
+  comment = "Komentář"
+  # Kbps
+  kbps = "kb/s"
+  # Bit rate
+  bitRate = "Datový tok"
+  # Plays
+  plays = "Přehrání"
+  # Last played
+  lastPlayed = "Naposledy"
+  # Added
+  added = "Přidáno"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} kb/s"
+  # Albums
+  albums = "Alba"
+  # Tracks
+  tracks = "Skladby"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Obnovit sloupce"
+  # Play
+  play = "Přehrát"
+  # Enqueue
+  enqueue = "Zařadit do fronty"
+  # Rate
+  rate = "Ohodnotit"
+  # File info…
+  fileInfo = "Informace o souboru…"
+  # Remove from “{name}”
+  removeFromName = "Odebrat z „{name}“"
+  # New playlist…
+  newPlaylist = "Nový playlist…"
+  # Rename “{name}”…
+  renameName = "Přejmenovat „{name}“…"
+  # Delete “{name}”
+  deleteName = "Smazat „{name}“"
+  # New smart playlist…
+  newSmartPlaylist = "Nový chytrý playlist…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Uložit hledání jako chytrý playlist…"
+  # Edit “{name}”…
+  editName = "Upravit „{name}“…"
+  # Add folder…
+  addFolder = "Přidat složku…"
+  # Rescan folders
+  rescanFolders = "Znovu prohledat složky"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "Odebrat „{name}“ z knihovny"
+  # Maximized
+  maximized = "Maximalizovaná"
+
+[smartPlaylist]
+# all
+all = "všem"
+# any
+any = "jednomu"
+# No limit
+noLimit = "Bez omezení"
+# Tracks
+tracks = "Skladby"
+# Minutes
+minutes = "Minuty"
+# Any text
+anyText = "Jakýkoli text"
+# Title
+title = "Název"
+# Artist
+artist = "Interpret"
+# Album
+album = "Album"
+# Genre
+genre = "Žánr"
+# Year
+year = "Rok"
+# Track number
+trackNumber = "Číslo skladby"
+# Length (seconds)
+lengthSeconds = "Délka (sekundy)"
+# File path
+filePath = "Cesta k souboru"
+# Rating (stars)
+ratingStars = "Hodnocení (hvězdy)"
+# Plays
+plays = "Přehrání"
+# Last played
+lastPlayed = "Naposledy hráno"
+# Date added
+dateAdded = "Datum přidání"
+# is
+is = "je"
+# contains
+contains = "obsahuje"
+# is less than
+isLessThan = "je menší než"
+# is more than
+isMoreThan = "je větší než"
+# is empty
+isEmpty = "je prázdné"
+# in the last (days)
+inLastDays = "za posledních (dní)"
+# Random
+random = "Náhodně"
+# Rule {n}: {e}.
+ruleError = "Pravidlo {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "Playlist potřebuje název."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "Omezení musí být celé číslo větší než 0."
+# Name:
+name = "Název:"
+# Tracks that match
+tracksThatMatch = "Vyhovět"
+# of these rules:
+ofTheseRules = "z těchto pravidel:"
+# Add rule
+addRule = "+ Pravidlo"
+# Add group
+addGroup = "+ Skupina"
+# Order by
+orderBy = "Řadit"
+# then by
+thenBy = "pak"
+# ascending
+ascending = "vzestupně"
+# descending
+descending = "sestupně"
+# Limit
+limit = "Omezení"
+# of these:
+ofThese = "z těchto:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Hledat:"
+# Jump
+jump = "Přejít"
+
+[history]
+# Search for:
+searchFor = "Hledat:"
+# Play
+play = "Přehrát"
+# Today {time}
+todayTime = "Dnes {time}"
+# Yesterday {time}
+yesterdayTime = "Včera {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (nenalezeno)"
+# Output device
+outputDevice = "Výstupní zařízení"
+# Open with Popamp
+openWithPopamp = "Otevírat v Popamp"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "Výchozí přehrávač se ve Windows volí v Nastavení."
+# Default apps
+defaultApps = "Výchozí aplikace"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Vyberte Popamp ve Finderu: Informace, pak Otevřít v aplikaci."
+# Forget them now
+forgetThemNow = "Zapomenout je teď"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Zapomenuta přehrání a hodnocení {n} chybějícího souboru.", "Zapomenuta přehrání a hodnocení {n} chybějících souborů.", "Zapomenuta přehrání a hodnocení {n} chybějících souborů."]
+
+  [prefs.page]
+  # Windows
+  windows = "Okna"
+  # Playlist
+  playlist = "Playlist"
+  # Playback
+  playback = "Přehrávání"
+  # Media Library
+  mediaLibrary = "Knihovna médií"
+  # Desktop
+  desktop = "Plocha"
+  # Internet
+  internet = "Internet"
+  # Shortcuts
+  shortcuts = "Zkratky"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Přichytávat okna k sobě"
+  # Easy move
+  easyMove = "Snadné přesouvání"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Držet okna na obrazovce"
+  # Always on top
+  alwaysOnTop = "Vždy navrchu"
+  # Larger size
+  largerSize = "Zvětšená velikost"
+  # Use skin cursors
+  useSkinCursors = "Používat kurzory skinu"
+  # Scroll song title
+  scrollSongTitle = "Posouvat název skladby"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Ztlumit neaktivní playlist"
+  # Show playlist numbers
+  showPlaylistNumbers = "Zobrazit čísla v playlistu"
+  # Zero-pad numbers
+  zeroPadNumbers = "Doplňovat čísla nulami"
+  # Advance to next track
+  advanceToNextTrack = "Přejít na další skladbu"
+  # Icon in the system tray
+  iconInSystemTray = "Ikona v oznamovací oblasti"
+  # Minimize to the tray
+  minimizeToTray = "Minimalizovat do oznamovací oblasti"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Oznamovat každou novou skladbu"
+  # Check for a new version
+  checkForNewVersion = "Hledat novou verzi"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Globální zkratky (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "Nechat otevřené okno analýzy ReplayGain"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Prohledat složky při spuštění"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Prohledávat složky pravidelně"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Velikost písma playlistu"
+  # Title format
+  titleFormat = "Formát názvu"
+  # Fade-out (ms)
+  fadeOutMs = "Zeslabení (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "Prolínání (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "Výstupní vyrovnávací paměť (ms)"
+  # HTTP proxy
+  httpProxy = "HTTP proxy"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Počítat přehrání po poslechu (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Prohledávat každých (minut)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: zadejte celé číslo"
+  # Font size
+  fontSize = "Velikost písma"
+  # Fade-out
+  fadeOut = "Zeslabení"
+  # Crossfade
+  crossfade = "Prolínání"
+  # Output buffer
+  outputBuffer = "Výstupní vyrovnávací paměť"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Počítat přehrání: 50 až 100, po 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Prohledávat každých: 1 až {max} minut"
+  # Title format: must not be empty
+  titleFormatEmpty = "Formát názvu: nesmí být prázdný"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI SoundFont: soubor neexistuje (nechte prázdné pro systémový)"
+  # Language
+  language = "Jazyk"
+  # As the system ({language})
+  systemLanguage = "Podle systému ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["Přehrání a hodnocení chybějících souborů: {n} den.", "Přehrání a hodnocení chybějících souborů: {n} dny.", "Přehrání a hodnocení chybějících souborů: {n} dní."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} chybějící soubor si uchová data {days} dní.", "{n} chybějící soubory si uchovají data {days} dní.", "{n} chybějících souborů si uchová data {days} dní."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Kliknutí nebo kolečko nad záhlavím okna (plným nebo sbaleným):"
+  # Window
+  window = "Okno"
+  # Mouse
+  mouse = "Myš"
+  # Action
+  action = "Akce"
+  # Assign
+  assign = "Přiřadit"
+  # Main
+  main = "Hlavní"
+  # Equalizer
+  equalizer = "Ekvalizér"
+  # Playlist
+  playlist = "Playlist"
+  # Right Mouse
+  rightMouse = "Pravé tlačítko"
+  # Middle Mouse
+  middleMouse = "Prostřední tlačítko"
+  # Scroll Up
+  scrollUp = "Kolečko nahoru"
+  # Scroll Down
+  scrollDown = "Kolečko dolů"
+  # Previous track
+  previousTrack = "Předchozí skladba"
+  # Next track
+  nextTrack = "Další skladba"
+  # Pause
+  pause = "Pozastavit"
+  # Stop
+  stop = "Zastavit"
+  # Shuffle on/off
+  shuffleOnOff = "Náhodně zap./vyp."
+  # Repeat on/off
+  repeatOnOff = "Opakovat zap./vyp."
+  # Vol Up
+  volUp = "Hlasitěji"
+  # Vol Down
+  volDown = "Tišeji"
+
+[fileTypes]
+# Audio files
+audioFiles = "Zvukové soubory"
+# Playlists
+playlists = "Playlisty"
+# Skins
+skins = "Skiny"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Typy souborů: Popamp nelze přidat do nabídky: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Typy souborů: nelze zapsat {file}: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: vyberte skladby k analýze"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: analýza zrušena"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: analyzováno {done} z {total}"
+# , turn it on in Options > ReplayGain
+turnItOn = ", zapněte v Možnosti > ReplayGain"
+# Cancelling: finishing the tracks under way
+cancelling = "Rušení: dokončují se rozpracované skladby"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Analýza: {done} z {n} skladby", "Analýza: {done} z {n} skladeb", "Analýza: {done} z {n} skladeb"]
+# Cancelled: nothing was saved
+cancelled = "Zrušeno: nic nebylo uloženo"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Hotovo: analyzováno {done} z {n} skladby", "Hotovo: analyzováno {done} z {n} skladeb", "Hotovo: analyzováno {done} z {n} skladeb"]
+# , {failed} failed
+nFailed = ", chyb: {failed}"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "ReplayGain je vypnutý: zapněte v Možnosti > ReplayGain"
+# Saved to {file}
+savedToFile = "Uloženo do {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Nechat okno otevřené po skončení analýzy"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Nainstalovat ze souboru…"
+# Gallery…
+gallery = "Galerie…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Skiny ze skins.webamp.org patří svým autorům."
+# More
+more = "Další"
+# Download & use
+downloadAndUse = "Stáhnout a použít"
+# Loading preview…
+loadingPreview = "Načítání náhledu…"
+# Downloading {name}…
+downloadingName = "Stahování {name}…"
+# Using {name}.
+usingName = "Používá se {name}."
+# Museum: {e}
+loadError = "Muzeum: {e}"
+# No preview: {e}
+noPreviewError = "Bez náhledu: {e}"
+# Nothing found.
+nothingFound = "Nic nenalezeno."
+# {n} skin. | {n} skins.
+nSkins = ["{n} skin.", "{n} skiny.", "{n} skinů."]
+
+[gallery]
+# Skins
+skins = "Skiny"
+# Plug-ins
+plugIns = "Zásuvné moduly"
+# Visualizations
+visualizations = "Vizualizace"
+# Popular
+popular = "Oblíbené"
+# Top rated
+topRated = "Nejlépe hodnocené"
+# New
+new = "Nové"
+# May run {programs}
+mayRunPrograms = "Smí spouštět {programs}"
+# " and "
+andJoin = " a "
+# May connect to {hosts}
+mayConnectToHosts = "Smí se připojit k {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Smí číst složky, které povolíte"
+# Install
+install = "Nainstalovat"
+# Update
+update = "Aktualizovat"
+# Use
+use = "Použít"
+# Installed
+installed = "Nainstalováno"
+# Loading the catalog…
+loadingCatalog = "Načítání katalogu…"
+# " (update)"
+updateMark = " (aktualizace)"
+# " (installed)"
+installedMark = " (nainstalováno)"
+# Loading the preview…
+loadingPreview = "Načítání náhledu…"
+# No preview
+noPreview = "Bez náhledu"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Zásuvné moduly vyžadují Popamp Plus"
+# Nothing found
+nothingFound = "Nic nenalezeno"
+# Using {name}.
+usingName = "Používá se {name}."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "{name} je nainstalován. Zapněte jej v Možnosti > Zásuvné moduly."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "{id} už je v {folder}; galerie na něj nesahá."
+# Downloading {name}…
+downloadingName = "Stahování {name}…"
+# {n} in the gallery
+nInGallery = "{n} v galerii"
+# , {n} to update
+nToUpdate = ", {n} k aktualizaci"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} modul vyžaduje Popamp Plus", "; {n} moduly vyžadují Popamp Plus", "; {n} modulů vyžaduje Popamp Plus"]
+# Gallery: {e}
+loadError = "Galerie: {e}"
+# Skin
+skin = "Skin"
+# Plug-in
+plugIn = "Zásuvný modul"
+# DSP plug-in
+dspPlugIn = "Modul DSP"
+# Source plug-in
+sourcePlugIn = "Modul zdroje"
+# Decoder plug-in
+decoderPlugIn = "Modul dekodéru"
+# Visual plug-in
+visualPlugIn = "Modul vizualizace"
+# {kind} plug-in
+kindPlugIn = "Modul {kind}"
+# {what} by {author}
+whatByAuthor = "{what}, autor: {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Nežádá žádná oprávnění."
+# License: {license}
+licenseLicense = "Licence: {license}"
+# Not rated yet
+notRatedYet = "Zatím nehodnoceno"
+# Rated {rating} of 5 by {n}
+ratedBy = "Hodnocení {rating} z 5, hlasů: {n}"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} stažení", "{rated}, {n} stažení", "{rated}, {n} stažení"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "ZÁSUVNÝ MODUL NELZE ODEBRAT: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "ZÁSUVNÝ MODUL {name} ZASTAVEN: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Zásuvné moduly přidávají do Popamp zdroje, typy souborů, zvukové efekty a vizualizace. Jsou vypnuté, dokud je nezapnete."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Chcete-li některý zapnout, vyberte ho v seznamu vlevo, přečtěte si, co dělá a co smí, a zaškrtněte Zapnuto. Jeho nastavení je pod tím."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "OK ponechá vaši volbu; Zrušit ji zahodí."
+# Plug-ins
+plugIns = "Zásuvné moduly"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "V {dir} zatím žádné nejsou."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Každý je složka v {dir}."
+# {name} is removed.
+nameIsRemoved = "{name} je odebrán."
+# {name} (removed)
+nameRemoved = "{name} (odebrán)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Nainstalováno jako balíček (popamp-plugin-{folder}): odeberte ho správcem balíčků."
+# Enabled
+enabled = "Zapnuto"
+# Show the commands it runs
+showCommandsItRuns = "Zobrazit příkazy, které spouští"
+# Settings
+settings = "Nastavení"
+# Permissions
+permissions = "Oprávnění"
+# Connect to {address} ({why})
+connectToAddressWhy = "Připojení k {address} ({why})"
+# Connect to {address}
+connectToAddress = "Připojení k {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Složky, které smí číst, oddělené ; (~ je celá vaše domovská složka):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Skryté složky a složky přehrávače zůstávají zavřené."
+# Journal
+journal = "Deník"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "DENÍK NELZE OTEVŘÍT: {file}"
+# Broken: {e}
+broken = "Poškozený: {e}"
+# Did not load: {e}
+didNotLoad = "Nenačten: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Zastaven po chybě: {why}. OK ho spustí znovu."
+
+[hotkeys]
+# Play
+play = "Přehrát"
+# Pause
+pause = "Pozastavit"
+# Stop
+stop = "Zastavit"
+# Previous track
+previousTrack = "Předchozí skladba"
+# Next track
+nextTrack = "Další skladba"
+# Volume up
+volumeUp = "Hlasitěji"
+# Volume down
+volumeDown = "Tišeji"
+# Back 5 seconds
+back5Seconds = "O 5 sekund zpět"
+# Forward 5 seconds
+forward5Seconds = "O 5 sekund vpřed"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "VYŠEL POPAMP {version}, VIZ HLAVNÍ NABÍDKU"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "PROHLÍŽEČ NELZE OTEVŘÍT"

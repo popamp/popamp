@@ -1,0 +1,1193 @@
+# Ελληνική μετάφραση του περιβάλλοντος του Popamp.
+# Πάνω από κάθε γραμμή είναι το αγγλικό κείμενό της από το en.toml.
+# Τα κείμενα με αριθμό έχουν δύο μορφές: 1 αρχείο, 2 αρχεία.
+
+[common]
+# OK
+ok = "OK"
+# Cancel
+cancel = "Άκυρο"
+# Remove
+remove = "Αφαίρεση"
+# Save
+save = "Αποθήκευση"
+# Close
+close = "Κλείσιμο"
+# Search
+search = "Αναζήτηση"
+# Loading…
+loading = "Φόρτωση…"
+
+[window]
+# Popamp Equalizer
+popampEqualizer = "Ισοσταθμιστής Popamp"
+# Popamp Playlist Editor
+popampPlaylistEditor = "Λίστα αναπαραγωγής Popamp"
+# Popamp Media Library
+popampMediaLibrary = "Βιβλιοθήκη Popamp"
+# Jump to file
+jumpToFile = "Μετάβαση σε αρχείο"
+# File info
+fileInfo = "Πληροφορίες αρχείου"
+# Popamp Preferences
+popampPreferences = "Προτιμήσεις Popamp"
+# Winamp Skin Museum
+winampSkinMuseum = "Winamp Skin Museum"
+# Popamp Gallery
+popampGallery = "Συλλογή Popamp"
+# Album art
+albumArt = "Εξώφυλλο"
+# Skin browser
+skinBrowser = "Περιήγηση θεμάτων"
+# History
+history = "Ιστορικό"
+# ReplayGain scan
+replayGainScan = "Ανάλυση ReplayGain"
+# Smart playlist
+smartPlaylist = "Έξυπνη λίστα"
+
+[player]
+# MEDIA LIBRARY
+mediaLibrary = "ΒΙΒΛΙΟΘΗΚΗ"
+# NOTHING TO ADD
+nothingToAdd = "ΤΙΠΟΤΑ ΓΙΑ ΠΡΟΣΘΗΚΗ"
+# CONNECTING…
+connecting = "ΣΥΝΔΕΣΗ…"
+# VOLUME: {pct}%
+volumePct = "ΕΝΤΑΣΗ: {pct}%"
+# BALANCE: CENTER
+balanceCenter = "ΙΣΟΡΡΟΠΙΑ: ΚΕΝΤΡΟ"
+# BALANCE: {pct}% LEFT
+balancePctLeft = "ΙΣΟΡΡΟΠΙΑ: {pct}% ΑΡΙΣΤΕΡΑ"
+# BALANCE: {pct}% RIGHT
+balancePctRight = "ΙΣΟΡΡΟΠΙΑ: {pct}% ΔΕΞΙΑ"
+# ERROR: {message}
+error = "ΣΦΑΛΜΑ: {message}"
+# EQ: {db} DB
+eqBandDb = "EQ: {db} DB"
+# PREAMP: {db} DB
+preampDb = "ΠΡΟΕΝΙΣΧΥΣΗ: {db} DB"
+# SKIN ERROR: {e}
+skinError = "ΣΦΑΛΜΑ ΘΕΜΑΤΟΣ: {e}"
+# STOP AFTER CURRENT: ON
+stopAfterCurrentOn = "ΔΙΑΚΟΠΗ ΜΕΤΑ ΤΟ ΤΡΕΧΟΝ: ΝΑΙ"
+# STOP AFTER CURRENT: OFF
+stopAfterCurrentOff = "ΔΙΑΚΟΠΗ ΜΕΤΑ ΤΟ ΤΡΕΧΟΝ: ΟΧΙ"
+# MANUAL ADVANCE: OFF
+manualAdvanceOff = "ΧΕΙΡΟΚΙΝΗΤΗ ΜΕΤΑΒΑΣΗ: ΟΧΙ"
+# MANUAL ADVANCE: ON
+manualAdvanceOn = "ΧΕΙΡΟΚΙΝΗΤΗ ΜΕΤΑΒΑΣΗ: ΝΑΙ"
+# {title}\n\nA Winamp-style audio player for macOS, Linux and Windows, written in Rust.\nDecoding by Symphonia. Classic (.wsz) and vector (.psz) skins.\n\nConfig: {config}
+aboutText = "{title}\n\nΈνα πρόγραμμα αναπαραγωγής ήχου σε στιλ Winamp για macOS, Linux και Windows, γραμμένο σε Rust.\nΑποκωδικοποίηση από το Symphonia. Κλασικά (.wsz) και διανυσματικά (.psz) θέματα.\n\nΡυθμίσεις: {config}"
+# About {name}
+aboutName = "Σχετικά με το {name}"
+
+[menu]
+
+  [menu.main]
+  # About Popamp…
+  aboutPopamp = "Σχετικά με το Popamp…"
+  # Play
+  play = "Αναπαραγωγή"
+  # File…
+  file = "Αρχείο…"
+  # URL…
+  url = "URL…"
+  # Folder…
+  folder = "Φάκελος…"
+  # View file info…
+  viewFileInfo = "Πληροφορίες αρχείου…"
+  # Album art
+  albumArt = "Εξώφυλλο"
+  # History…
+  history = "Ιστορικό…"
+  # Bookmarks
+  bookmarks = "Σελιδοδείκτες"
+  # Main Window
+  mainWindow = "Κύριο παράθυρο"
+  # Playlist Editor
+  playlistEditor = "Λίστα αναπαραγωγής"
+  # Equalizer
+  equalizer = "Ισοσταθμιστής"
+  # Media Library
+  mediaLibrary = "Βιβλιοθήκη"
+  # Arrange windows
+  arrangeWindows = "Τακτοποίηση παραθύρων"
+  # Top left
+  arrangeTopLeft = "Πάνω αριστερά"
+  # Top right
+  arrangeTopRight = "Πάνω δεξιά"
+  # Colours
+  colours = "Χρώματα"
+  # On
+  on = "Ναι"
+  # Off
+  off = "Όχι"
+  # Position
+  position = "Θέση"
+  # Top of the screen
+  topOfScreen = "Πάνω μέρος της οθόνης"
+  # Bottom of the screen
+  bottomOfScreen = "Κάτω μέρος της οθόνης"
+  # Size
+  size = "Μέγεθος"
+  # Full width, under side panels
+  fullWidthUnderSidePanels = "Πλήρες πλάτος, κάτω από τα πλαϊνά πάνελ"
+  # Toolbar mode
+  toolbarMode = "Λειτουργία μπάρας"
+  # Options
+  options = "Επιλογές"
+  # Playback
+  playback = "Αναπαραγωγή"
+  # Previous
+  previous = "Προηγούμενο"
+  # Pause
+  pause = "Παύση"
+  # Stop
+  stop = "Διακοπή"
+  # Next
+  next = "Επόμενο"
+  # Stop w/ fadeout
+  stopWithFadeout = "Διακοπή με σβήσιμο"
+  # Stop after current
+  stopAfterCurrent = "Διακοπή μετά το τρέχον"
+  # Back 5 seconds
+  back5Seconds = "Πίσω 5 δευτερόλεπτα"
+  # Fwd 5 seconds
+  fwd5Seconds = "Μπροστά 5 δευτερόλεπτα"
+  # Start of list
+  startOfList = "Αρχή της λίστας"
+  # End of list
+  endOfList = "Τέλος της λίστας"
+  # 10 tracks back
+  n10TracksBack = "10 κομμάτια πίσω"
+  # 10 tracks fwd
+  n10TracksFwd = "10 κομμάτια μπροστά"
+  # Jump to time…
+  jumpToTime = "Μετάβαση σε χρόνο…"
+  # Jump to file…
+  jumpToFile = "Μετάβαση σε αρχείο…"
+  # Visualization
+  visualization = "Οπτικοποίηση"
+  # Skins
+  skins = "Θέματα"
+  # Exit
+  exit = "Έξοδος"
+
+  [menu.options]
+  # Preferences…
+  preferences = "Προτιμήσεις…"
+  # Plug-ins…
+  plugIns = "Πρόσθετα…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Συλλογή (popamp.app)…"
+  # Time elapsed
+  timeElapsed = "Χρόνος που πέρασε"
+  # Time remaining
+  timeRemaining = "Χρόνος που απομένει"
+  # Always On Top
+  alwaysOnTop = "Πάντα στην κορυφή"
+  # Larger Size
+  largerSize = "Μεγέθυνση"
+  # Size
+  size = "Μέγεθος"
+  # EasyMove
+  easyMove = "EasyMove"
+  # Move docked windows together
+  moveDockedWindowsTogether = "Μετακίνηση συνδεδεμένων παραθύρων μαζί"
+  # Windowshade
+  windowshade = "Τύλιγμα παραθύρου"
+  # Repeat
+  repeat = "Επανάληψη"
+  # Shuffle
+  shuffle = "Τυχαία σειρά"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Χειροκίνητη μετάβαση στη λίστα"
+  # ReplayGain
+  replayGain = "ReplayGain"
+  # Off
+  off = "Όχι"
+  # Track gain
+  trackGain = "Ενίσχυση κομματιού"
+  # Album gain
+  albumGain = "Ενίσχυση άλμπουμ"
+  # Title format
+  titleFormat = "Μορφή τίτλου"
+  # Artist - Title
+  artistTitle = "Καλλιτέχνης - Τίτλος"
+  # Artist - Album - ## - Title
+  artistAlbumNumberTitle = "Καλλιτέχνης - Άλμπουμ - ## - Τίτλος"
+  # Title
+  title = "Τίτλος"
+  # File name
+  fileName = "Όνομα αρχείου"
+  # Equalizer
+  equalizer = "Ισοσταθμιστής"
+  # Winamp bands (60Hz-16kHz)
+  winampBands = "Ζώνες Winamp (60Hz-16kHz)"
+  # ISO bands (31Hz-16kHz)
+  isoBands = "Ζώνες ISO (31Hz-16kHz)"
+  # Limiter (prevents clipping)
+  limiterPreventsClipping = "Περιοριστής (αποτρέπει την παραμόρφωση)"
+
+  [menu.skins]
+  # Skin browser…
+  skinBrowser = "Περιήγηση θεμάτων…"
+  # Gallery (popamp.app)…
+  galleryPopampApp = "Συλλογή (popamp.app)…"
+  # Skin Museum (online)…
+  skinMuseumOnline = "Skin Museum (online)…"
+
+  [menu.visualization]
+  # Spectrum analyzer
+  spectrumAnalyzer = "Αναλυτής φάσματος"
+  # Oscilloscope
+  oscilloscope = "Παλμογράφος"
+  # Off
+  off = "Όχι"
+  # Normal style
+  normalStyle = "Κανονικό στιλ"
+  # Fire style
+  fireStyle = "Στιλ φωτιάς"
+  # Line style
+  lineStyle = "Στιλ γραμμών"
+  # Show peaks
+  showPeaks = "Εμφάνιση κορυφών"
+  # Thick bands
+  thickBands = "Φαρδιές ζώνες"
+  # Scope: dots
+  scopeDots = "Παλμογράφος: κουκκίδες"
+  # Scope: lines
+  scopeLines = "Παλμογράφος: γραμμές"
+  # Scope: solid
+  scopeSolid = "Παλμογράφος: γεμάτος"
+  # Scope: afterglow
+  scopeAfterglow = "Παλμογράφος: ίχνος"
+
+  [menu.equalizer]
+  # (none)
+  none = "(κανένα)"
+  # Load
+  load = "Φόρτωση"
+  # Auto-load presets
+  autoLoadPresets = "Αυτόματες προρρυθμίσεις"
+  # Default
+  default = "Προεπιλογή"
+  # From EQF…
+  fromEQF = "Από EQF…"
+  # Preset…
+  preset = "Προρρύθμιση…"
+  # Auto-load preset…
+  autoLoadPreset = "Αυτόματη προρρύθμιση…"
+  # To EQF…
+  toEQF = "Σε EQF…"
+  # Delete
+  delete = "Διαγραφή"
+  # Reset to flat
+  resetToFlat = "Μηδενισμός"
+
+  [menu.size]
+  # Sharp scaling
+  sharpScaling = "Καθαρή κλιμάκωση"
+  # Whole multiples only
+  wholeMultiplesOnly = "Μόνο ακέραια πολλαπλάσια"
+  # Nearest pixel
+  nearestPixel = "Πλησιέστερο pixel"
+
+  [menu.playlist]
+  # Play item
+  playItem = "Αναπαραγωγή στοιχείου"
+  # Remove item(s)
+  removeItems = "Αφαίρεση στοιχείων"
+  # Crop item(s)
+  cropItems = "Κράτηση μόνο της επιλογής"
+  # View file info…
+  viewFileInfo = "Πληροφορίες αρχείου…"
+  # Playlist entry…
+  playlistEntry = "Στοιχείο λίστας…"
+  # Bookmark item(s)
+  bookmarkItems = "Προσθήκη στους σελιδοδείκτες"
+  # Scan ReplayGain
+  scanReplayGain = "Ανάλυση ReplayGain"
+  # Sort
+  sort = "Ταξινόμηση"
+  # Generate HTML playlist…
+  generateHtmlPlaylist = "Δημιουργία λίστας HTML…"
+  # Options
+  options = "Επιλογές"
+  # Sort list by title
+  sortListByTitle = "Ταξινόμηση κατά τίτλο"
+  # Sort list by filename
+  sortListByFilename = "Ταξινόμηση κατά όνομα αρχείου"
+  # Sort list by path and filename
+  sortListByPath = "Ταξινόμηση κατά διαδρομή και όνομα αρχείου"
+  # Reverse list
+  reverseList = "Αντιστροφή λίστας"
+  # Randomize list
+  randomizeList = "Ανακάτεμα λίστας"
+
+  [menu.buttons]
+  # Remove missing files
+  removeMissingFiles = "Αφαίρεση αρχείων που λείπουν"
+  # Physically remove selected file(s)…
+  deleteSelectedFiles = "Διαγραφή επιλεγμένων αρχείων από τον δίσκο…"
+  # Previous
+  previous = "Προηγούμενο"
+  # Start of list
+  startOfList = "Αρχή της λίστας"
+  # Rewind 5 seconds
+  rewind5Seconds = "Γύρισμα 5 δευτερόλεπτα πίσω"
+  # Play/restart
+  playRestart = "Αναπαραγωγή/από την αρχή"
+  # Open URL…
+  openURL = "Άνοιγμα URL…"
+  # Open file…
+  openFile = "Άνοιγμα αρχείου…"
+  # Pause/Unpause
+  pauseUnpause = "Παύση/συνέχεια"
+  # Stop
+  stop = "Διακοπή"
+  # Stop w/ fadeout
+  stopWithFadeout = "Διακοπή με σβήσιμο"
+  # Stop after current
+  stopAfterCurrent = "Διακοπή μετά το τρέχον"
+  # Next
+  next = "Επόμενο"
+  # Fast-forward 5 seconds
+  fastForward5Seconds = "Γρήγορα 5 δευτερόλεπτα μπροστά"
+  # End of list
+  endOfList = "Τέλος της λίστας"
+  # Open folder…
+  openFolder = "Άνοιγμα φακέλου…"
+  # Jump to time…
+  jumpToTime = "Μετάβαση σε χρόνο…"
+  # Forward 5 seconds
+  forward5Seconds = "Μπροστά 5 δευτερόλεπτα"
+  # Repeat
+  repeat = "Επανάληψη"
+  # Manual playlist advance
+  manualPlaylistAdvance = "Χειροκίνητη μετάβαση στη λίστα"
+  # Shuffle
+  shuffle = "Τυχαία σειρά"
+  # Time elapsed
+  timeElapsed = "Χρόνος που πέρασε"
+  # Time remaining
+  timeRemaining = "Χρόνος που απομένει"
+  # View file info…
+  viewFileInfo = "Πληροφορίες αρχείου…"
+  # Jump to file…
+  jumpToFile = "Μετάβαση σε αρχείο…"
+  # Autoscroll song name
+  autoscrollSongName = "Κύλιση τίτλου"
+
+  [menu.bookmarks]
+  # BOOKMARK ADDED | {n} BOOKMARKS ADDED
+  nBookmarksAdded = ["ΠΡΟΣΤΕΘΗΚΕ ΣΕΛΙΔΟΔΕΙΚΤΗΣ", "ΠΡΟΣΤΕΘΗΚΑΝ {n} ΣΕΛΙΔΟΔΕΙΚΤΕΣ"]
+  # Add current as bookmark
+  addCurrentAsBookmark = "Προσθήκη τρέχοντος στους σελιδοδείκτες"
+  # Remove bookmark…
+  removeBookmark = "Αφαίρεση σελιδοδείκτη…"
+
+  [menu.tray]
+  # Show Popamp
+  showPopamp = "Εμφάνιση Popamp"
+  # Previous
+  previous = "Προηγούμενο"
+  # Play
+  play = "Αναπαραγωγή"
+  # Pause
+  pause = "Παύση"
+  # Stop
+  stop = "Διακοπή"
+  # Next
+  next = "Επόμενο"
+  # Shuffle
+  shuffle = "Τυχαία σειρά"
+  # Repeat
+  repeat = "Επανάληψη"
+  # Exit
+  exit = "Έξοδος"
+
+  [menu.update]
+  # Download…
+  download = "Λήψη…"
+  # Update through your package manager
+  throughPackageManager = "Ενημέρωση μέσω του διαχειριστή πακέτων"
+  # Skip this version
+  skipThisVersion = "Παράλειψη αυτής της έκδοσης"
+  # Popamp {version} is out
+  popampVersionIsOut = "Κυκλοφόρησε το Popamp {version}"
+
+[dialog]
+# Media files
+mediaFiles = "Αρχεία πολυμέσων"
+# All files
+allFiles = "Όλα τα αρχεία"
+# Open file(s)
+openFiles = "Άνοιγμα αρχείων"
+# Open folder
+openFolder = "Άνοιγμα φακέλου"
+# Add folders to the media library
+addLibraryFolders = "Προσθήκη φακέλων στη βιβλιοθήκη"
+# Open URL
+openURL = "Άνοιγμα URL"
+# Enter a URL to open (a stream or a playlist):
+openUrlPrompt = "Γράψτε ένα URL για άνοιγμα (ροή ή λίστα αναπαραγωγής):"
+# Load playlist
+loadPlaylist = "Φόρτωση λίστας"
+# Save playlist
+savePlaylist = "Αποθήκευση λίστας"
+# Generate HTML playlist
+generateHtmlPlaylist = "Δημιουργία λίστας HTML"
+# Jump to time
+jumpToTime = "Μετάβαση σε χρόνο"
+# Jump to (m:ss), track length {len}:
+jumpToTimePrompt = "Μετάβαση σε (m:ss), διάρκεια κομματιού {len}:"
+# Edit playlist entry
+editPlaylistEntry = "Επεξεργασία στοιχείου λίστας"
+# Location:
+location = "Θέση:"
+# Remove bookmark
+removeBookmark = "Αφαίρεση σελιδοδείκτη"
+# Bookmark
+bookmark = "Σελιδοδείκτης"
+# EQ presets
+eqPresets = "Προρρυθμίσεις ισοσταθμιστή"
+# Preset
+preset = "Προρρύθμιση"
+# Save EQ preset
+saveEQPreset = "Αποθήκευση προρρύθμισης"
+# Preset name:
+presetName = "Όνομα προρρύθμισης:"
+# Load EQ preset file
+loadEQPresetFile = "Φόρτωση αρχείου προρρυθμίσεων"
+# Save EQ preset file
+saveEQPresetFile = "Αποθήκευση αρχείου προρρυθμίσεων"
+# Install skin
+installSkin = "Εγκατάσταση θέματος"
+# Choose a cover picture
+chooseCoverPicture = "Επιλογή εικόνας εξωφύλλου"
+# Remove plug-in
+removePlugIn = "Αφαίρεση πρόσθετου"
+# Remove the plug-in {name}?\n\nIts folder is deleted:\n{folder}
+removePlugInAsk = "Αφαίρεση του πρόσθετου {name};\n\nΟ φάκελός του θα διαγραφεί:\n{folder}"
+# New playlist
+newPlaylist = "Νέα λίστα"
+# Playlist name:
+playlistName = "Όνομα λίστας:"
+# Rename playlist
+renamePlaylist = "Μετονομασία λίστας"
+# Delete playlist
+deletePlaylist = "Διαγραφή λίστας"
+# Delete the playlist “{name}”?\n\nIts tracks stay in the library.
+deletePlaylistAsk = "Διαγραφή της λίστας «{name}»;\n\nΤα κομμάτια της μένουν στη βιβλιοθήκη."
+# Write cover
+writeCover = "Εγγραφή εξωφύλλου"
+# Write “{image}” into {n} track as the cover?\n\n{files} | Write “{image}” into {n} tracks as the cover?\n\n{files}
+writeCoverAsk = ["Εγγραφή του «{image}» ως εξωφύλλου σε {n} κομμάτι;\n\n{files}", "Εγγραφή του «{image}» ως εξωφύλλου σε {n} κομμάτια;\n\n{files}"]
+# Delete smart playlist
+deleteSmartPlaylist = "Διαγραφή έξυπνης λίστας"
+# Delete the smart playlist “{name}”?
+deleteSmartPlaylistAsk = "Διαγραφή της έξυπνης λίστας «{name}»;"
+# Delete files
+deleteFiles = "Διαγραφή αρχείων"
+# Permanently delete {n} file from disk?\n\n{files} | Permanently delete {n} files from disk?\n\n{files}
+deleteFilesAsk = ["Οριστική διαγραφή {n} αρχείου από τον δίσκο;\n\n{files}", "Οριστική διαγραφή {n} αρχείων από τον δίσκο;\n\n{files}"]
+# SAVE FAILED: {e}
+saveFailed = "Η ΑΠΟΘΗΚΕΥΣΗ ΑΠΕΤΥΧΕ: {e}"
+# EMPTY EQ FILE
+emptyEqFile = "ΚΕΝΟ ΑΡΧΕΙΟ EQ"
+# EQ FILE ERROR: {e}
+eqFileError = "ΣΦΑΛΜΑ ΑΡΧΕΙΟΥ EQ: {e}"
+# INSTALL FAILED: {e}
+installFailed = "Η ΕΓΚΑΤΑΣΤΑΣΗ ΑΠΕΤΥΧΕ: {e}"
+
+[nowPlaying]
+# Stopped
+stopped = "Σε διακοπή"
+# Paused
+paused = "Σε παύση"
+
+[fileInfo]
+# No cover
+noCover = "Χωρίς εξώφυλλο"
+# Change…
+change = "Αλλαγή…"
+# Not saved: {e}
+notSaved = "Δεν αποθηκεύτηκε: {e}"
+# {file} is not a JPEG, PNG, GIF or BMP picture.
+notAPicture = "Το {file} δεν είναι εικόνα JPEG, PNG, GIF ή BMP."
+# A stream's tags cannot be changed.
+streamTagsFixed = "Οι ετικέτες μιας ροής δεν αλλάζουν."
+# This track is part of a whole-disc image; its tags are in the CUE sheet.
+cueTrackTags = "Αυτό το κομμάτι ανήκει σε είδωλο ολόκληρου δίσκου· οι ετικέτες του είναι στο φύλλο CUE."
+# The file is not there.
+fileIsNotThere = "Το αρχείο δεν υπάρχει."
+# Popamp cannot read this file: it may be damaged or still downloading.
+unreadable = "Το Popamp δεν μπορεί να διαβάσει αυτό το αρχείο: ίσως είναι κατεστραμμένο ή ακόμα κατεβαίνει."
+# Popamp can change the tags of MP3, FLAC, Ogg Vorbis and MP4 files.
+editableFormats = "Το Popamp αλλάζει τις ετικέτες αρχείων MP3, FLAC, Ogg Vorbis και MP4."
+# Location
+location = "Θέση"
+# Nothing to play
+nothingToPlay = "Τίποτα για αναπαραγωγή"
+# No file selected.
+noFileSelected = "Δεν επιλέχθηκε αρχείο."
+# Title
+title = "Τίτλος"
+# Station
+station = "Σταθμός"
+# Now playing
+nowPlaying = "Παίζει τώρα"
+# Artist
+artist = "Καλλιτέχνης"
+# Album
+album = "Άλμπουμ"
+# Album artist
+albumArtist = "Καλλιτέχνης άλμπουμ"
+# Year
+year = "Έτος"
+# Track
+track = "Κομμάτι"
+# Disc
+disc = "Δίσκος"
+# Genre
+genre = "Είδος"
+# Composer
+composer = "Συνθέτης"
+# Comment
+comment = "Σχόλιο"
+# Codec
+codec = "Κωδικοποιητής"
+# Length
+length = "Διάρκεια"
+# , {b} kbps
+bitrateKbps = ", {b} kbps"
+# Format
+format = "Μορφή"
+# {r} Hz, {n} channel{bitrate} | {r} Hz, {n} channels{bitrate}
+sampleRateChannels = ["{r} Hz, {n} κανάλι{bitrate}", "{r} Hz, {n} κανάλια{bitrate}"]
+# ReplayGain
+replayGain = "ReplayGain"
+# {gain} dB (track)
+gainTrack = "{gain} dB (κομμάτι)"
+
+[library]
+# Playlists
+playlists = "Λίστες αναπαραγωγής"
+# Smart playlists
+smartPlaylists = "Έξυπνες λίστες"
+# Folders
+folders = "Φάκελοι"
+# All music
+allMusic = "Όλη η μουσική"
+# Scanning: {done}
+scanningDone = "Σάρωση: {done}"
+# {n} track | {n} tracks
+nTracks = ["{n} κομμάτι", "{n} κομμάτια"]
+# No cover
+noCover = "Χωρίς εξώφυλλο"
+# All ({n} artist) | All ({n} artists)
+allNArtists = ["Όλοι ({n} καλλιτέχνης)", "Όλοι ({n} καλλιτέχνες)"]
+# All ({n} album) | All ({n} albums)
+allNAlbums = ["Όλα ({n} άλμπουμ)", "Όλα ({n} άλμπουμ)"]
+# (no artist)
+noArtist = "(χωρίς καλλιτέχνη)"
+# (no album)
+noAlbum = "(χωρίς άλμπουμ)"
+# Search: type here
+searchTypeHere = "Αναζήτηση: γράψτε εδώ"
+# The library is empty.
+libraryIsEmpty = "Η βιβλιοθήκη είναι άδεια."
+# Add a folder with music.
+addFolderWithMusic = "Προσθέστε έναν φάκελο με μουσική."
+# Recently added
+smartRecentlyAdded = "Πρόσφατες προσθήκες"
+# Last played
+smartLastPlayed = "Παίχτηκαν πρόσφατα"
+# Most played
+smartMostPlayed = "Παίζονται συχνότερα"
+# Never played
+smartNeverPlayed = "Δεν παίχτηκαν ποτέ"
+# Random 50
+smartRandom50 = "50 τυχαία"
+# Favourites
+smartFavourites = "Αγαπημένα"
+# No rating
+noRating = "Χωρίς βαθμολογία"
+# LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE
+notAPicture = "ΒΙΒΛΙΟΘΗΚΗ: ΔΕΝ ΕΙΝΑΙ ΕΙΚΟΝΑ JPEG, PNG, GIF Ή BMP"
+# LIBRARY: NO COVER CAN GO INTO THESE FILES
+noCoverFits = "ΒΙΒΛΙΟΘΗΚΗ: ΑΥΤΑ ΤΑ ΑΡΧΕΙΑ ΔΕΝ ΔΕΧΟΝΤΑΙ ΕΞΩΦΥΛΛΟ"
+# LIBRARY: COVER WRITTEN TO {n} FILE | LIBRARY: COVER WRITTEN TO {n} FILES
+coverWrittenToNFiles = ["ΒΙΒΛΙΟΘΗΚΗ: ΤΟ ΕΞΩΦΥΛΛΟ ΓΡΑΦΤΗΚΕ ΣΕ {n} ΑΡΧΕΙΟ", "ΒΙΒΛΙΟΘΗΚΗ: ΤΟ ΕΞΩΦΥΛΛΟ ΓΡΑΦΤΗΚΕ ΣΕ {n} ΑΡΧΕΙΑ"]
+# LIBRARY: COVER WRITTEN TO {n} FILE, {failed} FAILED | LIBRARY: COVER WRITTEN TO {n} FILES, {failed} FAILED
+coverWrittenSomeFailed = ["ΒΙΒΛΙΟΘΗΚΗ: ΤΟ ΕΞΩΦΥΛΛΟ ΓΡΑΦΤΗΚΕ ΣΕ {n} ΑΡΧΕΙΟ, {failed} ΑΠΕΤΥΧΑΝ", "ΒΙΒΛΙΟΘΗΚΗ: ΤΟ ΕΞΩΦΥΛΛΟ ΓΡΑΦΤΗΚΕ ΣΕ {n} ΑΡΧΕΙΑ, {failed} ΑΠΕΤΥΧΑΝ"]
+# LIBRARY: THE FOLDER IS THERE ALREADY
+folderIsThereAlready = "ΒΙΒΛΙΟΘΗΚΗ: Ο ΦΑΚΕΛΟΣ ΥΠΑΡΧΕΙ ΗΔΗ"
+# LIBRARY: THE FOLDERS ARE THERE ALREADY
+foldersAreThereAlready = "ΒΙΒΛΙΟΘΗΚΗ: ΟΙ ΦΑΚΕΛΟΙ ΥΠΑΡΧΟΥΝ ΗΔΗ"
+# LIBRARY: {n} TRACK TO THE PLAYLIST | LIBRARY: {n} TRACKS TO THE PLAYLIST
+nTracksToPlaylist = ["ΒΙΒΛΙΟΘΗΚΗ: {n} ΚΟΜΜΑΤΙ ΣΤΗ ΛΙΣΤΑ", "ΒΙΒΛΙΟΘΗΚΗ: {n} ΚΟΜΜΑΤΙΑ ΣΤΗ ΛΙΣΤΑ"]
+# New smart playlist
+newSmartPlaylist = "Νέα έξυπνη λίστα"
+# A PLAYLIST IS CALLED {name} ALREADY
+playlistNameTaken = "ΥΠΑΡΧΕΙ ΗΔΗ ΛΙΣΤΑ ΜΕ ΟΝΟΜΑ {name}"
+
+  [library.column]
+  # Artist
+  artist = "Καλλιτέχνης"
+  # Title
+  title = "Τίτλος"
+  # Album
+  album = "Άλμπουμ"
+  # Time
+  time = "Διάρκεια"
+  # Genre
+  genre = "Είδος"
+  # Year
+  year = "Έτος"
+  # Rating
+  rating = "Βαθμολογία"
+  # Track number
+  trackNumber = "Αρ. κομματιού"
+  # File name
+  fileName = "Όνομα αρχείου"
+  # Comment
+  comment = "Σχόλιο"
+  # Kbps
+  kbps = "Kbps"
+  # Bit rate
+  bitRate = "Ρυθμός bit"
+  # Plays
+  plays = "Αναπαραγωγές"
+  # Last played
+  lastPlayed = "Τελευταία φορά"
+  # Added
+  added = "Προστέθηκε"
+  # {kind}, {b} kbps
+  kindBitrate = "{kind}, {b} kbps"
+  # Albums
+  albums = "Άλμπουμ"
+  # Tracks
+  tracks = "Κομμάτια"
+
+  [library.menu]
+  # Reset columns
+  resetColumns = "Επαναφορά στηλών"
+  # Play
+  play = "Αναπαραγωγή"
+  # Enqueue
+  enqueue = "Στην ουρά"
+  # Rate
+  rate = "Βαθμολόγηση"
+  # File info…
+  fileInfo = "Πληροφορίες αρχείου…"
+  # Remove from “{name}”
+  removeFromName = "Αφαίρεση από «{name}»"
+  # New playlist…
+  newPlaylist = "Νέα λίστα…"
+  # Rename “{name}”…
+  renameName = "Μετονομασία «{name}»…"
+  # Delete “{name}”
+  deleteName = "Διαγραφή «{name}»"
+  # New smart playlist…
+  newSmartPlaylist = "Νέα έξυπνη λίστα…"
+  # Save search as smart playlist…
+  saveSearchAsSmartPlaylist = "Αποθήκευση αναζήτησης ως έξυπνης λίστας…"
+  # Edit “{name}”…
+  editName = "Επεξεργασία «{name}»…"
+  # Add folder…
+  addFolder = "Προσθήκη φακέλου…"
+  # Rescan folders
+  rescanFolders = "Νέα σάρωση φακέλων"
+  # Remove “{name}” from the library
+  removeNameFromLibrary = "Αφαίρεση «{name}» από τη βιβλιοθήκη"
+  # Maximized
+  maximized = "Μεγιστοποιημένη"
+
+[smartPlaylist]
+# all
+all = "όλους"
+# any
+any = "έναν"
+# No limit
+noLimit = "Χωρίς όριο"
+# Tracks
+tracks = "Κομμάτια"
+# Minutes
+minutes = "Λεπτά"
+# Any text
+anyText = "Οποιοδήποτε κείμενο"
+# Title
+title = "Τίτλος"
+# Artist
+artist = "Καλλιτέχνης"
+# Album
+album = "Άλμπουμ"
+# Genre
+genre = "Είδος"
+# Year
+year = "Έτος"
+# Track number
+trackNumber = "Αρ. κομματιού"
+# Length (seconds)
+lengthSeconds = "Διάρκεια (δευτερόλεπτα)"
+# File path
+filePath = "Διαδρομή αρχείου"
+# Rating (stars)
+ratingStars = "Βαθμολογία (αστέρια)"
+# Plays
+plays = "Αναπαραγωγές"
+# Last played
+lastPlayed = "Τελευταία αναπαραγωγή"
+# Date added
+dateAdded = "Ημερομηνία προσθήκης"
+# is
+is = "είναι"
+# contains
+contains = "περιέχει"
+# is less than
+isLessThan = "είναι μικρότερο από"
+# is more than
+isMoreThan = "είναι μεγαλύτερο από"
+# is empty
+isEmpty = "είναι κενό"
+# in the last (days)
+inLastDays = "τις τελευταίες (ημέρες)"
+# Random
+random = "Τυχαία"
+# Rule {n}: {e}.
+ruleError = "Κανόνας {n}: {e}."
+# The playlist needs a name.
+playlistNeedsName = "Η λίστα χρειάζεται όνομα."
+# The limit needs a whole number above 0.
+limitNeedsNumber = "Το όριο πρέπει να είναι ακέραιος αριθμός πάνω από 0."
+# Name:
+name = "Όνομα:"
+# Tracks that match
+tracksThatMatch = "Να πληρούν"
+# of these rules:
+ofTheseRules = "από αυτούς τους κανόνες:"
+# Add rule
+addRule = "+ Κανόνας"
+# Add group
+addGroup = "+ Ομάδα"
+# Order by
+orderBy = "Σειρά"
+# then by
+thenBy = "μετά"
+# ascending
+ascending = "αύξουσα"
+# descending
+descending = "φθίνουσα"
+# Limit
+limit = "Όριο"
+# of these:
+ofThese = "από αυτούς:"
+
+[jumpToFile]
+# Search for:
+searchFor = "Αναζήτηση:"
+# Jump
+jump = "Μετάβαση"
+
+[history]
+# Search for:
+searchFor = "Αναζήτηση:"
+# Play
+play = "Αναπαραγωγή"
+# Today {time}
+todayTime = "Σήμερα {time}"
+# Yesterday {time}
+yesterdayTime = "Χθες {time}"
+
+[prefs]
+# {device} (not found)
+deviceNotFound = "{device} (δεν βρέθηκε)"
+# Output device
+outputDevice = "Συσκευή εξόδου"
+# Open with Popamp
+openWithPopamp = "Άνοιγμα με το Popamp"
+# Windows lets you choose the default player in its Settings.
+windowsDefaultApps = "Τα Windows επιτρέπουν την επιλογή προεπιλεγμένου προγράμματος στις Ρυθμίσεις τους."
+# Default apps
+defaultApps = "Προεπιλεγμένες εφαρμογές"
+# Choose Popamp in Finder: Get Info, then Open with.
+macDefaultApps = "Επιλέξτε το Popamp στο Finder: Λήψη πληροφοριών, μετά Άνοιγμα με."
+# Forget them now
+forgetThemNow = "Διαγραφή τους τώρα"
+# Forgot the plays and ratings of {n} missing file. | Forgot the plays and ratings of {n} missing files.
+forgotMissing = ["Ξεχάστηκαν οι αναπαραγωγές και οι βαθμολογίες {n} αρχείου που λείπει.", "Ξεχάστηκαν οι αναπαραγωγές και οι βαθμολογίες {n} αρχείων που λείπουν."]
+
+  [prefs.page]
+  # Windows
+  windows = "Παράθυρα"
+  # Playlist
+  playlist = "Λίστα"
+  # Playback
+  playback = "Αναπαραγωγή"
+  # Media Library
+  mediaLibrary = "Βιβλιοθήκη"
+  # Desktop
+  desktop = "Επιφάνεια εργασίας"
+  # Internet
+  internet = "Διαδίκτυο"
+  # Shortcuts
+  shortcuts = "Συντομεύσεις"
+
+  [prefs.option]
+  # Snap windows together
+  snapWindowsTogether = "Κόλλημα παραθύρων μεταξύ τους"
+  # Easy move
+  easyMove = "Εύκολη μετακίνηση"
+  # Keep windows on screen
+  keepWindowsOnScreen = "Διατήρηση παραθύρων στην οθόνη"
+  # Always on top
+  alwaysOnTop = "Πάντα στην κορυφή"
+  # Larger size
+  largerSize = "Μεγέθυνση"
+  # Use skin cursors
+  useSkinCursors = "Δρομείς του θέματος"
+  # Scroll song title
+  scrollSongTitle = "Κύλιση τίτλου τραγουδιού"
+  # Dim inactive playlist
+  dimInactivePlaylist = "Σκίαση ανενεργής λίστας"
+  # Show playlist numbers
+  showPlaylistNumbers = "Αριθμοί στη λίστα"
+  # Zero-pad numbers
+  zeroPadNumbers = "Συμπλήρωση αριθμών με μηδενικά"
+  # Advance to next track
+  advanceToNextTrack = "Μετάβαση στο επόμενο κομμάτι"
+  # Icon in the system tray
+  iconInSystemTray = "Εικονίδιο στην περιοχή ειδοποιήσεων"
+  # Minimize to the tray
+  minimizeToTray = "Ελαχιστοποίηση στην περιοχή ειδοποιήσεων"
+  # Notify of each new track
+  notifyOfEachNewTrack = "Ειδοποίηση για κάθε νέο κομμάτι"
+  # Check for a new version
+  checkForNewVersion = "Έλεγχος για νέα έκδοση"
+  # Global hotkeys (Ctrl+Alt)
+  globalHotkeysCtrlAlt = "Καθολικές συντομεύσεις (Ctrl+Alt)"
+  # Keep the ReplayGain scan window open
+  keepReplayGainWindowOpen = "Το παράθυρο ανάλυσης ReplayGain μένει ανοιχτό"
+  # Scan the folders at startup
+  scanFoldersAtStartup = "Σάρωση φακέλων κατά την εκκίνηση"
+  # Scan the folders periodically
+  scanFoldersPeriodically = "Περιοδική σάρωση φακέλων"
+
+  [prefs.field]
+  # Playlist font size
+  playlistFontSize = "Μέγεθος γραμματοσειράς λίστας"
+  # Title format
+  titleFormat = "Μορφή τίτλου"
+  # Fade-out (ms)
+  fadeOutMs = "Σβήσιμο (ms)"
+  # Crossfade (ms)
+  crossfadeMs = "Διασταυρούμενο σβήσιμο (ms)"
+  # Output buffer (ms)
+  outputBufferMs = "Ενδιάμεση μνήμη εξόδου (ms)"
+  # HTTP proxy
+  httpProxy = "Διακομιστής μεσολάβησης HTTP"
+  # MIDI SoundFont
+  midiSoundFont = "MIDI SoundFont"
+  # Count a play after hearing (%)
+  countPlayAfterHearing = "Μέτρηση αναπαραγωγής μετά από (%)"
+  # Scan every (minutes)
+  scanEveryMinutes = "Σάρωση κάθε (λεπτά)"
+  # {what}: enter a whole number
+  wholeNumber = "{what}: γράψτε ακέραιο αριθμό"
+  # Font size
+  fontSize = "Μέγεθος γραμματοσειράς"
+  # Fade-out
+  fadeOut = "Σβήσιμο"
+  # Crossfade
+  crossfade = "Διασταυρούμενο σβήσιμο"
+  # Output buffer
+  outputBuffer = "Ενδιάμεση μνήμη εξόδου"
+  # Count a play: 50 to 100, in steps of 5
+  countPlayRange = "Μέτρηση αναπαραγωγής: 50 έως 100, ανά 5"
+  # Scan every: 1 to {max} minutes
+  scanEveryRange = "Σάρωση κάθε: 1 έως {max} λεπτά"
+  # Title format: must not be empty
+  titleFormatEmpty = "Μορφή τίτλου: δεν μπορεί να είναι κενή"
+  # MIDI SoundFont: no such file (leave it empty for the system's)
+  soundFontMissing = "MIDI SoundFont: δεν υπάρχει τέτοιο αρχείο (αφήστε κενό για του συστήματος)"
+  # Language
+  language = "Γλώσσα"
+  # As the system ({language})
+  systemLanguage = "Όπως το σύστημα ({language})"
+  # Plays and ratings of missing files are kept {n} day. | Plays and ratings of missing files are kept {n} days.
+  missingKeptDays = ["Ιστορικό και βαθμολογίες αρχείων που λείπουν: {n} ημέρα.", "Ιστορικό και βαθμολογίες αρχείων που λείπουν: {n} ημέρες."]
+  # {n} missing file keeps its plays and ratings {days} days. | {n} missing files keep their plays and ratings {days} days.
+  nMissingKeptDays = ["{n} αρχείο που λείπει κρατά τα στοιχεία του {days} ημέρες.", "{n} αρχεία που λείπουν κρατούν τα στοιχεία τους {days} ημέρες."]
+
+  [prefs.shortcuts]
+  # A click, or the wheel, over a title bar (full size or shaded):
+  help = "Ένα κλικ, ή η ροδέλα, πάνω σε γραμμή τίτλου (πλήρη ή τυλιγμένη):"
+  # Window
+  window = "Παράθυρο"
+  # Mouse
+  mouse = "Ποντίκι"
+  # Action
+  action = "Ενέργεια"
+  # Assign
+  assign = "Ανάθεση"
+  # Main
+  main = "Κύριο"
+  # Equalizer
+  equalizer = "Ισοσταθμιστής"
+  # Playlist
+  playlist = "Λίστα"
+  # Right Mouse
+  rightMouse = "Δεξί κουμπί"
+  # Middle Mouse
+  middleMouse = "Μεσαίο κουμπί"
+  # Scroll Up
+  scrollUp = "Ροδέλα πάνω"
+  # Scroll Down
+  scrollDown = "Ροδέλα κάτω"
+  # Previous track
+  previousTrack = "Προηγούμενο κομμάτι"
+  # Next track
+  nextTrack = "Επόμενο κομμάτι"
+  # Pause
+  pause = "Παύση"
+  # Stop
+  stop = "Διακοπή"
+  # Shuffle on/off
+  shuffleOnOff = "Τυχαία σειρά ναι/όχι"
+  # Repeat on/off
+  repeatOnOff = "Επανάληψη ναι/όχι"
+  # Vol Up
+  volUp = "Ένταση +"
+  # Vol Down
+  volDown = "Ένταση -"
+
+[fileTypes]
+# Audio files
+audioFiles = "Αρχεία ήχου"
+# Playlists
+playlists = "Λίστες αναπαραγωγής"
+# Skins
+skins = "Θέματα"
+# File types: cannot add Popamp to the menu: {e}
+cannotAddToMenu = "Τύποι αρχείων: δεν ήταν δυνατή η προσθήκη του Popamp στο μενού: {e}"
+# File types: cannot write {file}: {e}
+cannotWrite = "Τύποι αρχείων: δεν ήταν δυνατή η εγγραφή του {file}: {e}"
+
+[replayGain]
+# ReplayGain: select the tracks to scan
+selectTracks = "ReplayGain: επιλέξτε τα κομμάτια για ανάλυση"
+# ReplayGain: scan cancelled
+scanCancelled = "ReplayGain: η ανάλυση ακυρώθηκε"
+# ReplayGain: {done} of {total} scanned
+doneOfTotal = "ReplayGain: αναλύθηκαν {done} από {total}"
+# , turn it on in Options > ReplayGain
+turnItOn = ", ενεργοποιήστε το στις Επιλογές > ReplayGain"
+# Cancelling: finishing the tracks under way
+cancelling = "Ακύρωση: ολοκληρώνονται τα τρέχοντα κομμάτια"
+# Scanning: {done} of {n} track | Scanning: {done} of {n} tracks
+scanningDoneOfNTracks = ["Ανάλυση: {done} από {n} κομμάτι", "Ανάλυση: {done} από {n} κομμάτια"]
+# Cancelled: nothing was saved
+cancelled = "Ακυρώθηκε: δεν αποθηκεύτηκε τίποτα"
+# Done: {done} of {n} track scanned | Done: {done} of {n} tracks scanned
+doneOfNTracks = ["Έτοιμο: αναλύθηκαν {done} από {n} κομμάτι", "Έτοιμο: αναλύθηκαν {done} από {n} κομμάτια"]
+# , {failed} failed
+nFailed = ", {failed} απέτυχαν"
+# ReplayGain is off: turn it on in Options > ReplayGain
+isOff = "Το ReplayGain είναι ανενεργό: ενεργοποιήστε το στις Επιλογές > ReplayGain"
+# Saved to {file}
+savedToFile = "Αποθηκεύτηκε στο {file}"
+# Keep this window open when the scan ends
+keepWindowOpen = "Αυτό το παράθυρο μένει ανοιχτό στο τέλος της ανάλυσης"
+
+[skinBrowser]
+# Install from file…
+installFromFile = "Εγκατάσταση από αρχείο…"
+# Gallery…
+gallery = "Συλλογή…"
+
+[skinMuseum]
+# Skins from skins.webamp.org belong to their authors.
+credit = "Τα θέματα του skins.webamp.org ανήκουν στους δημιουργούς τους."
+# More
+more = "Περισσότερα"
+# Download & use
+downloadAndUse = "Λήψη και χρήση"
+# Loading preview…
+loadingPreview = "Φόρτωση προεπισκόπησης…"
+# Downloading {name}…
+downloadingName = "Λήψη του {name}…"
+# Using {name}.
+usingName = "Χρησιμοποιείται το {name}."
+# Museum: {e}
+loadError = "Μουσείο: {e}"
+# No preview: {e}
+noPreviewError = "Χωρίς προεπισκόπηση: {e}"
+# Nothing found.
+nothingFound = "Δεν βρέθηκε τίποτα."
+# {n} skin. | {n} skins.
+nSkins = ["{n} θέμα.", "{n} θέματα."]
+
+[gallery]
+# Skins
+skins = "Θέματα"
+# Plug-ins
+plugIns = "Πρόσθετα"
+# Visualizations
+visualizations = "Οπτικοποιήσεις"
+# Popular
+popular = "Δημοφιλή"
+# Top rated
+topRated = "Κορυφαία"
+# New
+new = "Νέα"
+# May run {programs}
+mayRunPrograms = "Μπορεί να εκτελεί {programs}"
+# " and "
+andJoin = " και "
+# May connect to {hosts}
+mayConnectToHosts = "Μπορεί να συνδέεται με {hosts}"
+# May read the folders you allow
+mayReadFoldersYouAllow = "Μπορεί να διαβάζει τους φακέλους που επιτρέπετε"
+# Install
+install = "Εγκατάσταση"
+# Update
+update = "Ενημέρωση"
+# Use
+use = "Χρήση"
+# Installed
+installed = "Εγκατεστημένο"
+# Loading the catalog…
+loadingCatalog = "Φόρτωση καταλόγου…"
+# " (update)"
+updateMark = " (ενημέρωση)"
+# " (installed)"
+installedMark = " (εγκατεστημένο)"
+# Loading the preview…
+loadingPreview = "Φόρτωση προεπισκόπησης…"
+# No preview
+noPreview = "Χωρίς προεπισκόπηση"
+# Plug-ins need Popamp Plus
+plugInsNeedPopampPlus = "Τα πρόσθετα χρειάζονται το Popamp Plus"
+# Nothing found
+nothingFound = "Δεν βρέθηκε τίποτα"
+# Using {name}.
+usingName = "Χρησιμοποιείται το {name}."
+# {name} is installed. Turn it on in Options > Plug-ins.
+installedTurnOn = "Το {name} εγκαταστάθηκε. Ενεργοποιήστε το στις Επιλογές > Πρόσθετα."
+# {id} is already in {folder}; the gallery leaves it alone.
+alreadyInFolder = "Το {id} υπάρχει ήδη στο {folder}· η συλλογή δεν το αγγίζει."
+# Downloading {name}…
+downloadingName = "Λήψη του {name}…"
+# {n} in the gallery
+nInGallery = "{n} στη συλλογή"
+# , {n} to update
+nToUpdate = ", {n} για ενημέρωση"
+# ; {n} plug-in needs Popamp Plus | ; {n} plug-ins need Popamp Plus
+nPlugInsNeedPlus = ["; {n} πρόσθετο χρειάζεται το Popamp Plus", "; {n} πρόσθετα χρειάζονται το Popamp Plus"]
+# Gallery: {e}
+loadError = "Συλλογή: {e}"
+# Skin
+skin = "Θέμα"
+# Plug-in
+plugIn = "Πρόσθετο"
+# DSP plug-in
+dspPlugIn = "Πρόσθετο DSP"
+# Source plug-in
+sourcePlugIn = "Πρόσθετο πηγής"
+# Decoder plug-in
+decoderPlugIn = "Πρόσθετο αποκωδικοποίησης"
+# Visual plug-in
+visualPlugIn = "Οπτικό πρόσθετο"
+# {kind} plug-in
+kindPlugIn = "Πρόσθετο {kind}"
+# {what} by {author}
+whatByAuthor = "{what} από {author}"
+# Asks for no permissions.
+asksForNoPermissions = "Δεν ζητά δικαιώματα."
+# License: {license}
+licenseLicense = "Άδεια: {license}"
+# Not rated yet
+notRatedYet = "Χωρίς βαθμολογία ακόμα"
+# Rated {rating} of 5 by {n}
+ratedBy = "Βαθμολογία {rating} στα 5 από {n}"
+# {rated}, {n} download | {rated}, {n} downloads
+ratedNDownloads = ["{rated}, {n} λήψη", "{rated}, {n} λήψεις"]
+
+[plugins]
+# CANNOT REMOVE PLUG-IN: {e}
+cannotRemove = "ΔΕΝ ΕΙΝΑΙ ΔΥΝΑΤΗ Η ΑΦΑΙΡΕΣΗ ΤΟΥ ΠΡΟΣΘΕΤΟΥ: {e}"
+# PLUG-IN {name} STOPPED: {why}
+stopped = "ΤΟ ΠΡΟΣΘΕΤΟ {name} ΣΤΑΜΑΤΗΣΕ: {why}"
+# Plug-ins add sources, file types, sound effects and visualizations to Popamp. They are off until you turn them on.
+intro = "Τα πρόσθετα προσθέτουν στο Popamp πηγές, τύπους αρχείων, ηχητικά εφέ και οπτικοποιήσεις. Είναι ανενεργά μέχρι να τα ενεργοποιήσετε."
+# To turn one on, pick it in the list on the left, read what it does and what it may do, and tick Enabled. Its settings are under it.
+howToTurnOn = "Για να ενεργοποιήσετε ένα, επιλέξτε το στη λίστα αριστερά, διαβάστε τι κάνει και τι μπορεί να κάνει και τσεκάρετε το Ενεργό. Οι ρυθμίσεις του είναι από κάτω."
+# OK keeps what you chose; Cancel forgets it.
+okKeepsChoice = "Το OK κρατά την επιλογή σας· το Άκυρο την απορρίπτει."
+# Plug-ins
+plugIns = "Πρόσθετα"
+# There are none yet in {dir}.
+thereAreNoneYetIn = "Δεν υπάρχουν ακόμα στο {dir}."
+# Each is a folder in {dir}.
+eachIsFolderInDir = "Το καθένα είναι ένας φάκελος στο {dir}."
+# {name} is removed.
+nameIsRemoved = "Το {name} αφαιρέθηκε."
+# {name} (removed)
+nameRemoved = "{name} (αφαιρέθηκε)"
+# Installed as a package (popamp-plugin-{folder}): remove it with your package manager.
+installedAsPackage = "Εγκατεστημένο ως πακέτο (popamp-plugin-{folder}): αφαιρέστε το με τον διαχειριστή πακέτων."
+# Enabled
+enabled = "Ενεργό"
+# Show the commands it runs
+showCommandsItRuns = "Εμφάνιση των εντολών που εκτελεί"
+# Settings
+settings = "Ρυθμίσεις"
+# Permissions
+permissions = "Δικαιώματα"
+# Connect to {address} ({why})
+connectToAddressWhy = "Σύνδεση με {address} ({why})"
+# Connect to {address}
+connectToAddress = "Σύνδεση με {address}"
+# Folders it may read, separated by ; (~ is your whole home):
+readFoldersHelp = "Φάκελοι που μπορεί να διαβάζει, χωρισμένοι με ; (~ είναι όλος ο προσωπικός σας φάκελος):"
+# Hidden folders and the player's own stay closed.
+hiddenFoldersClosed = "Οι κρυφοί φάκελοι και του ίδιου του προγράμματος μένουν κλειστοί."
+# Journal
+journal = "Ημερολόγιο"
+# CANNOT OPEN JOURNAL: {file}
+cannotOpenJournal = "ΔΕΝ ΕΙΝΑΙ ΔΥΝΑΤΟ ΤΟ ΑΝΟΙΓΜΑ ΤΟΥ ΗΜΕΡΟΛΟΓΙΟΥ: {file}"
+# Broken: {e}
+broken = "Χαλασμένο: {e}"
+# Did not load: {e}
+didNotLoad = "Δεν φορτώθηκε: {e}"
+# Stopped after failing: {why}. OK starts it again.
+stoppedAfterFailing = "Σταμάτησε μετά από σφάλμα: {why}. Το OK το ξεκινά ξανά."
+
+[hotkeys]
+# Play
+play = "Αναπαραγωγή"
+# Pause
+pause = "Παύση"
+# Stop
+stop = "Διακοπή"
+# Previous track
+previousTrack = "Προηγούμενο κομμάτι"
+# Next track
+nextTrack = "Επόμενο κομμάτι"
+# Volume up
+volumeUp = "Αύξηση έντασης"
+# Volume down
+volumeDown = "Μείωση έντασης"
+# Back 5 seconds
+back5Seconds = "Πίσω 5 δευτερόλεπτα"
+# Forward 5 seconds
+forward5Seconds = "Μπροστά 5 δευτερόλεπτα"
+
+[update]
+# POPAMP {version} IS OUT, SEE THE MAIN MENU
+newVersionOut = "ΚΥΚΛΟΦΟΡΗΣΕ ΤΟ POPAMP {version}, ΔΕΙΤΕ ΤΟ ΚΥΡΙΟ ΜΕΝΟΥ"
+# CANNOT OPEN THE BROWSER
+cannotOpenBrowser = "ΔΕΝ ΕΙΝΑΙ ΔΥΝΑΤΟ ΤΟ ΑΝΟΙΓΜΑ ΤΟΥ ΠΡΟΓΡΑΜΜΑΤΟΣ ΠΕΡΙΗΓΗΣΗΣ"

@@ -22,12 +22,12 @@ impl HistoryPanel {
     pub fn new(model: &Model) -> HistoryPanel {
         let (w, list_h) = (520, 4 + 18 * ROW_H);
         let mut form = Form::new(w, 10 + 24 + 8 + list_h + 10 + BUTTON.1 + 10);
-        form.add(Rect::new(10, 10, 70, 24), Widget::Label { text: "Search for:".into(), dim: false });
+        form.add(Rect::new(10, 10, 70, 24), Widget::Label { text: tr!("history.searchFor").into(), dim: false });
         let search = form.add(Rect::new(80, 10, w - 90, 24), Widget::Input { text: String::new(), cursor: 0 });
         let list = form.add(Rect::new(10, 42, w - 20, list_h), Widget::List { rows: vec![], selected: None, scroll: 0 });
         let by = 42 + list_h + 10;
-        button(&mut form, w - 2 * BUTTON.0 - 16, by, "Play", Act::Ok, true);
-        button(&mut form, w - BUTTON.0 - 10, by, "Close", Act::Close, false);
+        button(&mut form, w - 2 * BUTTON.0 - 16, by, tr!("history.play"), Act::Ok, true);
+        button(&mut form, w - BUTTON.0 - 10, by, tr!("common.close"), Act::Close, false);
         let mut p = HistoryPanel { form, search, list, shown: vec![], newest: None };
         p.refilter(model);
         p
@@ -79,8 +79,8 @@ fn when(at: u64, now: i64, tz: &TimeZone) -> String {
     let (then, today) = (zoned(at as i64), zoned(now).date());
     let time = then.strftime("%H:%M");
     match then.date() {
-        d if d == today => format!("Today {time}"),
-        d if today.yesterday().is_ok_and(|y| y == d) => format!("Yesterday {time}"),
+        d if d == today => tr!("history.todayTime", time),
+        d if today.yesterday().is_ok_and(|y| y == d) => tr!("history.yesterdayTime", time),
         _ => then.strftime("%Y-%m-%d %H:%M").to_string(),
     }
 }

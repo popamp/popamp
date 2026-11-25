@@ -207,13 +207,14 @@ fn byline(track: &Track) -> String {
 
 /// What the tray icon's tooltip says under the name.
 fn now_playing(snap: &Snapshot) -> String {
-    let Some(track) = &snap.track else { return "Stopped".into() };
+    let Some(track) = &snap.track else { return tr!("nowPlaying.stopped").into() };
     let line = match byline(track) {
         by if by.is_empty() => track.title.clone(),
         by => format!("{}\n{by}", track.title),
     };
     match snap.status {
         "Playing" => line,
+        "Paused" => format!("{line}\n({})", tr!("nowPlaying.paused")),
         status => format!("{line}\n({status})"),
     }
 }
@@ -232,18 +233,18 @@ fn tray_menu(snap: &Snapshot) -> Vec<Option<Entry>> {
     let button = |label, command| Some(Entry { label, checked: None, remote: Remote::Cmd(command) });
     let check = |label, on: bool, remote| Some(Entry { label, checked: Some(on), remote });
     vec![
-        Some(Entry { label: "Show Popamp", checked: None, remote: Remote::Show }),
+        Some(Entry { label: tr!("menu.tray.showPopamp"), checked: None, remote: Remote::Show }),
         None,
-        button("Previous", Command::Previous),
-        button("Play", Command::Play),
-        button("Pause", Command::Pause),
-        button("Stop", Command::Stop),
-        button("Next", Command::Next),
+        button(tr!("menu.tray.previous"), Command::Previous),
+        button(tr!("menu.tray.play"), Command::Play),
+        button(tr!("menu.tray.pause"), Command::Pause),
+        button(tr!("menu.tray.stop"), Command::Stop),
+        button(tr!("menu.tray.next"), Command::Next),
         None,
-        check("Shuffle", snap.shuffle, Remote::Shuffle(Some(!snap.shuffle))),
-        check("Repeat", snap.repeat, Remote::Repeat(Some(!snap.repeat))),
+        check(tr!("menu.tray.shuffle"), snap.shuffle, Remote::Shuffle(Some(!snap.shuffle))),
+        check(tr!("menu.tray.repeat"), snap.repeat, Remote::Repeat(Some(!snap.repeat))),
         None,
-        Some(Entry { label: "Exit", checked: None, remote: Remote::Quit }),
+        Some(Entry { label: tr!("menu.tray.exit"), checked: None, remote: Remote::Quit }),
     ]
 }
 

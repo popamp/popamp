@@ -78,9 +78,9 @@ impl Branch {
 
     fn label(self) -> &'static str {
         match self {
-            Branch::Playlists => "Playlists",
-            Branch::Smart => "Smart playlists",
-            Branch::Folders => "Folders",
+            Branch::Playlists => tr!("library.playlists"),
+            Branch::Smart => tr!("library.smartPlaylists"),
+            Branch::Folders => tr!("library.folders"),
         }
     }
 }
@@ -182,20 +182,85 @@ const fn about(key: &'static str, header: &'static str, menu: &'static str, sort
 
 /// By `Column`, in its order.
 const ABOUT: [About; 14] = [
-    About { width: 70, keep: 8, toggle: Command::LibraryColumnArtist, ..about("artist", "Artist", "Artist", Sort::Artist, false) },
-    About { width: 90, keep: 9, toggle: Command::LibraryColumnTitle, ..about("title", "Title", "Title", Sort::Title, false) },
-    About { width: 70, keep: 5, toggle: Command::LibraryColumnAlbum, ..about("album", "Album", "Album", Sort::Album, false) },
-    About { width: 40, keep: 7, toggle: Command::LibraryColumnTime, ..about("time", "Time", "Time", Sort::Length, true) },
-    About { width: 60, keep: 1, toggle: Command::LibraryColumnGenre, ..about("genre", "Genre", "Genre", Sort::Genre, false) },
-    About { width: 40, keep: 3, toggle: Command::LibraryColumnYear, ..about("year", "Year", "Year", Sort::Year, true) },
-    About { width: 60, keep: 2, toggle: Command::LibraryColumnRating, ..about("rating", "Rating", "Rating", Sort::Rating, false) },
-    About { width: 30, keep: 4, toggle: Command::LibraryColumnNumber, ..about("track", "#", "Track number", Sort::Number, true) },
-    About { width: 100, keep: 1, toggle: Command::LibraryColumnFile, ..about("file", "File name", "File name", Sort::File, false) },
-    About { width: 90, toggle: Command::LibraryColumnComment, ..about("comment", "Comment", "Comment", Sort::Comment, false) },
-    About { width: 50, toggle: Command::LibraryColumnBitrate, ..about("bitrate", "Kbps", "Bit rate", Sort::Bitrate, true) },
-    About { width: 40, toggle: Command::LibraryColumnPlays, ..about("plays", "Plays", "Plays", Sort::Plays, true) },
-    About { width: 80, toggle: Command::LibraryColumnLastPlayed, ..about("played", "Last played", "Last played", Sort::LastPlayed, false) },
-    About { width: 80, toggle: Command::LibraryColumnAdded, ..about("added", "Added", "Added", Sort::Added, false) },
+    About {
+        width: 70,
+        keep: 8,
+        toggle: Command::LibraryColumnArtist,
+        ..about("artist", tr_const!("library.column.artist"), tr_const!("library.column.artist"), Sort::Artist, false)
+    },
+    About {
+        width: 90,
+        keep: 9,
+        toggle: Command::LibraryColumnTitle,
+        ..about("title", tr_const!("library.column.title"), tr_const!("library.column.title"), Sort::Title, false)
+    },
+    About {
+        width: 70,
+        keep: 5,
+        toggle: Command::LibraryColumnAlbum,
+        ..about("album", tr_const!("library.column.album"), tr_const!("library.column.album"), Sort::Album, false)
+    },
+    About {
+        width: 40,
+        keep: 7,
+        toggle: Command::LibraryColumnTime,
+        ..about("time", tr_const!("library.column.time"), tr_const!("library.column.time"), Sort::Length, true)
+    },
+    About {
+        width: 60,
+        keep: 1,
+        toggle: Command::LibraryColumnGenre,
+        ..about("genre", tr_const!("library.column.genre"), tr_const!("library.column.genre"), Sort::Genre, false)
+    },
+    About {
+        width: 40,
+        keep: 3,
+        toggle: Command::LibraryColumnYear,
+        ..about("year", tr_const!("library.column.year"), tr_const!("library.column.year"), Sort::Year, true)
+    },
+    About {
+        width: 60,
+        keep: 2,
+        toggle: Command::LibraryColumnRating,
+        ..about("rating", tr_const!("library.column.rating"), tr_const!("library.column.rating"), Sort::Rating, false)
+    },
+    About {
+        width: 30,
+        keep: 4,
+        toggle: Command::LibraryColumnNumber,
+        ..about("track", "#", tr_const!("library.column.trackNumber"), Sort::Number, true)
+    },
+    About {
+        width: 100,
+        keep: 1,
+        toggle: Command::LibraryColumnFile,
+        ..about("file", tr_const!("library.column.fileName"), tr_const!("library.column.fileName"), Sort::File, false)
+    },
+    About {
+        width: 90,
+        toggle: Command::LibraryColumnComment,
+        ..about("comment", tr_const!("library.column.comment"), tr_const!("library.column.comment"), Sort::Comment, false)
+    },
+    About {
+        width: 50,
+        toggle: Command::LibraryColumnBitrate,
+        ..about("bitrate", tr_const!("library.column.kbps"), tr_const!("library.column.bitRate"), Sort::Bitrate, true)
+    },
+    About {
+        width: 40,
+        toggle: Command::LibraryColumnPlays,
+        ..about("plays", tr_const!("library.column.plays"), tr_const!("library.column.plays"), Sort::Plays, true)
+    },
+    About {
+        width: 80,
+        toggle: Command::LibraryColumnLastPlayed,
+        ..about("played", tr_const!("library.column.lastPlayed"), tr_const!("library.column.lastPlayed"), Sort::LastPlayed, false)
+    },
+    About {
+        width: 80,
+        toggle: Command::LibraryColumnAdded,
+        ..about("added", tr_const!("library.column.added"), tr_const!("library.column.added"), Sort::Added, false)
+    },
 ];
 
 impl Column {
@@ -221,7 +286,7 @@ impl Column {
     }
 
     fn label(self) -> &'static str {
-        self.about().header
+        crate::i18n::tr(self.about().header)
     }
 
     fn sort(self) -> Sort {
@@ -540,6 +605,8 @@ pub struct Scan {
     /// The tracks the library had when it began, to find the files that
     /// were renamed or moved meanwhile.
     before: Vec<Track>,
+    /// Which files it reads again, for a scan that takes its place.
+    reread: Reread,
 }
 
 /// What a scan running on its own thread reports; the number names the scan.
@@ -709,15 +776,15 @@ impl LibraryPane {
     /// Makes the rows of the views tree again.
     fn grow_tree(&mut self) {
         let mut rows = vec![Row { view: View::All, depth: 0, fold: None }];
-        // The user's own playlists have a place even before there are any,
-        // so it is plain where a new one goes.
+        // The user's own playlists and folders have a place even before
+        // there are any, so it is plain where a new one goes.
         if self.grow_branch(&mut rows, Branch::Playlists, true) {
             rows.extend((0..self.plain.len()).map(|n| Row { view: View::Plain(n), depth: 1, fold: None }));
         }
         if self.grow_branch(&mut rows, Branch::Smart, !self.smart.is_empty()) {
             rows.extend((0..self.smart.len()).map(|n| Row { view: View::Smart(n), depth: 1, fold: None }));
         }
-        if self.grow_branch(&mut rows, Branch::Folders, !self.lib.folders.is_empty()) {
+        if self.grow_branch(&mut rows, Branch::Folders, true) {
             for f in &self.lib.folders {
                 self.grow_folder(&mut rows, f, 1);
             }
@@ -837,9 +904,9 @@ impl LibraryPane {
 
     fn view_label(&self, v: &View) -> String {
         match v {
-            View::All => "All music".into(),
+            View::All => tr!("library.allMusic").into(),
             View::Branch(b) => b.label().into(),
-            View::Smart(n) => format!("{} ({})", self.smart[*n].name, self.counts.0.get(*n).unwrap_or(&0)),
+            View::Smart(n) => format!("{} ({})", smart_name(&self.smart[*n].name), self.counts.0.get(*n).unwrap_or(&0)),
             View::Plain(n) => format!("{} ({})", self.plain[*n].name, self.counts.1.get(*n).unwrap_or(&0)),
             View::Folder(f) => folder_label(f),
         }
@@ -958,11 +1025,11 @@ impl LibraryPane {
     /// long they play.
     pub fn status(&self) -> String {
         if let Some(s) = &self.scan {
-            return format!("Scanning: {}", s.done);
+            return tr!("library.scanningDone", done = s.done);
         }
         let n = self.shown.len();
         let ms: u64 = self.shown.iter().filter_map(|&i| self.lib.tracks[i].length_ms).sum();
-        let tracks = if n == 1 { "1 track".to_string() } else { format!("{n} tracks") };
+        let tracks = trn!(n, "library.nTracks");
         if ms == 0 {
             tracks
         } else {
@@ -1005,7 +1072,7 @@ impl LibraryPane {
         };
         let file = popamp_core::cue::split_location(&t.path).map_or(t.path.as_str(), |(sheet, _)| sheet);
         let kind = Path::new(file).extension().map(|e| e.to_string_lossy().to_uppercase()).unwrap_or_default();
-        let format = if t.bitrate_kbps == 0 { kind } else { format!("{kind}, {} kbps", t.bitrate_kbps) };
+        let format = if t.bitrate_kbps == 0 { kind } else { tr!("library.column.kindBitrate", kind, b = t.bitrate_kbps) };
         Some([t.title.clone(), t.artist.clone(), album, format])
     }
 
@@ -1046,7 +1113,7 @@ impl LibraryPane {
                 for (lx, ly, lw, lh) in [(x, y, w, 1), (x, y + h - 1, w, 1), (x, y, 1, h), (x + w - 1, y, 1, h)] {
                     pen.b.fill(lx, ly, lw, lh, pen.line);
                 }
-                let note = if self.focused().is_some() { "No cover" } else { "" };
+                let note = if self.focused().is_some() { tr!("library.noCover") } else { "" };
                 pen.centre(frame, note, pen.dim);
             }
         }
@@ -1188,8 +1255,12 @@ impl LibraryPane {
 
     /// A pane's columns: the name, then two numbers when there is room.
     fn pane_columns(list: List, rows: Rect, px: i32) -> Vec<(&'static str, i32, i32)> {
-        let (name, second) = if list == List::Artists { ("Artist", "Albums") } else { ("Album", "Year") };
-        let cols = [(name, Width::Share(1)), (second, Width::Px(4)), ("Tracks", Width::Px(4))];
+        let (name, second) = if list == List::Artists {
+            (tr_const!("library.column.artist"), tr_const!("library.column.albums"))
+        } else {
+            (tr_const!("library.column.album"), tr_const!("library.column.year"))
+        };
+        let cols = [(name, Width::Share(1)), (second, Width::Px(4)), (tr_const!("library.column.tracks"), Width::Px(4))];
         lay(&cols[..if rows.w >= px * 14 { 3 } else { 1 }], rows, px)
     }
 
@@ -1197,17 +1268,17 @@ impl LibraryPane {
     fn pane_row(&self, list: List, n: usize) -> [String; 3] {
         let rows = self.pane(list).0;
         let Some(g) = n.checked_sub(1).map(|i| &rows[i]) else {
-            let (what, albums) = if list == List::Artists {
-                ("artists", rows.iter().map(|g| g.albums).sum::<usize>().to_string())
+            let (all, albums) = if list == List::Artists {
+                (trn!(rows.len(), "library.allNArtists"), rows.iter().map(|g| g.albums).sum::<usize>().to_string())
             } else {
-                ("albums", String::new())
+                (trn!(rows.len(), "library.allNAlbums"), String::new())
             };
-            return [format!("All ({} {what})", rows.len()), albums, rows.iter().map(|g| g.tracks).sum::<usize>().to_string()];
+            return [all, albums, rows.iter().map(|g| g.tracks).sum::<usize>().to_string()];
         };
         let name = match (g.name.is_empty(), list) {
             (false, _) => g.name.clone(),
-            (true, List::Artists) => "(no artist)".into(),
-            (true, _) => "(no album)".into(),
+            (true, List::Artists) => tr!("library.noArtist").into(),
+            (true, _) => tr!("library.noAlbum").into(),
         };
         let second = if list == List::Artists { g.albums.to_string() } else { g.year.clone() };
         [name, second, g.tracks.to_string()]
@@ -1291,7 +1362,7 @@ impl LibraryPane {
         pen.b.fill(s.x + 1, s.y + 1, s.w - 2, s.h - 2, c.normal_bg);
         let inner = rect(s.x + 1, s.y + 1, s.w - 2, s.h - 2);
         if self.query.is_empty() {
-            pen.left(inner, "Search: type here", pen.dim);
+            pen.left(inner, tr!("library.searchTypeHere"), pen.dim);
         } else {
             pen.left(inner, &self.query, c.normal);
         }
@@ -1318,7 +1389,9 @@ impl LibraryPane {
 
     fn draw_pane(&self, pen: &mut Pen, p: &Parts, list: List, t: Table, c: &PlColors, active: bool) {
         let cols = Self::pane_columns(list, t.rows, pen.px as i32);
-        Self::draw_header(pen, t.header, &cols, |name| (*name, *name != "Artist" && *name != "Album"));
+        Self::draw_header(pen, t.header, &cols, |name| {
+            (crate::i18n::tr(name), *name != "library.column.artist" && *name != "library.column.album")
+        });
         let (scroll, page) = self.window(p, list);
         let picked = self.picked_row(list);
         for n in scroll..self.len(list).min(scroll + page) {
@@ -1375,8 +1448,8 @@ impl LibraryPane {
             }
         }
         if self.lib.folders.is_empty() {
-            pen.centre(rect(t.rows.x, t.rows.y + p.row_h, t.rows.w, p.row_h), "The library is empty.", pen.dim);
-            pen.centre(rect(t.rows.x, t.rows.y + 2 * p.row_h, t.rows.w, p.row_h), "Add a folder with music.", pen.dim);
+            pen.centre(rect(t.rows.x, t.rows.y + p.row_h, t.rows.w, p.row_h), tr!("library.libraryIsEmpty"), pen.dim);
+            pen.centre(rect(t.rows.x, t.rows.y + 2 * p.row_h, t.rows.w, p.row_h), tr!("library.addFolderWithMusic"), pen.dim);
             return;
         }
         let (scroll, page) = self.window(p, List::Tracks);
@@ -1797,8 +1870,25 @@ pub const RATE: [(u8, Command); 6] = [
     (5, Command::LibraryRate5),
 ];
 
+/// The names popamp-core gives the built-in smart playlists, and the keys
+/// of their texts.
+const BUILT_IN_SMART: [(&str, &str); 6] = [
+    ("Recently added", tr_const!("library.smartRecentlyAdded")),
+    ("Last played", tr_const!("library.smartLastPlayed")),
+    ("Most played", tr_const!("library.smartMostPlayed")),
+    ("Never played", tr_const!("library.smartNeverPlayed")),
+    ("Random 50", tr_const!("library.smartRandom50")),
+    ("Favourites", tr_const!("library.smartFavourites")),
+];
+
+/// A smart playlist's name as shown: a built-in one's in the user's
+/// language. The file keeps the English, which views are saved by.
+pub fn smart_name(name: &str) -> &str {
+    BUILT_IN_SMART.iter().find(|(n, _)| *n == name).map_or(name, |(_, key)| crate::i18n::tr(key))
+}
+
 fn rate_label(n: u8) -> String {
-    Rating::new(n).map(stars).filter(|s| !s.is_empty()).unwrap_or_else(|| "No rating".into())
+    Rating::new(n).map(stars).filter(|s| !s.is_empty()).unwrap_or_else(|| tr!("library.noRating").into())
 }
 
 /// A rating as filled and hollow stars out of five; nothing unrated.
@@ -1883,12 +1973,38 @@ fn write_covers(picture: &popamp_audio::cover::Picture, paths: &[String]) -> (Ve
 
 // --- the library in the player ------------------------------------------------
 
-/// Looks through `folders` for audio files. A file that is as `known` has
-/// it keeps what was read from it before; the tags of the others are read.
+/// Which files a scan reads the tags of again.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub enum Reread {
+    /// Those whose size or change time is not as the library has it, for
+    /// the scans that come by themselves.
+    #[default]
+    Changed,
+    /// Every one, for a scan the user asks for.
+    Every,
+}
+
+/// The tracks the library had before a scan, by path.
+#[derive(Debug, Default)]
+struct Known {
+    tracks: HashMap<String, Track>,
+    reread: Reread,
+}
+
+impl Known {
+    /// What was read from `path` before, when it can stand for its file now.
+    fn kept(&self, path: &str, stamp: Stamp) -> Option<&Track> {
+        self.tracks.get(path).filter(|old| self.reread == Reread::Changed && old.stamp == stamp)
+    }
+}
+
+/// Looks through `folders` for audio files. A file that `known` keeps
+/// keeps what was read from it before; the tags of the others are read.
+/// A track keeps the time the library first saw it.
 fn scan(
     id: u64,
     folders: Vec<String>,
-    known: HashMap<String, Track>,
+    known: Known,
     sources: &Sources,
     cx: &Context,
     stop: &AtomicBool,
@@ -1915,11 +2031,12 @@ fn scan(
             // A track of a CUE sheet changes with its sheet.
             let file = popamp_core::cue::split_location(&path).map_or(path.as_str(), |(sheet, _)| sheet);
             let Some(stamp) = Stamp::of(std::path::Path::new(file)) else { continue };
-            let track = match known.get(&path) {
-                Some(old) if old.stamp == stamp => old.clone(),
-                old => {
+            let track = match known.kept(&path, stamp) {
+                Some(old) => old.clone(),
+                None => {
                     let meta = sources.of(&path).describe(&path).and_then(Result::ok).unwrap_or_default();
-                    Track::new(path, stamp, old.map_or(now, |o| o.added), &meta)
+                    let added = known.tracks.get(&path).map_or(now, |o| o.added);
+                    Track::new(path, stamp, added, &meta)
                 }
             };
             found.push(track);
@@ -1937,11 +2054,13 @@ fn scan(
 
 impl Model {
     /// Looks through the library's folders again, in the background; a
-    /// scan under way is given up for the new one.
-    pub fn library_rescan(&mut self) {
+    /// scan under way is given up for the new one, which then rereads
+    /// every file when that one did.
+    pub fn library_rescan(&mut self, mut reread: Reread) {
         let pane = &mut self.library;
         if let Some(old) = pane.scan.take() {
             old.cancel.store(true, Ordering::Relaxed);
+            reread = reread.max(old.reread);
         }
         if pane.lib.folders.is_empty() {
             return;
@@ -1949,13 +2068,13 @@ impl Model {
         pane.scans += 1;
         let (id, cancel) = (pane.scans, Arc::new(AtomicBool::new(false)));
         let folders = pane.lib.folders.clone();
-        let known: HashMap<String, Track> = pane.lib.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect();
+        let known = Known { tracks: pane.lib.tracks.iter().map(|t| (t.path.clone(), t.clone())).collect(), reread };
         let (events, sources, cx, stop) = (self.events.clone(), self.sources.clone(), self.source_context(), cancel.clone());
         let spawned = std::thread::Builder::new()
             .name("popamp-library".into())
             .spawn(move || scan(id, folders, known, &sources, &cx, &stop, &|ev| events.send(AppEvent::Library(ev))));
         match spawned {
-            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel, before: self.library.lib.tracks.clone() }),
+            Ok(_) => self.library.scan = Some(Scan { id, done: 0, cancel, before: self.library.lib.tracks.clone(), reread }),
             Err(e) => log::warn!("cannot start a library scan: {e}"),
         }
     }
@@ -1966,7 +2085,7 @@ impl Model {
         let (on, minutes) = (self.settings().ml_rescan, self.settings().ml_rescan_minutes);
         let pane = &self.library;
         if on && pane.scan.is_none() && now.duration_since(pane.scanned_at).as_secs() >= u64::from(minutes) * 60 {
-            self.library_rescan();
+            self.library_rescan(Reread::Changed);
         }
     }
 
@@ -2004,12 +2123,12 @@ impl Model {
     /// writes tags into take it; a CUE sheet's tracks do not.
     pub fn library_cover_dropped(&mut self, image: &str, targets: Vec<String>) {
         if std::fs::read(image).ok().and_then(popamp_audio::tags::picture).is_none() {
-            return self.flash("LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE");
+            return self.flash(tr!("library.notAPicture"));
         }
         let writable = |p: &String| popamp_core::cue::split_location(p).is_none() && popamp_audio::tags::named_editable(Path::new(p));
         let paths: Vec<String> = targets.into_iter().filter(writable).collect();
         if paths.is_empty() {
-            return self.flash("LIBRARY: NO COVER CAN GO INTO THESE FILES");
+            return self.flash(tr!("library.noCoverFits"));
         }
         self.request_dialog(DialogKind::WriteCover { image: image.to_string(), paths });
     }
@@ -2018,7 +2137,7 @@ impl Model {
     /// from the window; `LibEvent::Covers` tells when it is done.
     pub fn library_write_cover(&mut self, image: &str, paths: Vec<String>) {
         let Some(picture) = std::fs::read(image).ok().and_then(popamp_audio::tags::picture) else {
-            return self.flash("LIBRARY: NOT A JPEG, PNG, GIF OR BMP PICTURE");
+            return self.flash(tr!("library.notAPicture"));
         };
         let events = self.events.clone();
         let spawned = std::thread::Builder::new().name("popamp-cover".into()).spawn(move || {
@@ -2035,10 +2154,9 @@ impl Model {
         for path in done {
             self.tags_changed(path);
         }
-        let files = |n: usize| if n == 1 { "1 FILE".to_string() } else { format!("{n} FILES") };
         let text = match failed {
-            0 => format!("LIBRARY: COVER WRITTEN TO {}", files(done.len())),
-            _ => format!("LIBRARY: COVER WRITTEN TO {}, {failed} FAILED", files(done.len())),
+            0 => trn!(done.len(), "library.coverWrittenToNFiles"),
+            _ => trn!(done.len(), "library.coverWrittenSomeFailed", failed),
         };
         self.flash(text);
     }
@@ -2096,15 +2214,11 @@ impl Model {
             added |= self.library.lib.add_folder(folder);
         }
         if !added {
-            return self.flash(if picked.len() == 1 {
-                "LIBRARY: THE FOLDER IS THERE ALREADY"
-            } else {
-                "LIBRARY: THE FOLDERS ARE THERE ALREADY"
-            });
+            return self.flash(if picked.len() == 1 { tr!("library.folderIsThereAlready") } else { tr!("library.foldersAreThereAlready") });
         }
         self.library.changed();
         self.save_library();
-        self.library_rescan();
+        self.library_rescan(Reread::Changed);
     }
 
     /// Takes the folder on screen out of the library; its files stay.
@@ -2115,7 +2229,7 @@ impl Model {
         self.save_library();
         // A scan under way would bring the folder's tracks back.
         if self.library.scan.is_some() {
-            self.library_rescan();
+            self.library_rescan(Reread::Changed);
         }
     }
 
@@ -2126,7 +2240,7 @@ impl Model {
         let n = picked.len();
         if n > 0 {
             self.add(picked, mode);
-            self.flash(if n == 1 { "LIBRARY: 1 TRACK TO THE PLAYLIST".into() } else { format!("LIBRARY: {n} TRACKS TO THE PLAYLIST") });
+            self.flash(trn!(n, "library.nTracksToPlaylist"));
         }
     }
 
@@ -2169,9 +2283,11 @@ impl Model {
     fn columns_menu(&self) -> Vec<crate::menu::MenuItem> {
         use crate::menu::MenuItem;
         let cols = &self.library.columns;
-        let mut items: Vec<MenuItem> =
-            Column::ALL.iter().map(|&c| MenuItem::cmd(c.about().menu, "", c.about().toggle).checked(cols.has(c))).collect();
-        items.extend([MenuItem::sep(), MenuItem::cmd("Reset columns", "", Command::LibraryColumnsReset)]);
+        let mut items: Vec<MenuItem> = Column::ALL
+            .iter()
+            .map(|&c| MenuItem::cmd(crate::i18n::tr(c.about().menu), "", c.about().toggle).checked(cols.has(c)))
+            .collect();
+        items.extend([MenuItem::sep(), MenuItem::cmd(tr!("library.menu.resetColumns"), "", Command::LibraryColumnsReset)]);
         items
     }
 
@@ -2206,17 +2322,19 @@ impl Model {
     /// What is done with the picked tracks.
     fn tracks_menu(&self) -> Vec<crate::menu::MenuItem> {
         use crate::menu::MenuItem;
-        let mut items =
-            vec![MenuItem::cmd("Play", "Enter", Command::LibraryPlay), MenuItem::cmd("Enqueue", "Shift+Enter", Command::LibraryEnqueue)];
+        let mut items = vec![
+            MenuItem::cmd(tr!("library.menu.play"), "Enter", Command::LibraryPlay),
+            MenuItem::cmd(tr!("library.menu.enqueue"), "Shift+Enter", Command::LibraryEnqueue),
+        ];
         if !self.library.selected_paths().is_empty() {
             items.extend([
                 MenuItem::sep(),
-                MenuItem::sub("Rate", RATE.iter().rev().map(|&(n, c)| MenuItem::cmd(&rate_label(n), "", c)).collect()),
-                MenuItem::cmd("File info…", "", Command::LibraryFileInfo),
+                MenuItem::sub(tr!("library.menu.rate"), RATE.iter().rev().map(|&(n, c)| MenuItem::cmd(&rate_label(n), "", c)).collect()),
+                MenuItem::cmd(tr!("library.menu.fileInfo"), "", Command::LibraryFileInfo),
             ]);
             if let Some(n) = self.library.plain_index() {
                 let name = &self.library.plain[n].name;
-                items.push(MenuItem::cmd(&format!("Remove from “{name}”"), "", Command::LibraryPlaylistRemoveTracks));
+                items.push(MenuItem::cmd(&tr!("library.menu.removeFromName", name), "", Command::LibraryPlaylistRemoveTracks));
             }
         }
         items
@@ -2225,29 +2343,33 @@ impl Model {
     /// The folders and the smart playlists.
     fn lists_menu(&self) -> Vec<crate::menu::MenuItem> {
         use crate::menu::MenuItem;
-        let mut items = vec![MenuItem::cmd("New playlist…", "", Command::LibraryPlaylistNew)];
+        let mut items = vec![MenuItem::cmd(tr!("library.menu.newPlaylist"), "", Command::LibraryPlaylistNew)];
         if let Some(n) = self.library.plain_index() {
             let name = &self.library.plain[n].name;
-            items.push(MenuItem::cmd(&format!("Rename “{name}”…"), "", Command::LibraryPlaylistRename));
-            items.push(MenuItem::cmd(&format!("Delete “{name}”"), "", Command::LibraryPlaylistDelete));
+            items.push(MenuItem::cmd(&tr!("library.menu.renameName", name), "", Command::LibraryPlaylistRename));
+            items.push(MenuItem::cmd(&tr!("library.menu.deleteName", name), "", Command::LibraryPlaylistDelete));
         }
-        items.extend([MenuItem::sep(), MenuItem::cmd("New smart playlist…", "", Command::LibrarySmartNew)]);
+        items.extend([MenuItem::sep(), MenuItem::cmd(tr!("library.menu.newSmartPlaylist"), "", Command::LibrarySmartNew)]);
         if !self.library.query.trim().is_empty() {
-            items.push(MenuItem::cmd("Save search as smart playlist…", "", Command::LibrarySmartFromSearch));
+            items.push(MenuItem::cmd(tr!("library.menu.saveSearchAsSmartPlaylist"), "", Command::LibrarySmartFromSearch));
         }
         if let Some(list) = self.library.smart_view() {
-            items.push(MenuItem::cmd(&format!("Edit “{}”…", list.name), "", Command::LibrarySmartEdit));
-            items.push(MenuItem::cmd(&format!("Delete “{}”", list.name), "", Command::LibrarySmartDelete));
+            items.push(MenuItem::cmd(&tr!("library.menu.editName", name = smart_name(&list.name)), "", Command::LibrarySmartEdit));
+            items.push(MenuItem::cmd(&tr!("library.menu.deleteName", name = smart_name(&list.name)), "", Command::LibrarySmartDelete));
         }
         items.extend([
             MenuItem::sep(),
-            MenuItem::cmd("Add folder…", "", Command::LibraryAddFolder),
-            MenuItem::cmd("Rescan folders", "", Command::LibraryRescan),
+            MenuItem::cmd(tr!("library.menu.addFolder"), "", Command::LibraryAddFolder),
+            MenuItem::cmd(tr!("library.menu.rescanFolders"), "", Command::LibraryRescan),
         ]);
         if let Some(folder) = self.library.folder() {
-            items.push(MenuItem::cmd(&format!("Remove “{}” from the library", folder_label(folder)), "", Command::LibraryRemoveFolder));
+            items.push(MenuItem::cmd(
+                &tr!("library.menu.removeNameFromLibrary", name = folder_label(folder)),
+                "",
+                Command::LibraryRemoveFolder,
+            ));
         }
-        let maximized = MenuItem::cmd("Maximized", "", Command::ToggleLibraryMaximize).checked(self.settings().ml_max);
+        let maximized = MenuItem::cmd(tr!("library.menu.maximized"), "", Command::ToggleLibraryMaximize).checked(self.settings().ml_max);
         items.extend([MenuItem::sep(), maximized]);
         items
     }
@@ -2282,7 +2404,7 @@ impl Model {
     }
 
     pub fn library_smart_new(&mut self) {
-        self.edit_smart(Editing { index: None, list: SmartList { name: "New smart playlist".into(), ..SmartList::default() } });
+        self.edit_smart(Editing { index: None, list: SmartList { name: tr!("library.newSmartPlaylist").into(), ..SmartList::default() } });
     }
 
     /// A new smart playlist of the tracks the search finds.
@@ -2382,7 +2504,7 @@ impl Model {
         let name = plain::clean_name(name)?;
         let taken = self.library.plain.iter().enumerate().any(|(i, l)| Some(i) != index && l.name.eq_ignore_ascii_case(&name));
         if taken {
-            self.flash(format!("A PLAYLIST IS CALLED {name} ALREADY"));
+            self.flash(tr!("library.playlistNameTaken", name));
             return None;
         }
         Some(name)
@@ -2797,6 +2919,12 @@ mod tests {
     }
 
     #[test]
+    fn a_new_library_shows_where_folders_go() {
+        let p = LibraryPane::new(Library::default());
+        assert_eq!(tree(&p), ["All music", "- Playlists", "- Folders"]);
+    }
+
+    #[test]
     fn the_views_are_a_tree_whose_groups_fold() {
         let mut p = pane();
         assert_eq!(tree(&p), ["All music", "- Playlists", "- Folders", "  music", "  more"]);
@@ -3054,20 +3182,42 @@ mod tests {
         let old_path = dir.join("old.mp3").to_string_lossy().into_owned();
         let stamp = Stamp::of(&dir.join("old.mp3")).unwrap();
         let old = Track { stamp, added: 7, ..track(&old_path, "Kept", "", "As it was") };
-        let known = HashMap::from([(old_path.clone(), old.clone())]);
         let m = Model::for_tests();
-        let events = std::cell::RefCell::new(Vec::new());
-        scan(1, vec![folder.clone()], known, &m.sources, &m.source_context(), &AtomicBool::new(false), &|ev| {
-            events.borrow_mut().push(ev);
-            true
-        });
-        let events = events.into_inner();
-        let [LibEvent::Folder(1, f, found), LibEvent::Done(1)] = events.as_slice() else { panic!("{events:?}") };
-        assert_eq!(f, &folder);
-        let mut names: Vec<(&str, &str)> = found.iter().map(|t| (t.title.as_str(), t.artist.as_str())).collect();
-        names.sort();
-        assert_eq!(names, [("As it was", "Kept"), ("new", "")], "the text file is no track; the new one shows its name");
+        let found = |reread| {
+            let known = Known { tracks: HashMap::from([(old_path.clone(), old.clone())]), reread };
+            let events = std::cell::RefCell::new(Vec::new());
+            scan(1, vec![folder.clone()], known, &m.sources, &m.source_context(), &AtomicBool::new(false), &|ev| {
+                events.borrow_mut().push(ev);
+                true
+            });
+            let events = events.into_inner();
+            let [LibEvent::Folder(1, f, found), LibEvent::Done(1)] = events.as_slice() else { panic!("{events:?}") };
+            assert_eq!(f, &folder);
+            let mut names: Vec<(String, String, u64)> = found.iter().map(|t| (t.title.clone(), t.artist.clone(), t.added.min(7))).collect();
+            names.sort();
+            names
+        };
+        let name = |title: &str, artist: &str, added| (title.to_string(), artist.to_string(), added);
+        assert_eq!(
+            found(Reread::Changed),
+            [name("As it was", "Kept", 7), name("new", "", 7)],
+            "the text file is no track; the new one shows its name"
+        );
+        assert_eq!(found(Reread::Every), [name("new", "", 7), name("old", "", 7)], "asked for, every file is read again");
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn rescan_folders_reads_every_file_again_even_when_a_scan_restarts() {
+        let mut m = Model::for_tests();
+        m.library = pane();
+        let reread = |m: &Model| m.library.scan.as_ref().map(|s| s.reread);
+        m.library_rescan(Reread::Changed);
+        assert_eq!(reread(&m), Some(Reread::Changed), "a scan that comes by itself");
+        m.exec(Command::LibraryRescan);
+        assert_eq!(reread(&m), Some(Reread::Every));
+        m.library_rescan(Reread::Changed);
+        assert_eq!(reread(&m), Some(Reread::Every), "a folder added meanwhile does not cut it short");
     }
 
     #[test]
@@ -3083,7 +3233,7 @@ mod tests {
         scan(
             1,
             vec![dir.to_string_lossy().into_owned()],
-            HashMap::new(),
+            Known::default(),
             &m.sources,
             &m.source_context(),
             &AtomicBool::new(false),
@@ -3102,7 +3252,8 @@ mod tests {
     fn a_scan_result_fills_the_library_and_is_saved() {
         let mut m = Model::for_tests();
         m.library.lib.add_folder("/music");
-        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: Vec::new() });
+        m.library.scan =
+            Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: Vec::new(), reread: Reread::Changed });
         m.on_library(LibEvent::Folder(2, "/music".into(), vec![track("/music/x.mp3", "", "", "Stale")]));
         assert!(m.library.lib.tracks.is_empty(), "an older scan's news is dropped");
         m.on_library(LibEvent::Progress(3, 40));
@@ -3434,7 +3585,13 @@ mod tests {
         m.library.lib.add_folder("/music");
         m.library.lib.tracks = vec![file("/music/a.mp3")];
         m.library.lib.stats.rate(&m.paths.stats_file(), "/music/a.mp3", Rating::new(4).unwrap());
-        m.library.scan = Some(Scan { id: 3, done: 0, cancel: Arc::new(AtomicBool::new(false)), before: m.library.lib.tracks.clone() });
+        m.library.scan = Some(Scan {
+            id: 3,
+            done: 0,
+            cancel: Arc::new(AtomicBool::new(false)),
+            before: m.library.lib.tracks.clone(),
+            reread: Reread::Changed,
+        });
         m.on_library(LibEvent::Folder(3, "/music".into(), vec![file("/music/sorted/01 Song.mp3")]));
         m.on_library(LibEvent::Done(3));
         let kept = popamp_core::stats::Stats::load(&m.paths.stats_file());
