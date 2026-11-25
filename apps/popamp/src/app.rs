@@ -1,6 +1,7 @@
 //! Windowing: winit event loop, skinned windows, docking/snapping, pop-up
 //! menus, keyboard shortcuts and drag & drop.
 
+use crate::arrange::{arrange, Corner, Sized, Windows};
 use crate::bar::{self, Screen};
 use crate::canvas::Canvas;
 use crate::dialogs::{self, DialogResult};
@@ -598,6 +599,7 @@ impl App {
         self.update_library_area();
         let maxed = crate::bind::maximized_area(&self.model, WindowKey::Library);
         let old = self.docking_rects(maxed.is_some());
+        log::debug!(target: "moves", "layout {anchor:?}: windows at {old:?}");
         let bar = bar::edge(&self.model).zip(self.model.screen);
         let mut plan = self.plan(&old, anchor, bar);
         if bar.is_none() && !self.platform.on_wayland() {
@@ -610,6 +612,7 @@ impl App {
             }
         }
         let Plan { sizes, pos: mut new_pos } = plan;
+        log::debug!(target: "moves", "layout {anchor:?}: to {new_pos:?}, sizes {sizes:?}");
         new_pos[WindowKey::Library.index()] = self.library_place(maxed, new_pos[WindowKey::Library.index()]);
         let wayland = self.platform.on_wayland();
         for (i, &k) in WindowKey::ALL.iter().enumerate() {
@@ -689,6 +692,77 @@ impl App {
             }
         };
         Plan { sizes, pos: new_pos }
+    }
+
+    /// Puts the main window into `corner` of its screen's usable area, the
+    /// equalizer and the playlist under it and the library beside it, and
+    /// stretches the playlist and the library to the screen's edges. Under
+    /// Wayland the main window stays where the compositor has it and the
+    /// library, a window of its own, stays too; the playlist reaches the
+    /// bottom only where the screen is known (COSMIC). A library still
+    /// maximized (Wayland) is left so.
+    fn arrange_windows(&mut self, corner: Corner) {
+        let Some(main_pos) = self.win(WindowKey::Main).map(|w| w.pos) else { return };
+        let wayland = self.platform.on_wayland();
+        let area = if wayland {
+            let inside = |m: &&Screen| main_pos.0 >= m.x && main_pos.0 < m.x + m.w && main_pos.1 >= m.y && main_pos.1 < m.y + m.h;
+            self.platform.wayland_monitors().iter().find(inside).copied()
+        } else {
+            self.main_monitor().map(|m| bar::usable(platform::monitor(&m), &self.platform.work_areas(), None))
+        };
+        if area.is_none() && !wayland {
+            return;
+        }
+        let shown = |k: WindowKey| self.wanted_visible(k).then(|| self.logical_size(k));
+        let sized = |k: WindowKey, height_known: bool| -> Option<Sized> {
+            self.wanted_visible(k).then_some(())?;
+            let mode = self.model.skin.layout.window(k)?.mode(crate::bind::view(&self.model, k));
+            let now = crate::bind::stored_size(&self.model, k);
+            let height = if height_known { mode.height } else { Dim::Fixed(now.1) };
+            Some(Sized { width: mode.width, height, now })
+        };
+        let library_free = !wayland && crate::bind::maximized_area(&self.model, WindowKey::Library).is_none();
+        let windows = Windows {
+            main: self.logical_size(WindowKey::Main),
+            main_at: wayland.then_some(main_pos),
+            eq: shown(WindowKey::Eq),
+            playlist: sized(WindowKey::Playlist, area.is_some()),
+            library: if library_free { sized(WindowKey::Library, true) } else { None },
+        };
+        let placed =
+            arrange(corner, area.unwrap_or(Screen { x: main_pos.0, y: main_pos.1, w: 0, h: 0 }), &windows, self.scale(WindowKey::Main));
+        log::debug!(target: "moves", "arrange {corner:?} in {area:?}: {windows:?} -> {placed:?}");
+        let s = self.model.settings_mut();
+        if let Some((_, size)) = placed.playlist {
+            (s.pe_width, s.pe_height) = size;
+        }
+        if let Some((_, size)) = placed.library {
+            (s.ml_width, s.ml_height) = size;
+        }
+        let main = (!wayland).then_some((WindowKey::Main, placed.main));
+        let rest = [
+            (WindowKey::Eq, placed.eq),
+            (WindowKey::Playlist, placed.playlist.map(|p| p.0)),
+            (WindowKey::Library, placed.library.map(|l| l.0)),
+        ];
+        let moves: Vec<(WindowKey, (i32, i32))> = main.into_iter().chain(rest.into_iter().filter_map(|(k, p)| Some((k, p?)))).collect();
+        // The layout learns the new places, then sizes the windows; only
+        // then do they move: a window manager keeps a window inside the
+        // screen, so one moved down while still at its old, taller size
+        // would be pushed back up (GNOME).
+        for &(k, p) in &moves {
+            if let Some(w) = self.win_mut(k) {
+                w.pos = p;
+            }
+            self.store_pos(k, p);
+        }
+        self.apply_layout(WindowKey::Main);
+        for &(k, _) in &moves {
+            if let Some(w) = self.win(k) {
+                w.window.move_to(w.pos);
+            }
+        }
+        self.redraw_all();
     }
 
     /// Shortens the playlist or the library where a resize or a bigger
@@ -1971,6 +2045,8 @@ impl App {
                 self.cycle_focus(k);
                 return;
             }
+            K::ArrowLeft if ctrl && shift => Some(C::ArrangeTopLeft),
+            K::ArrowRight if ctrl && shift => Some(C::ArrangeTopRight),
             _ if ctrl || alt => None,
             K::KeyZ | K::Numpad4 => Some(C::Previous),
             K::KeyX | K::Numpad5 => Some(C::Play),
@@ -2061,6 +2137,16 @@ impl App {
                 UiReq::Menu(items) => {
                     let at = self.cursor_screen(WindowKey::Main);
                     self.open_popup(el, items, at, false);
+                }
+                UiReq::Arrange(corner) => {
+                    // A maximized library comes back to its own size to be
+                    // arranged, as a window docked again; under Wayland it stays.
+                    let s = self.model.settings();
+                    if s.ml_max && s.ml_open && !self.platform.on_wayland() {
+                        self.model.settings_mut().ml_max = false;
+                        self.remake_changed_windows(el);
+                    }
+                    self.arrange_windows(corner);
                 }
                 UiReq::Layout => {
                     if WindowKey::ALL.iter().any(|&k| self.win(k).is_some_and(|w| w.role != self.role(k))) {
@@ -2757,13 +2843,7 @@ fn fit_grown(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i32
 /// no gap is left under it.
 fn fit_bottom(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i32) -> i32 {
     let Dim::Free { min, .. } = dim else { return want };
-    longest_within(min, want, end, limit.max(was))
-}
-
-/// The longest length from `min` to `upto` that ends at `bound` or before,
-/// else `min`.
-fn longest_within(min: i32, upto: i32, end: impl Fn(i32) -> i32, bound: i32) -> i32 {
-    (min..=upto.max(min)).rev().find(|&n| end(n) <= bound).unwrap_or(min)
+    crate::arrange::longest_within(min, want, end, limit.max(was))
 }
 
 /// The height a drag gives a window that wants `want` skin pixels: the
@@ -2782,7 +2862,7 @@ fn reach_bottom(dim: Dim, want: i32, end: impl Fn(i32) -> i32, limit: i32) -> i3
         last += step;
     }
     if snapped > last || (snapped == last && want > last) {
-        longest_within(last, last + step - 1, end, limit)
+        crate::arrange::longest_within(last, last + step - 1, end, limit)
     } else {
         snapped
     }

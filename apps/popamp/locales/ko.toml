@@ -111,6 +111,12 @@ aboutName = "{name} 정보"
   equalizer = "이퀄라이저"
   # Media Library
   mediaLibrary = "미디어 라이브러리"
+  # Arrange windows
+  arrangeWindows = "창 배치"
+  # Top left
+  arrangeTopLeft = "왼쪽 위로"
+  # Top right
+  arrangeTopRight = "오른쪽 위로"
   # Colours
   colours = "색상"
   # On

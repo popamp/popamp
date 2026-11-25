@@ -111,6 +111,12 @@ aboutName = "О программе {name}"
   equalizer = "Эквалайзер"
   # Media Library
   mediaLibrary = "Медиатека"
+  # Arrange windows
+  arrangeWindows = "Расставить окна"
+  # Top left
+  arrangeTopLeft = "В левый верхний угол"
+  # Top right
+  arrangeTopRight = "В правый верхний угол"
   # Colours
   colours = "Цвета"
   # On

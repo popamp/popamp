@@ -111,6 +111,12 @@ aboutName = "关于 {name}"
   equalizer = "均衡器"
   # Media Library
   mediaLibrary = "媒体库"
+  # Arrange windows
+  arrangeWindows = "排列窗口"
+  # Top left
+  arrangeTopLeft = "左上角"
+  # Top right
+  arrangeTopRight = "右上角"
   # Colours
   colours = "颜色"
   # On

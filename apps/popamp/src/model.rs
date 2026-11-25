@@ -1,5 +1,6 @@
 //! Application state and command handling, independent of windowing.
 
+use crate::arrange::Corner;
 use crate::cli::Remote;
 use crate::dialogs::{DialogKind, DialogResult, Request};
 use crate::menu::{MenuAction, MenuItem};
@@ -95,6 +96,8 @@ pub enum UiReq {
     Raise,
     SkinChanged,
     AlwaysOnTop,
+    /// Put the windows into a top corner of the screen and fill it.
+    Arrange(Corner),
 }
 
 #[derive(Debug, Default)]
@@ -1440,6 +1443,12 @@ impl Model {
             C::LibraryEnqueue => self.library_add(AddMode::Append),
             C::LibraryAudition => self.library_audition(),
             C::LibraryAddFolder => self.request_dialog(DialogKind::LibraryFolder),
+            C::ArrangeTopLeft | C::ArrangeTopRight => {
+                // A bar has its own place on the screen.
+                if crate::bar::edge(self).is_none() {
+                    self.ui.push(UiReq::Arrange(if cmd == C::ArrangeTopLeft { Corner::Left } else { Corner::Right }));
+                }
+            }
             C::LibraryRescan => self.library_rescan(crate::library::Reread::Every),
             C::LibraryRemoveFolder => self.library_remove_folder(),
             C::LibraryColumnArtist
@@ -1771,6 +1780,16 @@ impl Model {
             MenuItem::cmd(tr!("menu.main.equalizer"), "Alt+G", C::ToggleEqWindow).checked(s.eq_open),
             MenuItem::cmd(tr!("menu.main.mediaLibrary"), "Alt+L", C::ToggleLibraryWindow).checked(s.ml_open),
         ]);
+        // A bar has its own place on the screen.
+        if crate::bar::edge(self).is_none() {
+            items.push(MenuItem::sub(
+                tr!("menu.main.arrangeWindows"),
+                vec![
+                    MenuItem::cmd(tr!("menu.main.arrangeTopLeft"), "Ctrl+Shift+Left", C::ArrangeTopLeft),
+                    MenuItem::cmd(tr!("menu.main.arrangeTopRight"), "Ctrl+Shift+Right", C::ArrangeTopRight),
+                ],
+            ));
+        }
         if self.skin.color_sets.len() > 1 {
             let set = |(i, name): (usize, &String)| {
                 MenuItem::action(name, "", MenuAction::SkinColors(name.clone())).checked(i == self.skin.color_set)
@@ -2238,6 +2257,19 @@ mod tests {
         let has = |items: Vec<MenuItem>| items.iter().any(|i| i.label == "Skin browser…");
         assert!(has(m.skins_menu()));
         assert!(!has(m.options_menu()));
+    }
+
+    #[test]
+    fn the_main_menu_arranges_the_windows_into_either_top_corner() {
+        let mut m = Model::for_tests();
+        let menu = m.main_menu();
+        let sub = menu.iter().find(|i| i.label == "Arrange windows").expect("in the main menu");
+        let items: Vec<(&str, &str)> = sub.sub.iter().map(|i| (i.label.as_str(), i.accel.as_str())).collect();
+        assert_eq!(items, [("Top left", "Ctrl+Shift+Left"), ("Top right", "Ctrl+Shift+Right")]);
+        m.exec(Command::ArrangeTopLeft);
+        m.exec(Command::ArrangeTopRight);
+        let asked: Vec<&UiReq> = m.ui.iter().filter(|r| matches!(r, UiReq::Arrange(_))).collect();
+        assert!(matches!(asked[..], [UiReq::Arrange(Corner::Left), UiReq::Arrange(Corner::Right)]), "{asked:?}");
     }
 
     #[test]

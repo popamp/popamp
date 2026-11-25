@@ -17,6 +17,15 @@ All notable changes to this project are documented here. The format follows
   English in `en.toml`, in sections such as `[library.menu]`; each
   translation keeps its file's keys in the same order with the English
   in a comment above each line, and a test checks all of it.
+- **Arrange windows** (main menu, Ctrl+Shift+Left or Ctrl+Shift+Right):
+  the main window goes into the top left or top right corner of its
+  screen, past the panels; the equalizer goes under it, the playlist under
+  that, as wide as the main window and down to the bottom; the library
+  goes on the main window's free side, level with its top, out to the
+  screen's edge and down to the bottom. A maximized library comes back
+  to its own size for it. Under Wayland the main window and the library
+  stay where they are; the equalizer and the playlist come under the main
+  window, the playlist down to the bottom on COSMIC.
 
 ### Changed
 
