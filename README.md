@@ -1,6 +1,10 @@
 <h1 align="center">Popamp</h1>
 
 <p align="center">
+  <b>English</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ko.md">한국어</a>
+</p>
+
+<p align="center">
   <a href="#install"><img src="assets/readme/hero.png" alt="Popamp with three of its skins: Default, Steel and Modern" width="100%"></a>
 </p>
 
@@ -21,7 +25,7 @@
 Popamp is a desktop music player in the spirit of Winamp 2: a main
 window, a 10-band equalizer and a playlist that snap together, and a
 different look whenever you want one. It is written in Rust and runs on
-Linux and Windows.
+Linux and Windows, with an experimental macOS version.
 
 - **Sharp at any size.** Popamp's own skins are drawn as vectors, so they
   stay crisp from ×1 to ×3 in steps of a quarter, on any monitor.
