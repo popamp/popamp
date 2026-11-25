@@ -603,6 +603,18 @@ impl App {
         let bar = bar::edge(&self.model).zip(self.model.screen);
         let mut plan = self.plan(&old, anchor, bar);
         if bar.is_none() && !self.platform.on_wayland() {
+            // A group on the right edge first moves back inside, then the
+            // playlist and the library are cut to the screen; a group that
+            // still goes past the bottom moves up.
+            // Only when the scale changes: a drag that resizes a window
+            // must not slide the others.
+            let rescaled = WindowKey::ALL.iter().any(|&k| self.win(k).is_some_and(|w| w.visible && w.shown != self.scale(k)));
+            let inside = |app: &Self, plan: &mut Plan, up: bool| {
+                if rescaled {
+                    keep_inside(&old, &plan.sizes, &mut plan.pos, up, |p| app.usable_area_at(WindowKey::Main, p));
+                }
+            };
+            inside(self, &mut plan, false);
             let mut cut = false;
             for k in [WindowKey::Playlist, WindowKey::Library] {
                 cut |= self.keep_grip_on_screen(k, old[k.index()], plan.pos[k.index()]);
@@ -610,6 +622,7 @@ impl App {
             if cut {
                 plan = self.plan(&old, anchor, bar);
             }
+            inside(self, &mut plan, true);
         }
         let Plan { sizes, pos: mut new_pos } = plan;
         log::debug!(target: "moves", "layout {anchor:?}: to {new_pos:?}, sizes {sizes:?}");
@@ -1337,12 +1350,6 @@ impl App {
 
     fn docked_group(&self, root: WindowKey) -> Vec<WindowKey> {
         let mut group = vec![root];
-        let touching = |a: (i32, i32, i32, i32), b: (i32, i32, i32, i32)| {
-            let h_overlap = a.0 < b.0 + b.2 && b.0 < a.0 + a.2;
-            let v_overlap = a.1 < b.1 + b.3 && b.1 < a.1 + a.3;
-            (h_overlap && ((a.1 + a.3 - b.1).abs() <= 1 || (b.1 + b.3 - a.1).abs() <= 1))
-                || (v_overlap && ((a.0 + a.2 - b.0).abs() <= 1 || (b.0 + b.2 - a.0).abs() <= 1))
-        };
         let mut changed = true;
         while changed {
             changed = false;
@@ -2698,6 +2705,61 @@ fn shape_mask(model: &Model, mode: &Mode, shape: &Shape, size: (i32, i32), scale
 /// Screen rectangle of a shown window: x, y, width, height.
 type Rect = (i32, i32, i32, i32);
 
+/// Whether two windows are docked: one edge on the other's, give or take
+/// a pixel, and overlapping along it.
+fn touching(a: Rect, b: Rect) -> bool {
+    let h_overlap = a.0 < b.0 + b.2 && b.0 < a.0 + a.2;
+    let v_overlap = a.1 < b.1 + b.3 && b.1 < a.1 + a.3;
+    (h_overlap && ((a.1 + a.3 - b.1).abs() <= 1 || (b.1 + b.3 - a.1).abs() <= 1))
+        || (v_overlap && ((a.0 + a.2 - b.0).abs() <= 1 || (b.0 + b.2 - a.0).abs() <= 1))
+}
+
+/// Moves each docked group that fitted its usable area (`area` of a
+/// window's corner) before, at the `old` rectangles, back inside it where
+/// the new `sizes` at `pos` take it past the right or the bottom edge: a
+/// group snapped to an edge stays on it as the windows grow. It never goes
+/// past the left or the top edge; a group already over an edge stays.
+/// The bottom is left alone unless `up`.
+fn keep_inside(old: &[Option<Rect>], sizes: &[(i32, i32)], pos: &mut [(i32, i32)], up: bool, area: impl Fn((i32, i32)) -> Option<Screen>) {
+    let mut done = vec![false; old.len()];
+    for root in 0..old.len() {
+        let Some(r) = old[root].filter(|_| !done[root]) else { continue };
+        let mut group = vec![root];
+        done[root] = true;
+        let mut i = 0;
+        while i < group.len() {
+            let a = old[group[i]].unwrap_or_default();
+            for b in 0..old.len() {
+                if !done[b] && old[b].is_some_and(|rb| touching(a, rb)) {
+                    done[b] = true;
+                    group.push(b);
+                }
+            }
+            i += 1;
+        }
+        let Some(area) = area((r.0, r.1)) else { continue };
+        let span = |f: &dyn Fn(usize) -> (i32, i32)| {
+            group.iter().map(|&k| f(k)).fold((i32::MAX, i32::MIN), |(lo, hi), (a, b)| (lo.min(a), hi.max(b)))
+        };
+        let was_x = span(&|k| old[k].map_or((0, 0), |r| (r.0, r.0 + r.2)));
+        let was_y = span(&|k| old[k].map_or((0, 0), |r| (r.1, r.1 + r.3)));
+        let now_x = span(&|k| (pos[k].0, pos[k].0 + sizes[k].0));
+        let now_y = span(&|k| (pos[k].1, pos[k].1 + sizes[k].1));
+        let back = |was: (i32, i32), now: (i32, i32), lo: i32, hi: i32| {
+            if was.1 <= hi && now.1 > hi {
+                (now.1 - hi).min(now.0 - lo).max(0)
+            } else {
+                0
+            }
+        };
+        let dx = back(was_x, now_x, area.x, area.x + area.w);
+        let dy = if up { back(was_y, now_y, area.y, area.y + area.h) } else { 0 };
+        for &k in &group {
+            pos[k] = (pos[k].0 - dx, pos[k].1 - dy);
+        }
+    }
+}
+
 /// Where the maximized library goes: the usable part of the monitor with
 /// the middle of its own rectangle `normal`, else of the first monitor.
 fn library_area(monitors: &[Screen], work_areas: &[Screen], normal: Rect) -> Option<Screen> {
@@ -3023,6 +3085,29 @@ mod tests {
         let old = [Some((500, 0, 275, 116)), None, Some((225, 0, 275, 232))];
         let sizes = [(275, 116), (0, 0), (300, 232)];
         assert_eq!(follow_docked(&old, &sizes, 2, |d| d), [(525, 0), (0, 0), (225, 0)]);
+    }
+
+    #[test]
+    fn a_group_at_the_right_edge_stays_inside_as_it_grows() {
+        let area = |_: (i32, i32)| Some(Screen { x: 0, y: 0, w: 1280, h: 752 });
+        // Main and EQ snapped to the right edge, the playlist apart; x1 to x2.
+        let old = [Some((1005, 100, 275, 116)), Some((1005, 216, 275, 116)), Some((100, 100, 275, 232)), None];
+        let sizes = [(550, 232), (550, 232), (550, 464), (0, 0)];
+        let mut pos = vec![(1005, 100), (1005, 332), (100, 100), (0, 0)];
+        keep_inside(&old, &sizes, &mut pos, false, area);
+        assert_eq!(pos, [(730, 100), (730, 332), (100, 100), (0, 0)], "the playlist was not docked");
+        // A group that ends up over the bottom goes up, never past the top.
+        let old = [Some((0, 500, 275, 116)), Some((0, 616, 275, 116)), None, None];
+        let mut pos = vec![(0, 500), (0, 732), (0, 0), (0, 0)];
+        keep_inside(&old, &sizes, &mut pos, false, area);
+        assert_eq!(pos[0], (0, 500), "the bottom only when asked");
+        keep_inside(&old, &sizes, &mut pos, true, area);
+        assert_eq!(pos, [(0, 288), (0, 520), (0, 0), (0, 0)]);
+        // One the user parked over the edge stays there.
+        let old = [Some((1100, 100, 275, 116)), None, None, None];
+        let mut pos = vec![(1100, 100), (0, 0), (0, 0), (0, 0)];
+        keep_inside(&old, &sizes, &mut pos, true, area);
+        assert_eq!(pos[0], (1100, 100));
     }
 
     #[test]
