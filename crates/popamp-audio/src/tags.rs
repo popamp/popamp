@@ -148,7 +148,10 @@ pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
             _ => main.to_string(),
         }
     };
-    Ok(Field::ALL.iter().map(|&f| (f, value(f))).collect())
+    let mut fields: Vec<(Field, String)> = Field::ALL.iter().map(|&f| (f, value(f))).collect();
+    // Read as the player shows them, so that saving writes the text and not its mojibake.
+    popamp_core::text::redecode_latin1(fields.iter_mut().map(|(_, v)| v));
+    Ok(fields)
 }
 
 /// The picture in `data` with its type, if it is a JPEG, PNG, GIF or BMP.
@@ -372,6 +375,39 @@ mod tests {
         let to = d.join(format!("a.{ext}"));
         std::fs::copy(Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/silence.{ext}")), &to).unwrap();
         to
+    }
+
+    /// An ID3v2.3 tag whose text frames say ISO-8859-1 but hold `enc`'s bytes, as old Windows taggers wrote them.
+    fn legacy_id3v2(enc: &'static encoding_rs::Encoding, frames: &[(&[u8; 4], &str)]) -> Vec<u8> {
+        let mut body = Vec::new();
+        for (id, text) in frames {
+            let mut data = vec![0];
+            data.extend(enc.encode(text).0.iter());
+            body.extend(*id);
+            body.extend((data.len() as u32).to_be_bytes());
+            body.extend([0, 0]);
+            body.extend(data);
+        }
+        let n = body.len() as u32;
+        let mut tag = b"ID3\x03\x00\x00".to_vec();
+        tag.extend([(n >> 21) & 0x7f, (n >> 14) & 0x7f, (n >> 7) & 0x7f, n & 0x7f].map(|b| b as u8));
+        tag.extend(body);
+        tag
+    }
+
+    #[test]
+    fn an_old_korean_tag_reads_as_korean_in_the_player_and_the_editor() {
+        let path = fixture("mp3", "euc-kr");
+        let tag =
+            legacy_id3v2(encoding_rs::EUC_KR, &[(b"TIT2", "난 알아요"), (b"TPE1", "서태지와 아이들"), (b"TALB", "서태지와 아이들 1집")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [tag, audio].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("난 알아요"), Some("서태지와 아이들")));
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!((get(Field::Title), get(Field::Album)), (Some("난 알아요"), Some("서태지와 아이들 1집")));
     }
 
     /// A value for each field, with `value` in the text ones.

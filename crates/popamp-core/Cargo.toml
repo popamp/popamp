@@ -11,6 +11,7 @@ homepage.workspace = true
 
 [dependencies]
 encoding_rs.workspace = true
+chardetng.workspace = true
 fastrand.workspace = true
 log.workspace = true
 serde.workspace = true

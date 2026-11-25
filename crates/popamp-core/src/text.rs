@@ -1,20 +1,75 @@
 //! Text helpers shared by the parsers.
 
-/// Decodes UTF-8 (with or without BOM); falls back to Windows-1251 for
-/// Cyrillic text and to Windows-1252 for the rest.
+use encoding_rs::Encoding;
+
+/// Decodes UTF-8 (with or without BOM); otherwise guesses the legacy code
+/// page (Windows-1251/1252, EUC-KR, GBK, Shift_JIS, Big5, ...) from the text.
 pub fn decode_lossy(bytes: &[u8]) -> String {
     let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
     if let Ok(s) = std::str::from_utf8(bytes) {
         return s.to_string();
     }
-    let legacy = if looks_cyrillic(bytes) { encoding_rs::WINDOWS_1251 } else { encoding_rs::WINDOWS_1252 };
-    legacy.decode_without_bom_handling(bytes).0.into_owned()
+    legacy_code_page([bytes], region()).decode_without_bom_handling(bytes).0.into_owned()
+}
+
+/// Where old text most likely comes from, as a country's internet domain
+/// ("kr", "cn", "ru"), or empty when unknown: a few bytes of a short title
+/// fit more than one code page, and the user's language tells which.
+static REGION: std::sync::RwLock<&'static str> = std::sync::RwLock::new("");
+
+/// Says where old text most likely comes from; see [`REGION`].
+pub fn set_region(domain: &'static str) {
+    *REGION.write().unwrap_or_else(|e| e.into_inner()) = domain;
+}
+
+fn region() -> &'static str {
+    *REGION.read().unwrap_or_else(|e| e.into_inner())
+}
+
+/// The code page that reads `samples` best, judged on all of them together.
+fn legacy_code_page<'a>(samples: impl IntoIterator<Item = &'a [u8]>, region: &str) -> &'static Encoding {
+    let mut detector = chardetng::EncodingDetector::new();
+    let mut cyrillic = false;
+    for sample in samples {
+        detector.feed(sample, false);
+        detector.feed(b"\n", false);
+        cyrillic |= looks_cyrillic(sample);
+    }
+    detector.feed(b"", true);
+    match detector.guess(Some(region.as_bytes()).filter(|r| !r.is_empty()), false) {
+        // The detector takes a lone short Russian word ("Тучи") for Western.
+        guess if guess == encoding_rs::WINDOWS_1252 && cyrillic => encoding_rs::WINDOWS_1251,
+        guess => guess,
+    }
 }
 
 /// Cyrillic words in Windows-1251 are runs of bytes 0xC0..=0xFF (А..я);
 /// Western text has an accented letter here and there, seldom three in a row.
 fn looks_cyrillic(bytes: &[u8]) -> bool {
     bytes.split(|&b| b < 0xC0).any(|run| run.len() >= 3)
+}
+
+/// Re-reads tag text that a tag reader decoded one char per byte (ISO-8859-1,
+/// as ID3v1 and old ID3v2 frames say), though the tagger wrote its system code
+/// page or UTF-8. One file's values share a code page, so they are judged together.
+pub fn redecode_latin1<'a>(values: impl IntoIterator<Item = &'a mut String>) {
+    redecode_latin1_from(region(), values);
+}
+
+fn redecode_latin1_from<'a>(region: &str, values: impl IntoIterator<Item = &'a mut String>) {
+    let as_bytes = |s: &str| s.chars().map(|c| u8::try_from(c).ok()).collect::<Option<Vec<u8>>>();
+    let legacy: Vec<(&mut String, Vec<u8>)> =
+        values.into_iter().filter_map(|v| as_bytes(v).filter(|b| !b.is_ascii()).map(|b| (v, b))).collect();
+    if legacy.is_empty() {
+        return;
+    }
+    let code_page = legacy_code_page(legacy.iter().filter(|(_, b)| std::str::from_utf8(b).is_err()).map(|(_, b)| b.as_slice()), region);
+    for (value, bytes) in legacy {
+        *value = match String::from_utf8(bytes) {
+            Ok(utf8) => utf8,
+            Err(e) => code_page.decode_without_bom_handling(e.as_bytes()).0.into_owned(),
+        };
+    }
 }
 
 /// Decodes `%XX` escapes (as found in `file://` URLs).
@@ -184,6 +239,61 @@ mod tests {
         let (bytes, _, _) = encoding_rs::WINDOWS_1251.encode("TITLE \"Тучи\" — Иванушки");
         assert_eq!(decode_lossy(&bytes), "TITLE \"Тучи\" — Иванушки");
         assert_eq!(decode_lossy(b"Gr\xf6\xdfe \xc0 la"), "Größe À la", "short runs stay Western");
+    }
+
+    #[test]
+    fn decodes_east_asian_code_pages() {
+        for (enc, text) in [
+            (encoding_rs::EUC_KR, "TITLE \"난 알아요\"\nPERFORMER \"서태지와 아이들\""),
+            (encoding_rs::GBK, "TITLE \"晴天\"\nPERFORMER \"周杰伦\""),
+            (encoding_rs::SHIFT_JIS, "TITLE \"ファースト・ラブ\"\nPERFORMER \"宇多田ヒカル\""),
+            (encoding_rs::BIG5, "TITLE \"月亮代表我的心\"\nPERFORMER \"鄧麗君\""),
+        ] {
+            assert_eq!(decode_lossy(&enc.encode(text).0), text, "{}", enc.name());
+        }
+    }
+
+    /// Tag readers hand over old tag text one char per byte; the bytes were the tagger's code page.
+    fn as_latin1(enc: &'static encoding_rs::Encoding, text: &str) -> String {
+        enc.encode(text).0.iter().map(|&b| b as char).collect()
+    }
+
+    #[test]
+    fn redecodes_tag_text_read_as_latin1() {
+        for (enc, fields) in [
+            (encoding_rs::EUC_KR, ["난 알아요", "서태지와 아이들", "Seotaiji and Boys"]),
+            (encoding_rs::GBK, ["晴天", "周杰伦", "叶惠美"]),
+            (encoding_rs::WINDOWS_1251, ["Тучи", "Иванушки International", "Конфетки-бараночки"]),
+        ] {
+            let mut values: Vec<String> = fields.iter().map(|t| as_latin1(enc, t)).collect();
+            redecode_latin1(values.iter_mut());
+            assert_eq!(values, fields, "{}", enc.name());
+        }
+    }
+
+    #[test]
+    fn a_lone_short_title_is_read_in_the_code_page_of_the_users_region() {
+        for (region, enc, title) in
+            [("kr", encoding_rs::EUC_KR, "난 알아요"), ("cn", encoding_rs::GBK, "晴天"), ("ru", encoding_rs::WINDOWS_1251, "Тучи")]
+        {
+            let mut values = [as_latin1(enc, title)];
+            redecode_latin1_from(region, values.iter_mut());
+            assert_eq!(values, [title], "{}", enc.name());
+        }
+    }
+
+    #[test]
+    fn leaves_real_latin1_and_unicode_tag_text_alone() {
+        let mut values = ["Björk", "Sigur Rós", "Café del Mar", "서태지", "plain"].map(String::from);
+        redecode_latin1(values.iter_mut());
+        assert_eq!(values, ["Björk", "Sigur Rós", "Café del Mar", "서태지", "plain"]);
+    }
+
+    #[test]
+    fn utf8_written_into_a_latin1_frame_reads_as_utf8() {
+        let mut values = [as_latin1(encoding_rs::UTF_8, "서태지"), as_latin1(encoding_rs::UTF_8, "Тучи")];
+        redecode_latin1(values.iter_mut());
+        assert_eq!(values, ["서태지", "Тучи"]);
     }
 
     #[test]

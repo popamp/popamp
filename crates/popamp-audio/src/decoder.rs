@@ -116,6 +116,9 @@ fn apply_tags(meta: &mut TrackMeta, rev: &MetadataRevision) {
             _ => {}
         }
     }
+    let m = &mut *meta;
+    let text = [&mut m.title, &mut m.artist, &mut m.album, &mut m.album_artist, &mut m.genre, &mut m.comment, &mut m.composer];
+    popamp_core::text::redecode_latin1(text.into_iter().flatten());
 }
 
 impl Decoder {

@@ -55,6 +55,7 @@ toml = "1"
 log = "0.4"
 # Legacy 8-bit text: Windows-1251 CUE sheets and playlists.
 encoding_rs = "0.8"
+chardetng = "0.1"
 env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
 jiff = "0.2"
 
