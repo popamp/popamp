@@ -1876,7 +1876,6 @@ impl Model {
         let fmt = |label: &str, f: &str| MenuItem::action(label, "", MenuAction::TitleFormat(f.to_string())).checked(s.titlefmt == f);
         vec![
             MenuItem::cmd(tr!("Preferences…"), "Ctrl+P", C::Preferences),
-            MenuItem::cmd(tr!("Skin browser…"), "Alt+S", C::SkinBrowser),
             #[cfg(feature = "plugins")]
             MenuItem::cmd(tr!("Plug-ins…"), "", C::Plugins),
             MenuItem::cmd(tr!("Gallery (popamp.app)…"), "", C::Gallery),
@@ -2246,6 +2245,14 @@ mod tests {
         let m = Model::for_tests();
         let offered = m.options_menu().iter().any(|i| i.label == "Plug-ins…");
         assert_eq!(offered, cfg!(feature = "plugins"));
+    }
+
+    #[test]
+    fn the_skin_browser_is_in_the_skins_menu_not_in_options() {
+        let m = Model::for_tests();
+        let has = |items: Vec<MenuItem>| items.iter().any(|i| i.label == "Skin browser…");
+        assert!(has(m.skins_menu()));
+        assert!(!has(m.options_menu()));
     }
 
     #[test]
