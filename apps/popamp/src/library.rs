@@ -766,15 +766,15 @@ impl LibraryPane {
     /// Makes the rows of the views tree again.
     fn grow_tree(&mut self) {
         let mut rows = vec![Row { view: View::All, depth: 0, fold: None }];
-        // The user's own playlists have a place even before there are any,
-        // so it is plain where a new one goes.
+        // The user's own playlists and folders have a place even before
+        // there are any, so it is plain where a new one goes.
         if self.grow_branch(&mut rows, Branch::Playlists, true) {
             rows.extend((0..self.plain.len()).map(|n| Row { view: View::Plain(n), depth: 1, fold: None }));
         }
         if self.grow_branch(&mut rows, Branch::Smart, !self.smart.is_empty()) {
             rows.extend((0..self.smart.len()).map(|n| Row { view: View::Smart(n), depth: 1, fold: None }));
         }
-        if self.grow_branch(&mut rows, Branch::Folders, !self.lib.folders.is_empty()) {
+        if self.grow_branch(&mut rows, Branch::Folders, true) {
             for f in &self.lib.folders {
                 self.grow_folder(&mut rows, f, 1);
             }
@@ -2881,6 +2881,12 @@ mod tests {
         ]);
         p.changed();
         p
+    }
+
+    #[test]
+    fn a_new_library_shows_where_folders_go() {
+        let p = LibraryPane::new(Library::default());
+        assert_eq!(tree(&p), ["All music", "- Playlists", "- Folders"]);
     }
 
     #[test]
