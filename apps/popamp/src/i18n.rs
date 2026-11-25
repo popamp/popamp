@@ -21,10 +21,12 @@ pub enum Lang {
     En,
     Ru,
     Ko,
+    /// Simplified, as on the mainland and in Singapore.
+    Zh,
 }
 
 impl Lang {
-    pub const ALL: [Lang; 3] = [Lang::En, Lang::Ru, Lang::Ko];
+    pub const ALL: [Lang; 4] = [Lang::En, Lang::Ru, Lang::Ko, Lang::Zh];
 
     /// Its code, as locale names start with it and the settings keep it.
     pub fn code(self) -> &'static str {
@@ -32,6 +34,7 @@ impl Lang {
             Lang::En => "en",
             Lang::Ru => "ru",
             Lang::Ko => "ko",
+            Lang::Zh => "zh",
         }
     }
 
@@ -41,6 +44,7 @@ impl Lang {
             Lang::En => "English",
             Lang::Ru => "Русский",
             Lang::Ko => "한국어",
+            Lang::Zh => "简体中文",
         }
     }
 
@@ -49,6 +53,7 @@ impl Lang {
             Lang::En => "",
             Lang::Ru => include_str!("../locales/ru.toml"),
             Lang::Ko => include_str!("../locales/ko.toml"),
+            Lang::Zh => include_str!("../locales/zh.toml"),
         }
     }
 
@@ -58,7 +63,7 @@ impl Lang {
         match self {
             Lang::En => 2,
             Lang::Ru => 3,
-            Lang::Ko => 1,
+            Lang::Ko | Lang::Zh => 1,
         }
     }
 
@@ -72,7 +77,7 @@ impl Lang {
                 (2..=4, h) if !(12..=14).contains(&h) => 1,
                 _ => 2,
             },
-            Lang::Ko => 0,
+            Lang::Ko | Lang::Zh => 0,
         }
     }
 
@@ -81,8 +86,14 @@ impl Lang {
     }
 
     /// The language of a locale name: `ru_RU.UTF-8`, `ru-RU`, `ru`.
+    /// Chinese in traditional characters (`zh_TW`, `zh-Hant-HK`) is none:
+    /// Popamp has it only in simplified ones.
     pub fn of_locale(name: &str) -> Option<Lang> {
-        let code = name.trim().split(['_', '-', '.', '@']).next()?.to_ascii_lowercase();
+        let mut parts = name.trim().split(['_', '-', '.', '@']).map(str::to_ascii_lowercase);
+        let code = parts.next()?;
+        if code == "zh" && parts.any(|p| ["tw", "hk", "mo", "hant"].contains(&p.as_str())) {
+            return None;
+        }
         Lang::ALL.into_iter().find(|l| l.code() == code)
     }
 }
@@ -255,11 +266,14 @@ fn from_env(var: impl Fn(&str) -> Option<String>) -> Option<Lang> {
 /// The language of the Windows display.
 #[cfg(windows)]
 fn system() -> Option<Lang> {
-    // The primary language of a LANGID is its low ten bits.
-    match unsafe { windows_sys::Win32::Globalization::GetUserDefaultUILanguage() } & 0x3ff {
+    // The primary language of a LANGID is its low ten bits; for Chinese
+    // the rest says the region: 0x0804 the mainland, 0x1004 Singapore.
+    let id = unsafe { windows_sys::Win32::Globalization::GetUserDefaultUILanguage() };
+    match id & 0x3ff {
         0x09 => Some(Lang::En),
         0x19 => Some(Lang::Ru),
         0x12 => Some(Lang::Ko),
+        0x04 if matches!(id, 0x0804 | 0x1004) => Some(Lang::Zh),
         _ => None,
     }
 }
@@ -298,6 +312,7 @@ mod tests {
         assert_eq!(forms, [0, 1, 1, 2, 2, 2, 2, 0, 1, 2, 0, 2]);
         assert_eq!([0, 1, 2].map(|n| Lang::En.form(n)), [1, 0, 1]);
         assert_eq!([0, 1, 2, 5].map(|n| Lang::Ko.form(n)), [0, 0, 0, 0]);
+        assert_eq!([0, 1, 2, 5].map(|n| Lang::Zh.form(n)), [0, 0, 0, 0]);
     }
 
     #[test]
@@ -305,6 +320,11 @@ mod tests {
         assert_eq!(Lang::of_locale("ru_RU.UTF-8"), Some(Lang::Ru));
         assert_eq!(Lang::of_locale("en-GB"), Some(Lang::En));
         assert_eq!(Lang::of_locale("ko_KR.UTF-8"), Some(Lang::Ko));
+        assert_eq!(Lang::of_locale("zh_CN.UTF-8"), Some(Lang::Zh));
+        assert_eq!(Lang::of_locale("zh-Hans-CN"), Some(Lang::Zh));
+        assert_eq!(Lang::of_locale("zh_SG"), Some(Lang::Zh));
+        assert_eq!(Lang::of_locale("zh_TW.UTF-8"), None);
+        assert_eq!(Lang::of_locale("zh-Hant-HK"), None);
         assert_eq!(Lang::of_locale("de_DE"), None);
         assert_eq!(Lang::of_locale(""), None);
         assert_eq!(apple_languages("(\n    \"de-DE\",\n    \"ru-RU\"\n)"), Some(Lang::Ru));
