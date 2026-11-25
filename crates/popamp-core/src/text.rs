@@ -29,16 +29,19 @@ fn region() -> &'static str {
 /// The code page that reads `samples` best, judged on all of them together.
 fn legacy_code_page<'a>(samples: impl IntoIterator<Item = &'a [u8]>, region: &str) -> &'static Encoding {
     let mut detector = chardetng::EncodingDetector::new();
-    let mut cyrillic = false;
+    let (mut cyrillic, mut non_ascii) = (false, 0);
     for sample in samples {
         detector.feed(sample, false);
         detector.feed(b"\n", false);
         cyrillic |= looks_cyrillic(sample);
+        non_ascii += sample.iter().filter(|b| !b.is_ascii()).count();
     }
     detector.feed(b"", true);
     match detector.guess(Some(region.as_bytes()).filter(|r| !r.is_empty()), false) {
-        // The detector takes a lone short Russian word ("Тучи") for Western.
+        // The detector takes a lone short Russian word ("Тучи") for Western,
+        // and a few capitals ("ПОЦ", "ПО") for KOI8, which taggers seldom wrote.
         guess if guess == encoding_rs::WINDOWS_1252 && cyrillic => encoding_rs::WINDOWS_1251,
+        guess if (guess == encoding_rs::KOI8_R || guess == encoding_rs::KOI8_U) && non_ascii < 8 => encoding_rs::WINDOWS_1251,
         guess => guess,
     }
 }
@@ -280,6 +283,15 @@ mod tests {
             redecode_latin1_from(region, values.iter_mut());
             assert_eq!(values, [title], "{}", enc.name());
         }
+    }
+
+    #[test]
+    fn a_few_russian_capitals_are_windows_1251_and_longer_koi8_is_koi8() {
+        let mut values = [as_latin1(encoding_rs::WINDOWS_1251, "ПОЦ"), as_latin1(encoding_rs::WINDOWS_1251, "ПО")];
+        redecode_latin1_from("", values.iter_mut());
+        assert_eq!(values, ["ПОЦ", "ПО"]);
+        let koi8 = "Ночь, улица, фонарь, аптека, бессмысленный и тусклый свет";
+        assert_eq!(decode_lossy(&encoding_rs::KOI8_R.encode(koi8).0), koi8);
     }
 
     #[test]

@@ -453,6 +453,18 @@ mod tests {
     }
 
     #[test]
+    fn a_short_value_is_read_in_the_code_page_its_whole_tag_shows() {
+        // As in a real file: ID3v2 has the title, ID3v1 the artist "ПО", two bytes too few to judge alone.
+        let path = bare_mp3("short");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "POP")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1251, "ПОЦ", "ПО", "", 0, 255)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("POP"), Some("ПО")));
+    }
+
+    #[test]
     fn an_old_korean_tag_reads_as_korean_in_the_player_and_the_editor() {
         let path = fixture("mp3", "euc-kr");
         let tag =

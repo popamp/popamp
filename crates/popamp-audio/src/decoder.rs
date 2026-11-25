@@ -107,8 +107,10 @@ fn id3v1(path: &Path) -> Option<MetadataRevision> {
 }
 
 fn apply_tags(meta: &mut TrackMeta, rev: &MetadataRevision) {
-    for tag in rev.tags() {
-        let value = tag.value.to_string();
+    // The values of one tag were written in one code page: judge them together.
+    let mut values: Vec<String> = rev.tags().iter().map(|t| t.value.to_string()).collect();
+    popamp_core::text::redecode_latin1(values.iter_mut());
+    for (tag, value) in rev.tags().iter().zip(&values) {
         let value = value.trim();
         if value.is_empty() {
             continue;
@@ -136,9 +138,6 @@ fn apply_tags(meta: &mut TrackMeta, rev: &MetadataRevision) {
             _ => {}
         }
     }
-    let m = &mut *meta;
-    let text = [&mut m.title, &mut m.artist, &mut m.album, &mut m.album_artist, &mut m.genre, &mut m.comment, &mut m.composer];
-    popamp_core::text::redecode_latin1(text.into_iter().flatten());
 }
 
 impl Decoder {
