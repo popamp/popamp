@@ -77,6 +77,21 @@ impl Lang {
         }
     }
 
+    /// The internet domain of the country whose old code pages its speakers'
+    /// music tags and cue sheets are in; empty for English, spoken everywhere.
+    fn region(self) -> &'static str {
+        match self {
+            Lang::En => "",
+            Lang::Cs => "cz",
+            Lang::El => "gr",
+            Lang::Pt => "br",
+            Lang::Uk => "ua",
+            Lang::Ko => "kr",
+            Lang::Zh => "cn",
+            other => other.code(),
+        }
+    }
+
     /// Its own name for itself, as a list of languages shows it.
     pub fn name(self) -> &'static str {
         match self {
@@ -230,6 +245,7 @@ pub fn current() -> Lang {
 
 pub fn set(lang: Lang) {
     CURRENT.store(lang.index(), Ordering::Relaxed);
+    popamp_core::text::set_region(lang.region());
 }
 
 /// Puts on the language the settings name by its code, or the system's

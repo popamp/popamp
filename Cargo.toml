@@ -27,6 +27,7 @@ popamp-plugins = { path = "crates/popamp-plugins" }
 popamp-skin-default = { git = "https://github.com/popamp/popamp-skin-default", branch = "main" }
 popamp-visual = { git = "https://github.com/popamp/popamp-visual", branch = "main" }
 symphonia = { version = "0.5", features = ["all", "opt-simd"] }
+symphonia-metadata = "0.5"
 libloading = "0.8"
 rustysynth = "1.3"
 midly = "0.5"
@@ -55,6 +56,7 @@ toml = "1"
 log = "0.4"
 # Legacy 8-bit text: Windows-1251 CUE sheets and playlists.
 encoding_rs = "0.8"
+chardetng = "0.1"
 env_logger = { version = "0.11", default-features = false, features = ["auto-color", "humantime"] }
 jiff = "0.2"
 

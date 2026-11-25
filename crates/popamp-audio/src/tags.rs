@@ -136,10 +136,17 @@ fn writes(kind: lofty::file::FileType) -> bool {
 
 /// The fields as lofty reads them from the file at `path`, which is what
 /// [`write`] changes: a track or disc as `3/12` when the total is there.
+/// Old code-page text is read as the player shows it.
 pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
+    Ok(fields(path)?.into_iter().map(|t| (t.field, t.shown)).collect())
+}
+
+/// Each field as lofty reads it and as the player shows it. The main tag
+/// comes first; the others (an MP3's ID3v1) fill what it lacks. Each tag's
+/// old code-page text is judged on its own values, as the player does.
+fn fields(path: &Path) -> Result<Vec<FieldText>, String> {
     let file = lofty::read_from_path(path).map_err(|e| e.to_string())?;
-    let Some(tag) = file.primary_tag().or(file.first_tag()) else { return Ok(Field::ALL.iter().map(|&f| (f, String::new())).collect()) };
-    let value = |f: Field| {
+    let value = |tag: &Tag, f: Field| {
         let (key, second) = f.keys();
         let main = tag.get_string(key).unwrap_or_default();
         match (f, second.and_then(|k| tag.get_string(k))) {
@@ -148,7 +155,36 @@ pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
             _ => main.to_string(),
         }
     };
-    Ok(Field::ALL.iter().map(|&f| (f, value(f))).collect())
+    let primary = file.primary_tag();
+    let others = file.tags().iter().filter(|t| primary.is_none_or(|p| !std::ptr::eq(*t, p)));
+    let tags: Vec<(Vec<String>, Vec<String>)> = primary
+        .into_iter()
+        .chain(others)
+        .map(|t| {
+            let raw: Vec<String> = Field::ALL.iter().map(|&f| value(t, f)).collect();
+            let mut shown = raw.clone();
+            popamp_core::text::redecode_latin1(shown.iter_mut());
+            (raw, shown)
+        })
+        .collect();
+    let pick = |i: usize| tags.iter().position(|(raw, _)| !raw[i].is_empty()).map(|t| (&tags[t], t == 0 && primary.is_some()));
+    Ok(Field::ALL
+        .iter()
+        .enumerate()
+        .map(|(i, &f)| match pick(i) {
+            Some(((raw, shown), main)) => FieldText { field: f, raw: raw[i].clone(), shown: shown[i].clone(), main },
+            None => FieldText { field: f, raw: String::new(), shown: String::new(), main: true },
+        })
+        .collect())
+}
+
+/// A field of a file: as lofty reads it, as the player shows it, and
+/// whether the file's main tag holds it.
+struct FieldText {
+    field: Field,
+    raw: String,
+    shown: String,
+    main: bool,
 }
 
 /// The picture in `data` with its type, if it is a JPEG, PNG, GIF or BMP.
@@ -186,12 +222,28 @@ impl Changes {
 /// Writes `changes` into the file at `path`.
 pub fn write(path: &Path, changes: &Changes) -> Result<(), String> {
     changes.check()?;
+    let kept = with_kept_text(path, changes)?;
     let copy = sibling(path).ok_or("not a file")?;
-    let result = write_copy(path, &copy, changes).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
+    let result = write_copy(path, &copy, &kept).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
     if result.is_err() {
         let _ = std::fs::remove_file(&copy);
     }
     result
+}
+
+/// `changes` and, for each field they leave alone, its text as the player
+/// shows it where the saved tag would lose it: old code-page text, which
+/// lofty would write back as Unicode of its Latin-1 reading (mojibake to
+/// every other program), and what only an MP3's ID3v1 tag held, which
+/// saving removes.
+fn with_kept_text(path: &Path, changes: &Changes) -> Result<Changes, String> {
+    let mut kept = changes.clone();
+    for t in fields(path)? {
+        if (t.raw != t.shown || !t.main) && !t.shown.is_empty() && !changes.fields.iter().any(|(g, _)| *g == t.field) {
+            kept.fields.push((t.field, t.shown));
+        }
+    }
+    Ok(kept)
 }
 
 /// A hidden name beside `path` for the copy being changed, with the same
@@ -217,18 +269,26 @@ fn write_copy(path: &Path, copy: &Path, changes: &Changes) -> Result<(), String>
     }
 }
 
+/// Writes ID3v2.3, which old programs and devices read too, and drops the
+/// ID3v1 tag: it holds one byte per letter, no Unicode, and what it alone
+/// held is in `changes` (see [`with_kept_text`]).
 fn write_mpeg(io: &mut std::fs::File, changes: &Changes) -> Result<(), String> {
     let mut file = MpegFile::read_from(io, ParseOptions::new()).map_err(|e| e.to_string())?;
     let id3v2 = file.remove_id3v2().unwrap_or_default();
     file.set_id3v2(edited(id3v2, changes));
-    // The older tags too, so they do not show the old values.
-    if let Some(t) = file.remove_id3v1() {
-        file.set_id3v1(edited(t, changes));
-    }
+    let had_id3v1 = file.remove_id3v1().is_some();
+    // The APE tag too, so it does not show the old values.
     if let Some(t) = file.remove_ape() {
         file.set_ape(edited(t, changes));
     }
-    save(&file, io)
+    save_with(&file, io, WriteOptions::default().use_id3v23(true))?;
+    if had_id3v1 {
+        use std::io::Seek;
+        io.rewind().map_err(|e| e.to_string())?;
+        TagType::Id3v1.remove_from(io, WriteOptions::default()).map_err(|e| e.to_string())?;
+        io.sync_all().map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 fn write_flac(io: &mut std::fs::File, changes: &Changes) -> Result<(), String> {
@@ -295,9 +355,13 @@ fn change_blocks(file: &mut FlacFile, cover: &CoverChange) -> Result<(), String>
 }
 
 fn save(file: &impl AudioFile, io: &mut std::fs::File) -> Result<(), String> {
+    save_with(file, io, WriteOptions::default())
+}
+
+fn save_with(file: &impl AudioFile, io: &mut std::fs::File, options: WriteOptions) -> Result<(), String> {
     use std::io::Seek;
     io.rewind().map_err(|e| e.to_string())?;
-    file.save_to(io, WriteOptions::default()).map_err(|e| e.to_string())?;
+    file.save_to(io, options).map_err(|e| e.to_string())?;
     io.sync_all().map_err(|e| e.to_string())
 }
 
@@ -372,6 +436,144 @@ mod tests {
         let to = d.join(format!("a.{ext}"));
         std::fs::copy(Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("tests/fixtures/silence.{ext}")), &to).unwrap();
         to
+    }
+
+    /// An ID3v2.3 tag whose text frames say ISO-8859-1 but hold `enc`'s bytes, as old Windows taggers wrote them.
+    fn legacy_id3v2(enc: &'static encoding_rs::Encoding, frames: &[(&[u8; 4], &str)]) -> Vec<u8> {
+        let mut body = Vec::new();
+        for (id, text) in frames {
+            let mut data = vec![0];
+            data.extend(enc.encode(text).0.iter());
+            body.extend(*id);
+            body.extend((data.len() as u32).to_be_bytes());
+            body.extend([0, 0]);
+            body.extend(data);
+        }
+        let n = body.len() as u32;
+        let mut tag = b"ID3\x03\x00\x00".to_vec();
+        tag.extend([(n >> 21) & 0x7f, (n >> 14) & 0x7f, (n >> 7) & 0x7f, n & 0x7f].map(|b| b as u8));
+        tag.extend(body);
+        tag
+    }
+
+    /// The 128 bytes of an ID3v1.1 tag, its text in `enc`.
+    fn id3v1(enc: &'static encoding_rs::Encoding, title: &str, artist: &str, album: &str, track: u8, genre: u8) -> Vec<u8> {
+        let field = |s: &str, n: usize| {
+            let mut b = enc.encode(s).0.into_owned();
+            b.resize(n, 0);
+            b
+        };
+        [b"TAG".to_vec(), field(title, 30), field(artist, 30), field(album, 30), b"1992".to_vec(), field("", 28), vec![0, track, genre]]
+            .concat()
+    }
+
+    /// The silent MP3 with no ID3v2 tag in front: its fixture has an empty one.
+    fn bare_mp3(name: &str) -> PathBuf {
+        let path = fixture("mp3", name);
+        let bytes = std::fs::read(&path).unwrap();
+        assert_eq!(&bytes[..10], b"ID3\x04\0\0\0\0\0\x0a", "the fixture's tag is ten bytes");
+        std::fs::write(&path, &bytes[20..]).unwrap();
+        path
+    }
+
+    #[test]
+    fn a_file_with_only_an_id3v1_tag_is_named_by_it_in_the_player_and_the_editor() {
+        let path = bare_mp3("id3v1");
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [audio, id3v1(encoding_rs::EUC_KR, "난 알아요", "서태지와 아이들", "1집", 3, 17)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        let shown = [&meta.title, &meta.artist, &meta.album, &meta.year, &meta.track, &meta.genre].map(|v| v.as_deref());
+        assert_eq!(shown, [Some("난 알아요"), Some("서태지와 아이들"), Some("1집"), Some("1992"), Some("3"), Some("Rock")]);
+        assert!(meta.length_ms.is_some(), "the tag is not taken for audio");
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!((get(Field::Title), get(Field::Artist)), (Some("난 알아요"), Some("서태지와 아이들")));
+    }
+
+    #[test]
+    fn an_id3v2_tag_wins_over_id3v1_and_v1_fills_what_v2_lacks() {
+        let path = bare_mp3("both");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "New title")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1252, "Old title", "Old artist", "", 0, 255)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("New title"), Some("Old artist")));
+        assert_eq!((meta.track.as_deref(), meta.genre.as_deref()), (None, None), "track 0 and genre 255 mean none");
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!(
+            (get(Field::Title), get(Field::Artist)),
+            (Some("New title"), Some("Old artist")),
+            "the editor shows what the player does"
+        );
+    }
+
+    #[test]
+    fn a_short_value_is_read_in_the_code_page_its_whole_tag_shows() {
+        // As in a real file: ID3v2 has the title, ID3v1 the artist "ПО", two bytes too few to judge alone.
+        let path = bare_mp3("short");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "POP")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1251, "ПОЦ", "ПО", "", 0, 255)].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("POP"), Some("ПО")));
+    }
+
+    #[test]
+    fn saving_one_field_stores_the_others_old_code_page_text_as_unicode() {
+        let path = bare_mp3("save-legacy");
+        let v2 = legacy_id3v2(encoding_rs::WINDOWS_1251, &[(b"TIT2", "Тучи"), (b"TPE1", "Иванушки International"), (b"TALB", "Конфетки")]);
+        let v1 = id3v1(encoding_rs::WINDOWS_1251, "Тучи", "Иванушки", "Конфетки", 1, 255);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, v1.clone()].concat()).unwrap();
+
+        let fields = vec![(Field::Title, "Тучи (remix)".to_string())];
+        write(&path, &Changes { fields, cover: CoverChange::Keep }).unwrap();
+        // What any other program reads, with no guessing of code pages.
+        let file = lofty::read_from_path(&path).unwrap();
+        let tag = file.primary_tag().unwrap();
+        let get = |k| tag.get_string(k).map(str::to_string);
+        assert_eq!(
+            (get(ItemKey::TrackTitle), get(ItemKey::TrackArtist), get(ItemKey::AlbumTitle)),
+            (Some("Тучи (remix)".into()), Some("Иванушки International".into()), Some("Конфетки".into()))
+        );
+        let bytes = std::fs::read(&path).unwrap();
+        assert_ne!(&bytes[bytes.len() - 128..][..3], b"TAG", "no ID3v1 tag, which cannot hold Unicode");
+        assert_eq!(&bytes[..4], b"ID3\x03", "ID3v2.3, which old programs and devices read too");
+    }
+
+    #[test]
+    fn saving_moves_what_only_id3v1_held_into_id3v2() {
+        let path = bare_mp3("move-v1");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "Title")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1251, "Title", "Иванушки", "Album", 4, 17)].concat()).unwrap();
+
+        write(&path, &Changes { fields: vec![(Field::Title, "New".into())], cover: CoverChange::Keep }).unwrap();
+        let file = lofty::read_from_path(&path).unwrap();
+        let tag = file.tag(TagType::Id3v2).unwrap();
+        let get = |k| tag.get_string(k).map(str::to_string);
+        let keys = [ItemKey::TrackTitle, ItemKey::TrackArtist, ItemKey::AlbumTitle, ItemKey::TrackNumber];
+        assert_eq!(keys.map(get), ["New", "Иванушки", "Album", "4"].map(|v| Some(v.to_string())));
+        assert!(file.tag(TagType::Id3v1).is_none());
+    }
+
+    #[test]
+    fn an_old_korean_tag_reads_as_korean_in_the_player_and_the_editor() {
+        let path = fixture("mp3", "euc-kr");
+        let tag =
+            legacy_id3v2(encoding_rs::EUC_KR, &[(b"TIT2", "난 알아요"), (b"TPE1", "서태지와 아이들"), (b"TALB", "서태지와 아이들 1집")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [tag, audio].concat()).unwrap();
+
+        let meta = crate::decoder::read_meta(&path).unwrap();
+        assert_eq!((meta.title.as_deref(), meta.artist.as_deref()), (Some("난 알아요"), Some("서태지와 아이들")));
+        let fields = read(&path).unwrap();
+        let get = |f| fields.iter().find(|(g, _)| *g == f).map(|(_, v)| v.as_str());
+        assert_eq!((get(Field::Title), get(Field::Album)), (Some("난 알아요"), Some("서태지와 아이들 1집")));
     }
 
     /// A value for each field, with `value` in the text ones.

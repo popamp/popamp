@@ -236,16 +236,31 @@ fn by_album(a: &Track, b: &Track) -> Ordering {
     natural_cmp(&a.album, &b.album).then(a.number.cmp(&b.number)).then_with(|| natural_cmp(&a.title, &b.title))
 }
 
+/// How tags are read, saved as the `R` line. A library saved by an older
+/// reading drops the stamps of the tracks it may have read wrong, so the next
+/// scan reads them again. 1: old tags in a legacy code page (EUC-KR, GBK, ...),
+/// and ID3v1 tags, so tracks without a title too.
+const TAG_READING: u32 = 1;
+
 impl Library {
     /// The library in `text`; broken lines are skipped.
     pub fn parse(text: &str) -> Library {
         let mut lib = Library::default();
+        let mut reading = 0;
         for line in text.lines() {
             let fields: Vec<&str> = line.split('\t').collect();
             match fields.split_first() {
                 Some((&"D", [folder])) if !folder.is_empty() => lib.folders.push(unescape(folder)),
                 Some((&"T", rest)) => lib.tracks.extend(Track::parse(rest)),
+                Some((&"R", [n])) => reading = n.parse().unwrap_or(0),
                 _ => {}
+            }
+        }
+        if reading < TAG_READING {
+            let reread =
+                |t: &Track| t.title.is_empty() || [&t.title, &t.artist, &t.album, &t.genre, &t.comment].iter().any(|s| !s.is_ascii());
+            for t in lib.tracks.iter_mut().filter(|t| reread(t)) {
+                t.stamp = Stamp::default();
             }
         }
         lib
@@ -253,7 +268,8 @@ impl Library {
 
     pub fn to_text(&self) -> String {
         let folders = self.folders.iter().map(|f| format!("D\t{}\n", escape(f)));
-        folders.chain(self.tracks.iter().map(Track::line)).collect()
+        let head = std::iter::once(format!("R\t{TAG_READING}\n"));
+        head.chain(folders).chain(self.tracks.iter().map(Track::line)).collect()
     }
 
     /// A missing file is an empty library.
@@ -401,6 +417,23 @@ mod tests {
 
     fn titles(lib: &Library, found: &[usize]) -> Vec<String> {
         found.iter().map(|&i| lib.tracks[i].title.clone()).collect()
+    }
+
+    #[test]
+    fn a_library_saved_before_code_pages_and_id3v1_rereads_non_ascii_and_untitled_tracks_once() {
+        let mut lib = sample();
+        for t in &mut lib.tracks {
+            t.stamp = Stamp { size: 7, modified: 9 };
+        }
+        lib.tracks[0].artist = "¼\u{ad}ÅÂÁö".into();
+        lib.tracks[1].title.clear();
+        let old = lib.to_text().lines().filter(|l| !l.starts_with("R\t")).map(|l| format!("{l}\n")).collect::<String>();
+
+        let read = Library::parse(&old);
+        assert_eq!(read.tracks[0].stamp, Stamp::default(), "the next scan reads the file again");
+        assert_eq!(read.tracks[1].stamp, Stamp::default(), "an ID3v1 tag may name it now");
+        assert!(read.tracks[2..].iter().all(|t| t.stamp == Stamp { size: 7, modified: 9 }), "ASCII tags read the same as before");
+        assert_eq!(Library::parse(&read.to_text()), read, "once saved, it is not read again");
     }
 
     #[test]
