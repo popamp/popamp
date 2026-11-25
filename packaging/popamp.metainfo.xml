@@ -6,20 +6,47 @@
   <project_license>MIT OR Apache-2.0</project_license>
   <name>Popamp</name>
   <summary>Winamp-style skinnable audio player</summary>
+  <summary xml:lang="ru">Аудиоплеер со скинами в духе Winamp</summary>
+  <summary xml:lang="ko">Winamp 스타일의 스킨 지원 오디오 플레이어</summary>
+  <summary xml:lang="zh_CN">Winamp 风格的可换肤音频播放器</summary>
   <description>
     <p>
       Popamp is a desktop music player in the spirit of Winamp 2: a main
       window, a 10-band equalizer and a playlist that snap together, and a
       different look whenever you want one.
     </p>
+    <p xml:lang="ru">Popamp — музыкальный плеер для рабочего стола в духе Winamp 2: главное окно, 10-полосный эквалайзер и плейлист, которые стыкуются друг с другом, и новый облик, когда захочется.</p>
+    <p xml:lang="ko">Popamp는 Winamp 2의 정신을 이은 데스크톱 음악 플레이어입니다. 서로 붙는 메인 창, 10밴드 이퀄라이저, 재생목록이 있고, 원할 때마다 모습을 바꿀 수 있습니다.</p>
+    <p xml:lang="zh_CN">Popamp 是一款承袭 Winamp 2 风格的桌面音乐播放器：主窗口、10 段均衡器和播放列表可相互吸附，随时都能换个外观。</p>
     <ul>
       <li>Its own skins are drawn as vectors and stay sharp at any size, from x1 to x3.</li>
+      <li xml:lang="ru">Собственные скины нарисованы векторами и остаются чёткими при любом размере, от x1 до x3.</li>
+      <li xml:lang="ko">자체 스킨은 벡터로 그려져 x1부터 x3까지 어떤 크기에서도 선명합니다.</li>
+      <li xml:lang="zh_CN">自带皮肤以矢量绘制，从 x1 到 x3 任何尺寸都保持清晰。</li>
       <li>Opens classic .wsz skins, and installs skins from the Winamp Skin Museum and the popamp.app gallery.</li>
+      <li xml:lang="ru">Открывает классические скины .wsz и устанавливает скины из Winamp Skin Museum и галереи popamp.app.</li>
+      <li xml:lang="ko">클래식 .wsz 스킨을 열고, Winamp Skin Museum과 popamp.app 갤러리에서 스킨을 설치합니다.</li>
+      <li xml:lang="zh_CN">可打开经典 .wsz 皮肤，并从 Winamp Skin Museum 和 popamp.app 图库安装皮肤。</li>
       <li>Gapless playback, ReplayGain, an equalizer with .eqf presets and internet radio.</li>
+      <li xml:lang="ru">Воспроизведение без пауз, ReplayGain, эквалайзер с пресетами .eqf и интернет-радио.</li>
+      <li xml:lang="ko">갭리스 재생, ReplayGain, .eqf 프리셋을 지원하는 이퀄라이저, 인터넷 라디오.</li>
+      <li xml:lang="zh_CN">无缝播放、ReplayGain、支持 .eqf 预设的均衡器以及网络电台。</li>
       <li>Plays MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, tracker modules and more.</li>
+      <li xml:lang="ru">Играет MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, трекерные модули и многое другое.</li>
+      <li xml:lang="ko">MP3, AAC, FLAC, Ogg Vorbis, Opus, WAV, ALAC, MIDI, 트래커 모듈 등을 재생합니다.</li>
+      <li xml:lang="zh_CN">支持播放 MP3、AAC、FLAC、Ogg Vorbis、Opus、WAV、ALAC、MIDI、音轨模块等格式。</li>
       <li>Media keys and the desktop's player controls through MPRIS.</li>
+      <li xml:lang="ru">Медиаклавиши и управление плеером из рабочего стола через MPRIS.</li>
+      <li xml:lang="ko">MPRIS를 통한 미디어 키 및 데스크톱 플레이어 컨트롤.</li>
+      <li xml:lang="zh_CN">通过 MPRIS 支持媒体键和桌面播放器控件。</li>
       <li>Toolbar mode turns the player into a strip along the top or bottom of the screen.</li>
+      <li xml:lang="ru">Режим панели превращает плеер в полосу вдоль верхнего или нижнего края экрана.</li>
+      <li xml:lang="ko">툴바 모드는 플레이어를 화면 위쪽이나 아래쪽을 따라 놓인 띠로 바꿉니다.</li>
+      <li xml:lang="zh_CN">工具栏模式将播放器变为沿屏幕顶部或底部的一条横栏。</li>
       <li>No account, no cloud, no library to import.</li>
+      <li xml:lang="ru">Без учётной записи, без облака, без обязательного импорта библиотеки.</li>
+      <li xml:lang="ko">계정도, 클라우드도, 가져올 라이브러리도 필요 없습니다.</li>
+      <li xml:lang="zh_CN">无需账户，无需云端，无需导入媒体库。</li>
     </ul>
   </description>
   <launchable type="desktop-id">popamp.desktop</launchable>
@@ -40,18 +67,30 @@
   <screenshots>
     <screenshot type="default">
       <caption>The main window, equalizer and playlist with the default skin</caption>
+      <caption xml:lang="ru">Главное окно, эквалайзер и плейлист со стандартным скином</caption>
+      <caption xml:lang="ko">기본 스킨의 메인 창, 이퀄라이저, 재생목록</caption>
+      <caption xml:lang="zh_CN">默认皮肤下的主窗口、均衡器和播放列表</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/default.png</image>
     </screenshot>
     <screenshot>
       <caption>The Steel skin</caption>
+      <caption xml:lang="ru">Скин Steel</caption>
+      <caption xml:lang="ko">Steel 스킨</caption>
+      <caption xml:lang="zh_CN">Steel 皮肤</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/steel.png</image>
     </screenshot>
     <screenshot>
       <caption>The Modern skin</caption>
+      <caption xml:lang="ru">Скин Modern</caption>
+      <caption xml:lang="ko">Modern 스킨</caption>
+      <caption xml:lang="zh_CN">Modern 皮肤</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/modern.png</image>
     </screenshot>
     <screenshot>
       <caption>Toolbar mode: the player as a strip along the bottom of the screen</caption>
+      <caption xml:lang="ru">Режим панели: плеер полосой вдоль нижнего края экрана</caption>
+      <caption xml:lang="ko">툴바 모드: 화면 아래쪽을 따라 놓인 띠 형태의 플레이어</caption>
+      <caption xml:lang="zh_CN">工具栏模式：播放器作为沿屏幕底部的一条横栏</caption>
       <image>https://raw.githubusercontent.com/popamp/popamp/main/assets/screenshots/bar.png</image>
     </screenshot>
   </screenshots>
