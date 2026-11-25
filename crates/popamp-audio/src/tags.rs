@@ -138,13 +138,13 @@ fn writes(kind: lofty::file::FileType) -> bool {
 /// [`write`] changes: a track or disc as `3/12` when the total is there.
 /// Old code-page text is read as the player shows it.
 pub fn read(path: &Path) -> Result<Vec<(Field, String)>, String> {
-    Ok(fields(path)?.into_iter().map(|(f, _, shown)| (f, shown)).collect())
+    Ok(fields(path)?.into_iter().map(|t| (t.field, t.shown)).collect())
 }
 
 /// Each field as lofty reads it and as the player shows it. The main tag
 /// comes first; the others (an MP3's ID3v1) fill what it lacks. Each tag's
 /// old code-page text is judged on its own values, as the player does.
-fn fields(path: &Path) -> Result<Vec<(Field, String, String)>, String> {
+fn fields(path: &Path) -> Result<Vec<FieldText>, String> {
     let file = lofty::read_from_path(path).map_err(|e| e.to_string())?;
     let value = |tag: &Tag, f: Field| {
         let (key, second) = f.keys();
@@ -167,8 +167,24 @@ fn fields(path: &Path) -> Result<Vec<(Field, String, String)>, String> {
             (raw, shown)
         })
         .collect();
-    let pick = |i: usize| tags.iter().find(|(raw, _)| !raw[i].is_empty()).map(|(raw, shown)| (raw[i].clone(), shown[i].clone()));
-    Ok(Field::ALL.iter().enumerate().map(|(i, &f)| (f, pick(i).unwrap_or_default())).map(|(f, (raw, shown))| (f, raw, shown)).collect())
+    let pick = |i: usize| tags.iter().position(|(raw, _)| !raw[i].is_empty()).map(|t| (&tags[t], t == 0 && primary.is_some()));
+    Ok(Field::ALL
+        .iter()
+        .enumerate()
+        .map(|(i, &f)| match pick(i) {
+            Some(((raw, shown), main)) => FieldText { field: f, raw: raw[i].clone(), shown: shown[i].clone(), main },
+            None => FieldText { field: f, raw: String::new(), shown: String::new(), main: true },
+        })
+        .collect())
+}
+
+/// A field of a file: as lofty reads it, as the player shows it, and
+/// whether the file's main tag holds it.
+struct FieldText {
+    field: Field,
+    raw: String,
+    shown: String,
+    main: bool,
 }
 
 /// The picture in `data` with its type, if it is a JPEG, PNG, GIF or BMP.
@@ -206,26 +222,28 @@ impl Changes {
 /// Writes `changes` into the file at `path`.
 pub fn write(path: &Path, changes: &Changes) -> Result<(), String> {
     changes.check()?;
-    let restored = with_old_text_restored(path, changes)?;
+    let kept = with_kept_text(path, changes)?;
     let copy = sibling(path).ok_or("not a file")?;
-    let result = write_copy(path, &copy, &restored, changes).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
+    let result = write_copy(path, &copy, &kept).and_then(|()| std::fs::rename(&copy, path).map_err(|e| e.to_string()));
     if result.is_err() {
         let _ = std::fs::remove_file(&copy);
     }
     result
 }
 
-/// `changes` and, for each field they leave alone that holds old code-page
-/// text, that text as the player shows it. lofty would write it back as
-/// Unicode of its Latin-1 reading, mojibake to every other program.
-fn with_old_text_restored(path: &Path, changes: &Changes) -> Result<Changes, String> {
-    let mut restored = changes.clone();
-    for (f, raw, shown) in fields(path)? {
-        if raw != shown && !changes.fields.iter().any(|(g, _)| *g == f) {
-            restored.fields.push((f, shown));
+/// `changes` and, for each field they leave alone, its text as the player
+/// shows it where the saved tag would lose it: old code-page text, which
+/// lofty would write back as Unicode of its Latin-1 reading (mojibake to
+/// every other program), and what only an MP3's ID3v1 tag held, which
+/// saving removes.
+fn with_kept_text(path: &Path, changes: &Changes) -> Result<Changes, String> {
+    let mut kept = changes.clone();
+    for t in fields(path)? {
+        if (t.raw != t.shown || !t.main) && !t.shown.is_empty() && !changes.fields.iter().any(|(g, _)| *g == t.field) {
+            kept.fields.push((t.field, t.shown));
         }
     }
-    Ok(restored)
+    Ok(kept)
 }
 
 /// A hidden name beside `path` for the copy being changed, with the same
@@ -236,15 +254,13 @@ fn sibling(path: &Path) -> Option<PathBuf> {
     Some(path.with_file_name(format!(".{stem}.popamp-tags{ext}")))
 }
 
-/// Writes `changes` to the copy; an MP3's ID3v1 tag gets only the user's
-/// `asked`, as it keeps old code-page text in the bytes it was written in.
-fn write_copy(path: &Path, copy: &Path, changes: &Changes, asked: &Changes) -> Result<(), String> {
+fn write_copy(path: &Path, copy: &Path, changes: &Changes) -> Result<(), String> {
     use lofty::file::FileType as T;
     std::fs::copy(path, copy).map_err(|e| e.to_string())?;
     let probe = lofty::probe::Probe::open(copy).and_then(|p| Ok(p.guess_file_type()?)).map_err(|e| e.to_string())?;
     let mut io = std::fs::OpenOptions::new().read(true).write(true).open(copy).map_err(|e| e.to_string())?;
     match probe.file_type() {
-        Some(T::Mpeg) => write_mpeg(&mut io, changes, asked),
+        Some(T::Mpeg) => write_mpeg(&mut io, changes),
         Some(T::Flac) => write_flac(&mut io, changes),
         Some(T::Vorbis) => write_vorbis(&mut io, changes),
         Some(T::Opus) => write_opus(&mut io, changes),
@@ -253,18 +269,26 @@ fn write_copy(path: &Path, copy: &Path, changes: &Changes, asked: &Changes) -> R
     }
 }
 
-fn write_mpeg(io: &mut std::fs::File, changes: &Changes, asked: &Changes) -> Result<(), String> {
+/// Writes ID3v2.3, which old programs and devices read too, and drops the
+/// ID3v1 tag: it holds one byte per letter, no Unicode, and what it alone
+/// held is in `changes` (see [`with_kept_text`]).
+fn write_mpeg(io: &mut std::fs::File, changes: &Changes) -> Result<(), String> {
     let mut file = MpegFile::read_from(io, ParseOptions::new()).map_err(|e| e.to_string())?;
     let id3v2 = file.remove_id3v2().unwrap_or_default();
     file.set_id3v2(edited(id3v2, changes));
-    // The older tags too, so they do not show the old values.
-    if let Some(t) = file.remove_id3v1() {
-        file.set_id3v1(edited(t, asked));
-    }
+    let had_id3v1 = file.remove_id3v1().is_some();
+    // The APE tag too, so it does not show the old values.
     if let Some(t) = file.remove_ape() {
         file.set_ape(edited(t, changes));
     }
-    save(&file, io)
+    save_with(&file, io, WriteOptions::default().use_id3v23(true))?;
+    if had_id3v1 {
+        use std::io::Seek;
+        io.rewind().map_err(|e| e.to_string())?;
+        TagType::Id3v1.remove_from(io, WriteOptions::default()).map_err(|e| e.to_string())?;
+        io.sync_all().map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 fn write_flac(io: &mut std::fs::File, changes: &Changes) -> Result<(), String> {
@@ -331,9 +355,13 @@ fn change_blocks(file: &mut FlacFile, cover: &CoverChange) -> Result<(), String>
 }
 
 fn save(file: &impl AudioFile, io: &mut std::fs::File) -> Result<(), String> {
+    save_with(file, io, WriteOptions::default())
+}
+
+fn save_with(file: &impl AudioFile, io: &mut std::fs::File, options: WriteOptions) -> Result<(), String> {
     use std::io::Seek;
     io.rewind().map_err(|e| e.to_string())?;
-    file.save_to(io, WriteOptions::default()).map_err(|e| e.to_string())?;
+    file.save_to(io, options).map_err(|e| e.to_string())?;
     io.sync_all().map_err(|e| e.to_string())
 }
 
@@ -513,7 +541,24 @@ mod tests {
             (Some("Тучи (remix)".into()), Some("Иванушки International".into()), Some("Конфетки".into()))
         );
         let bytes = std::fs::read(&path).unwrap();
-        assert_eq!(&bytes[bytes.len() - 128 + 33..], &v1[33..], "ID3v1 keeps its CP1251 bytes, which it cannot hold as Unicode");
+        assert_ne!(&bytes[bytes.len() - 128..][..3], b"TAG", "no ID3v1 tag, which cannot hold Unicode");
+        assert_eq!(&bytes[..4], b"ID3\x03", "ID3v2.3, which old programs and devices read too");
+    }
+
+    #[test]
+    fn saving_moves_what_only_id3v1_held_into_id3v2() {
+        let path = bare_mp3("move-v1");
+        let v2 = legacy_id3v2(encoding_rs::UTF_8, &[(b"TIT2", "Title")]);
+        let audio = std::fs::read(&path).unwrap();
+        std::fs::write(&path, [v2, audio, id3v1(encoding_rs::WINDOWS_1251, "Title", "Иванушки", "Album", 4, 17)].concat()).unwrap();
+
+        write(&path, &Changes { fields: vec![(Field::Title, "New".into())], cover: CoverChange::Keep }).unwrap();
+        let file = lofty::read_from_path(&path).unwrap();
+        let tag = file.tag(TagType::Id3v2).unwrap();
+        let get = |k| tag.get_string(k).map(str::to_string);
+        let keys = [ItemKey::TrackTitle, ItemKey::TrackArtist, ItemKey::AlbumTitle, ItemKey::TrackNumber];
+        assert_eq!(keys.map(get), ["New", "Иванушки", "Album", "4"].map(|v| Some(v.to_string())));
+        assert!(file.tag(TagType::Id3v1).is_none());
     }
 
     #[test]
