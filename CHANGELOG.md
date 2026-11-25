@@ -21,6 +21,12 @@ All notable changes to this project are documented here. The format follows
 ### Changed
 
 - **Options menu**: Skin browser… is left to the Skins menu.
+- **The playlist and the library reach the bottom of the screen**: past
+  the last step of its height that fits, a window dragged down ends right
+  at the screen's bottom edge instead of a step short of it, and a drag
+  away from the edge goes back to the steps. When a bigger window size
+  would push either window's bottom off the screen, it is cut right at
+  the edge; the library is kept on the screen too now.
 
 ### Fixed
 

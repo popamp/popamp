@@ -600,9 +600,14 @@ impl App {
         let old = self.docking_rects(maxed.is_some());
         let bar = bar::edge(&self.model).zip(self.model.screen);
         let mut plan = self.plan(&old, anchor, bar);
-        let pl = WindowKey::Playlist.index();
-        if bar.is_none() && !self.platform.on_wayland() && self.keep_playlist_grip_on_screen(old[pl], plan.pos[pl]) {
-            plan = self.plan(&old, anchor, bar);
+        if bar.is_none() && !self.platform.on_wayland() {
+            let mut cut = false;
+            for k in [WindowKey::Playlist, WindowKey::Library] {
+                cut |= self.keep_grip_on_screen(k, old[k.index()], plan.pos[k.index()]);
+            }
+            if cut {
+                plan = self.plan(&old, anchor, bar);
+            }
         }
         let Plan { sizes, pos: mut new_pos } = plan;
         new_pos[WindowKey::Library.index()] = self.library_place(maxed, new_pos[WindowKey::Library.index()]);
@@ -686,31 +691,39 @@ impl App {
         Plan { sizes, pos: new_pos }
     }
 
-    /// Shortens the playlist where a resize or a bigger window size would
-    /// push its resize grip out of its monitor's usable area: off the
-    /// screen the grip cannot be reached, and the window manager moves a
-    /// window that grows over a panel. True if the stored size changed.
-    fn keep_playlist_grip_on_screen(&mut self, old: Option<Rect>, pos: (i32, i32)) -> bool {
-        let (Some(old), Some(w)) = (old, self.win(WindowKey::Playlist)) else { return false };
-        let Some(def) = self.model.skin.layout.window(WindowKey::Playlist) else { return false };
-        let Some(top) = w.window.top() else { return false };
-        let monitors: Vec<Screen> = top.available_monitors().map(|m| platform::monitor(&m)).collect();
-        let Some(monitor) = monitors.into_iter().find(|m| pos.0 >= m.x && pos.0 < m.x + m.w && pos.1 >= m.y && pos.1 < m.y + m.h) else {
-            return false;
-        };
-        let area = bar::usable(monitor, &self.platform.work_areas(), None);
-        let scale = self.scale(WindowKey::Playlist);
-        let stored = crate::bind::stored_size(&self.model, WindowKey::Playlist);
+    /// Shortens the playlist or the library where a resize or a bigger
+    /// window size would push its resize grip out of its monitor's usable
+    /// area: off the screen the grip cannot be reached, and the window
+    /// manager moves a window that grows over a panel. The width goes back
+    /// a step at a time; the bottom stops right at the edge. True if the
+    /// stored size changed.
+    fn keep_grip_on_screen(&mut self, key: WindowKey, old: Option<Rect>, pos: (i32, i32)) -> bool {
+        let Some(old) = old.filter(|_| crate::bind::maximized_area(&self.model, key).is_none()) else { return false };
+        let (Some(def), Some(area)) = (self.model.skin.layout.window(key), self.usable_area_at(key, pos)) else { return false };
+        let scale = self.scale(key);
+        let stored = crate::bind::stored_size(&self.model, key);
         let fitted = (
             fit_grown(def.normal.width, stored.0, old.0 + old.2, |n| pos.0 + scale.px(n), area.x + area.w),
-            fit_grown(def.normal.height, stored.1, old.1 + old.3, |n| pos.1 + scale.px(n), area.y + area.h),
+            fit_bottom(def.normal.height, stored.1, old.1 + old.3, |n| pos.1 + scale.px(n), area.y + area.h),
         );
         if fitted == stored {
             return false;
         }
         let s = self.model.settings_mut();
-        (s.pe_width, s.pe_height) = fitted;
+        match key {
+            WindowKey::Playlist => (s.pe_width, s.pe_height) = fitted,
+            _ => (s.ml_width, s.ml_height) = fitted,
+        }
         true
+    }
+
+    /// The usable area of the monitor that `pos`, the top-left corner of
+    /// `key`'s window, is on: the monitor less the panels.
+    fn usable_area_at(&self, key: WindowKey, pos: (i32, i32)) -> Option<Screen> {
+        let top = self.win(key)?.window.top()?;
+        let monitors: Vec<Screen> = top.available_monitors().map(|m| platform::monitor(&m)).collect();
+        let monitor = monitors.into_iter().find(|m| pos.0 >= m.x && pos.0 < m.x + m.w && pos.1 >= m.y && pos.1 < m.y + m.h)?;
+        Some(bar::usable(monitor, &self.platform.work_areas(), None))
     }
 
     /// Tells the window manager to keep other windows out of the bar's strip.
@@ -1476,7 +1489,15 @@ impl App {
             Some(Drag::Resize { start_size, start }) => {
                 let s = self.scale(k);
                 let (dx, dy) = (s.skin(cursor.0 - start.0), s.skin(cursor.1 - start.1));
-                if crate::bind::resize(&mut self.model, k, *start_size, dx, dy) {
+                // Past the last step that fits, the bottom goes down to the
+                // screen's edge; where windows are not placed by Popamp, in steps.
+                let top = self.win(k).map(|w| w.pos).filter(|_| !self.platform.on_wayland() && bar::edge(&self.model).is_none());
+                let bottom = top.and_then(|p| Some((p.1, self.usable_area_at(k, p)?)));
+                let height = |dim: Dim, want: i32| match bottom {
+                    Some((y, area)) => reach_bottom(dim, want, |n| y + s.px(n), area.y + area.h),
+                    None => dim.snap(want),
+                };
+                if crate::bind::resize(&mut self.model, k, *start_size, dx, dy, height) {
                     self.apply_layout(k);
                 }
             }
@@ -2731,6 +2752,42 @@ fn fit_grown(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i32
     len
 }
 
+/// The length of a bottom side that wants to be `want` skin pixels: as
+/// [`fit_grown`], but cut right at `limit` rather than at a step, so that
+/// no gap is left under it.
+fn fit_bottom(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i32) -> i32 {
+    let Dim::Free { min, .. } = dim else { return want };
+    longest_within(min, want, end, limit.max(was))
+}
+
+/// The longest length from `min` to `upto` that ends at `bound` or before,
+/// else `min`.
+fn longest_within(min: i32, upto: i32, end: impl Fn(i32) -> i32, bound: i32) -> i32 {
+    (min..=upto.max(min)).rev().find(|&n| end(n) <= bound).unwrap_or(min)
+}
+
+/// The height a drag gives a window that wants `want` skin pixels: the
+/// nearest step, until the pointer is past the last step that ends inside
+/// `limit`; then the height that ends right at `limit`.
+fn reach_bottom(dim: Dim, want: i32, end: impl Fn(i32) -> i32, limit: i32) -> i32 {
+    let snapped = dim.snap(want);
+    let Dim::Free { min, step } = dim else { return snapped };
+    let step = step.max(1);
+    // The last step that ends inside, or the shortest length.
+    let mut last = snapped;
+    while last - step >= min && end(last) > limit {
+        last -= step;
+    }
+    while end(last + step) <= limit {
+        last += step;
+    }
+    if snapped > last || (snapped == last && want > last) {
+        longest_within(last, last + step - 1, end, limit)
+    } else {
+        snapped
+    }
+}
+
 /// Where `b`, which touched `a` before, goes now that `a` is at `now` and
 /// `b` has `size`; `None` if they did not touch.
 fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32) -> i32) -> Option<(i32, i32)> {
@@ -2898,6 +2955,33 @@ mod tests {
         assert_eq!(fit_grown(dim, 232, 900 + 232, end, 1000), 232, "parked over the edge by the user");
         assert_eq!(fit_grown(dim, 261, 900 + 232, end, 1000), 232, "growing further is refused");
         assert_eq!(fit_grown(Dim::Fixed(275), 275, 0, end, 1000), 275);
+    }
+
+    #[test]
+    fn a_bottom_that_grows_past_the_screen_stops_right_at_its_edge() {
+        let dim = Dim::Free { min: 116, step: 29 };
+        let end = |n: i32| 700 + x15(n);
+        assert_eq!(fit_bottom(dim, 232, 700 + x15(174), end, 1000), 200, "x1.5: 200 ends at 1000");
+        assert_eq!(fit_bottom(dim, 174, 700 + x15(145), end, 1000), 174, "what fits is left alone");
+        assert_eq!(fit_bottom(dim, 290, 700 + 290, |n| 990 + x15(n), 1000), 116, "never under the shortest");
+        let end = |n: i32| 900 + n;
+        assert_eq!(fit_bottom(dim, 232, 900 + 232, end, 1000), 232, "parked over the edge by the user");
+        assert_eq!(fit_bottom(dim, 261, 900 + 232, end, 1000), 232, "growing further is refused");
+        assert_eq!(fit_bottom(Dim::Fixed(14), 14, 0, end, 1000), 14);
+    }
+
+    #[test]
+    fn a_drag_past_the_last_step_that_fits_reaches_the_bottom() {
+        // Steps end at 957 and 986 on a screen 1000 high; the next, 1015, is past it.
+        let dim = Dim::Free { min: 116, step: 29 };
+        let end = |n: i32| n;
+        assert_eq!(reach_bottom(dim, 960, end, 1000), 957, "in steps as before");
+        assert_eq!(reach_bottom(dim, 980, end, 1000), 986, "short of the last step");
+        assert_eq!(reach_bottom(dim, 990, end, 1000), 1000, "past it: down to the edge");
+        assert_eq!(reach_bottom(dim, 1010, end, 1000), 1000, "never past the edge");
+        assert_eq!(reach_bottom(dim, 1000 - 30, end, 1000), 957, "dragged back up: on the steps again");
+        assert_eq!(reach_bottom(Dim::Free { min: 116, step: 29 }, 972, end, 986), 986, "a last step right at the edge");
+        assert_eq!(reach_bottom(Dim::Fixed(14), 300, end, 1000), 14);
     }
 
     #[test]

@@ -247,11 +247,12 @@ pub fn stored_size(model: &Model, key: WindowKey) -> (i32, i32) {
     }
 }
 
-/// Resizes a window to its size at the start of a drag plus the drag, in
-/// the steps its layout allows; returns true if the size changed.
-pub fn resize(model: &mut Model, key: WindowKey, start: (i32, i32), dx: i32, dy: i32) -> bool {
+/// Resizes a window to its size at the start of a drag plus the drag: the
+/// width in the steps its layout allows, the height as `height` gives it
+/// from the layout's and the wanted one. True if the size changed.
+pub fn resize(model: &mut Model, key: WindowKey, start: (i32, i32), dx: i32, dy: i32, height: impl Fn(Dim, i32) -> i32) -> bool {
     let Some(def) = model.skin.layout.window(key) else { return false };
-    let size = (def.normal.width.snap(start.0 + dx), def.normal.height.snap(start.1 + dy));
+    let size = (def.normal.width.snap(start.0 + dx), height(def.normal.height, start.1 + dy));
     if size == stored_size(model, key) {
         return false;
     }
@@ -434,7 +435,7 @@ mod tests {
         m.exec(Command::ToggleLibraryWindow);
         assert!(shown(&m, WindowKey::Library) && flag(&m, Flag::LibraryWindow));
         let start = window_size(&m, WindowKey::Library);
-        assert!(resize(&mut m, WindowKey::Library, start, 30, 0));
+        assert!(resize(&mut m, WindowKey::Library, start, 30, 0, Dim::snap));
         assert_eq!(window_size(&m, WindowKey::Library), (start.0 + 25, start.1), "in the frame's steps");
         assert_eq!(text(&m, Text::LibraryStatus).as_deref(), Some("0 TRACKS"));
         assert_eq!(menu(&m, MenuRef::Library)[0].label, "Play");

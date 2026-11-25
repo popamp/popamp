@@ -1211,9 +1211,9 @@ mod tests {
     #[test]
     fn resizing_snaps_to_the_layout_steps() {
         let (mut m, _) = playlist(0);
-        assert!(crate::bind::resize(&mut m, WindowKey::Playlist, (275, 116), 30, 10));
+        assert!(crate::bind::resize(&mut m, WindowKey::Playlist, (275, 116), 30, 10, popamp_skin::layout::Dim::snap));
         assert_eq!(crate::bind::window_size(&m, WindowKey::Playlist), (300, 116));
-        assert!(!crate::bind::resize(&mut m, WindowKey::Playlist, (275, 116), 20, -100));
-        assert!(!crate::bind::resize(&mut m, WindowKey::Main, (275, 116), 100, 100));
+        assert!(!crate::bind::resize(&mut m, WindowKey::Playlist, (275, 116), 20, -100, popamp_skin::layout::Dim::snap));
+        assert!(!crate::bind::resize(&mut m, WindowKey::Main, (275, 116), 100, 100, popamp_skin::layout::Dim::snap));
     }
 }
