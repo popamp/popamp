@@ -90,6 +90,7 @@ YouTube y visualizaciones.
 | Debian, Ubuntu | agrega el [repositorio apt](docs/building.md#debian-and-ubuntu) (en inglés) y luego `sudo apt install popamp`; o descarga `popamp-<versión>-linux-amd64.deb` (ARM64: `-arm64.deb`) y `sudo apt install ./popamp-…deb` |
 | openSUSE, Fedora | agrega el [repositorio](docs/building.md#opensuse-and-fedora) (en inglés) y luego `sudo zypper install popamp` o `sudo dnf install popamp` |
 | Arch, Manjaro, EndeavourOS | `popamp-bin.PKGBUILD` de la versión: guárdalo como `PKGBUILD` en una carpeta vacía y ejecuta `makepkg -si` ([cómo](docs/building.md#arch-manjaro-endeavouros), en inglés) |
+| Cualquier Linux con Flatpak | `flatpak install --user https://apt.popamp.app/popamp.flatpakref` (popamp-plus, x86_64; [más](docs/building.md#flatpak)) |
 | Cualquier otro Linux | `Popamp-<versión>-x86_64.AppImage`: dale `chmod +x` y ejecútalo |
 | Windows 10 u 11 | `Popamp-<versión>-windows-x86_64-setup.exe`, o el portable `…-portable.zip`: descomprímelo donde quieras y ejecuta `popamp.exe` |
 | macOS 12 o posterior (experimental) | `Popamp-<versión>-macos-universal.dmg`, para Apple Silicon e Intel: ábrelo y arrastra Popamp a Aplicaciones; el primer inicio necesita [un clic en Ajustes del Sistema](docs/building.md#macos) (en inglés) |
