@@ -2265,7 +2265,9 @@ mod tests {
         let menu = m.main_menu();
         let sub = menu.iter().find(|i| i.label == "Arrange windows").expect("in the main menu");
         let items: Vec<(&str, &str)> = sub.sub.iter().map(|i| (i.label.as_str(), i.accel.as_str())).collect();
-        assert_eq!(items, [("Top left", "Ctrl+Shift+Left"), ("Top right", "Ctrl+Shift+Right")]);
+        // A Mac shows its own shortcuts.
+        let (left, right) = if cfg!(target_os = "macos") { ("⇧⌘Left", "⇧⌘Right") } else { ("Ctrl+Shift+Left", "Ctrl+Shift+Right") };
+        assert_eq!(items, [("Top left", left), ("Top right", right)]);
         m.exec(Command::ArrangeTopLeft);
         m.exec(Command::ArrangeTopRight);
         let asked: Vec<&UiReq> = m.ui.iter().filter(|r| matches!(r, UiReq::Arrange(_))).collect();
