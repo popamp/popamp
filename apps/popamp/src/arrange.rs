@@ -81,7 +81,7 @@ pub fn arrange(corner: Corner, area: Screen, windows: &Windows, scale: Scale) ->
 
 /// The longest length `dim` allows for a side from `start` that ends at
 /// `limit` or before, else its shortest; `now` for a fixed side.
-fn fill(dim: Dim, now: i32, start: i32, limit: i32, scale: Scale) -> i32 {
+pub fn fill(dim: Dim, now: i32, start: i32, limit: i32, scale: Scale) -> i32 {
     match dim {
         Dim::Fixed(_) => now,
         Dim::Free { min, .. } => longest_within(min, scale.skin(limit - start) + 1, |n| start + scale.px(n), limit),

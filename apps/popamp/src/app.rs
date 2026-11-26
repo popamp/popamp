@@ -803,7 +803,7 @@ impl App {
         let stored = crate::bind::stored_size(&self.model, key);
         let fitted = (
             fit_grown(def.normal.width, stored.0, old.0 + old.2, |n| pos.0 + scale.px(n), area.x + area.w),
-            fit_bottom(def.normal.height, stored.1, old.1 + old.3, |n| pos.1 + scale.px(n), area.y + area.h),
+            bottom_height(def.normal.height, stored.1, old, pos.1, area.y + area.h, scale),
         );
         if fitted == stored {
             return false;
@@ -2977,6 +2977,18 @@ fn fit_bottom(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i3
     crate::arrange::longest_within(min, want, end, limit.max(was))
 }
 
+/// The height in skin pixels of a window that was at `old` on the screen,
+/// is `stored` high and now starts at `top`: one that reached the screen's
+/// bottom `limit` and was moved, as when a window above it is shaded,
+/// still reaches it; any other is only kept from ending further past it.
+fn bottom_height(dim: Dim, stored: i32, old: Rect, top: i32, limit: i32, scale: Scale) -> i32 {
+    let was = old.1 + old.3;
+    if top != old.1 && (0..=1).contains(&(limit - was)) {
+        return crate::arrange::fill(dim, stored, top, limit, scale);
+    }
+    fit_bottom(dim, stored, was, |n| top + scale.px(n), limit)
+}
+
 /// The height a drag gives a window that wants `want` skin pixels: the
 /// nearest step, until the pointer is past the last step that ends inside
 /// `limit`; then the height that ends right at `limit`.
@@ -3222,6 +3234,20 @@ mod tests {
         assert_eq!(fit_grown(dim, 232, 900 + 232, end, 1000), 232, "parked over the edge by the user");
         assert_eq!(fit_grown(dim, 261, 900 + 232, end, 1000), 232, "growing further is refused");
         assert_eq!(fit_grown(Dim::Fixed(275), 275, 0, end, 1000), 275);
+    }
+
+    #[test]
+    fn a_playlist_down_to_the_screen_edge_stays_there_as_the_windows_above_shade() {
+        let s = Scale::new(150, popamp_core::config::Scaling::Sharp);
+        let dim = Dim::Free { min: 116, step: 29 };
+        let ends_at_edge = |top: i32, h: i32| top + s.px(h) <= 1028 && top + s.px(h + 1) > 1028;
+        // Under main and the equalizer at x1.5, down to a panel at 1028.
+        let grown = bottom_height(dim, 453, (1507, 348, 413, 680), 198, 1028, s);
+        assert!(ends_at_edge(198, grown), "the equalizer shaded: {grown} must reach the edge");
+        let back = bottom_height(dim, grown, (1507, 198, 413, s.px(grown)), 348, 1028, s);
+        assert!(ends_at_edge(348, back), "the equalizer back: {back} must end at the edge");
+        assert_eq!(bottom_height(dim, 290, (1507, 348, 413, 680), 348, 1028, s), 290, "the user made it shorter");
+        assert_eq!(bottom_height(dim, 232, (1507, 348, 413, 348), 198, 1028, s), 232, "short of the edge: it only moves");
     }
 
     #[test]
