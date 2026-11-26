@@ -131,7 +131,7 @@ jobs:
     # minutes and is cancelled); the Intel ones are. The app is universal
     # either way.
     runs-on: macos-15-intel
-    timeout-minutes: 60
+    timeout-minutes: 180
     # The signing keys are on this runner for a while: no write access.
     permissions:
       contents: read
