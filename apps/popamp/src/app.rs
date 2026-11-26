@@ -2918,20 +2918,34 @@ fn follow_docked(old: &[Option<Rect>], sizes: &[(i32, i32)], anchor: usize, resc
     for root in std::iter::once(anchor).chain(0..old.len()) {
         let Some(r) = old[root].filter(|_| pos[root].is_none()) else { continue };
         pos[root] = Some((r.0, r.1));
-        let mut todo = vec![root];
-        while let Some(a) = todo.pop() {
-            let (Some(ra), Some(pa)) = (old[a], pos[a]) else { continue };
-            let now = (pa.0, pa.1, sizes[a].0, sizes[a].1);
-            for b in 0..old.len() {
-                let Some(rb) = old[b].filter(|_| pos[b].is_none()) else { continue };
-                pos[b] = reattach(ra, rb, now, sizes[b], &rescale);
-                if pos[b].is_some() {
-                    todo.push(b);
-                }
-            }
+        // A window that hangs under or sits on a placed one follows it
+        // before one beside it does: a side neighbour that stays put must
+        // not hold a window whose upper neighbour got shorter.
+        while let Some((b, p)) =
+            next_attached(old, sizes, &pos, true, &rescale).or_else(|| next_attached(old, sizes, &pos, false, &rescale))
+        {
+            pos[b] = Some(p);
         }
     }
     pos.into_iter().map(|p| p.unwrap_or((0, 0))).collect()
+}
+
+/// The first window not placed yet that touched a placed one above or
+/// below it (`stacked`) or beside it, and where it goes now.
+fn next_attached(
+    old: &[Option<Rect>],
+    sizes: &[(i32, i32)],
+    pos: &[Option<(i32, i32)>],
+    stacked: bool,
+    rescale: &impl Fn(i32) -> i32,
+) -> Option<(usize, (i32, i32))> {
+    (0..old.len()).filter_map(|a| Some((a, old[a]?, pos[a]?))).find_map(|(a, ra, pa)| {
+        let now = (pa.0, pa.1, sizes[a].0, sizes[a].1);
+        (0..old.len()).filter(|&b| pos[b].is_none()).find_map(|b| {
+            let (p, vertical) = reattach(ra, old[b]?, now, sizes[b], rescale)?;
+            (vertical == stacked).then_some((b, p))
+        })
+    })
 }
 
 /// Where the windows go: sizes in screen pixels and top-left corners, in
@@ -2986,8 +3000,9 @@ fn reach_bottom(dim: Dim, want: i32, end: impl Fn(i32) -> i32, limit: i32) -> i3
 }
 
 /// Where `b`, which touched `a` before, goes now that `a` is at `now` and
-/// `b` has `size`; `None` if they did not touch.
-fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32) -> i32) -> Option<(i32, i32)> {
+/// `b` has `size`, and whether `b` was above or below `a`; `None` if they
+/// did not touch.
+fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32) -> i32) -> Option<((i32, i32), bool)> {
     let columns_overlap = b.0 < a.0 + a.2 && b.0 + b.2 > a.0;
     let rows_overlap = b.1 < a.1 + a.3 && b.1 + b.3 > a.1;
     let touch = |gap: i32| gap.abs() <= 1;
@@ -2999,7 +3014,7 @@ fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32
         (rows_overlap && touch(b.0 - (a.0 + a.2)), (now.0 + now.2, y)),     // right
         (rows_overlap && touch(a.0 - (b.0 + b.2)), (now.0 - size.0, y)),    // left
     ];
-    sides.into_iter().find(|s| s.0).map(|s| s.1)
+    sides.into_iter().position(|s| s.0).map(|i| (sides[i].1, i < 2))
 }
 
 #[cfg(test)]
@@ -3123,6 +3138,19 @@ mod tests {
         let old = [Some((500, 0, 275, 116)), Some((500, 116, 275, 116)), Some((225, 0, 275, 232))];
         let sizes = [(275, 14), (275, 116), (275, 232)];
         assert_eq!(follow_docked(&old, &sizes, 0, |d| d), [(500, 0), (500, 14), (225, 0)]);
+    }
+
+    #[test]
+    fn a_window_follows_the_one_above_it_before_one_beside_it() {
+        // Main, EQ and playlist stacked at the right edge at x1.5, the
+        // library against their left sides; the equalizer is shaded.
+        let old = [Some((1507, 0, 413, 174)), Some((1507, 174, 413, 174)), Some((1507, 348, 413, 680)), Some((1, 0, 1506, 1028))];
+        let sizes = [(413, 174), (413, 24), (413, 680), (1506, 1028)];
+        assert_eq!(follow_docked(&old, &sizes, 0, |d| d), [(1507, 0), (1507, 174), (1507, 198), (1, 0)]);
+        // Then main is shaded too: the whole column moves up.
+        let old = [Some((1507, 0, 413, 174)), Some((1507, 174, 413, 24)), Some((1507, 198, 413, 680)), Some((1, 0, 1506, 1028))];
+        let sizes = [(413, 24), (413, 24), (413, 680), (1506, 1028)];
+        assert_eq!(follow_docked(&old, &sizes, 0, |d| d), [(1507, 0), (1507, 24), (1507, 48), (1, 0)]);
     }
 
     #[test]

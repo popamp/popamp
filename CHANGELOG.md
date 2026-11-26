@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **A shaded equalizer pulls the playlist under it up** while the media
+  library is docked beside them (as Arrange windows leaves it): the
+  library, which stays put, held the playlist in place. A window now
+  follows the one it hangs under before one beside it.
+
 ## [1.3.0] - 2026-11-25
 
 ### Added
