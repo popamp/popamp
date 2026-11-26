@@ -80,6 +80,7 @@ YouTube와 시각화 같은 [플러그인](docs/plugins.md)(영어)이 들어 �
 | Debian, Ubuntu | [apt 저장소](docs/building.md#debian-and-ubuntu)(영어)를 추가한 뒤 `sudo apt install popamp`; 또는 `popamp-<버전>-linux-amd64.deb`(ARM64: `-arm64.deb`)를 내려받아 `sudo apt install ./popamp-…deb` |
 | openSUSE, Fedora | [저장소](docs/building.md#opensuse-and-fedora)(영어)를 추가한 뒤 `sudo zypper install popamp` 또는 `sudo dnf install popamp` |
 | Arch, Manjaro, EndeavourOS | 릴리스의 `popamp-bin.PKGBUILD`를 빈 폴더에 `PKGBUILD`로 저장하고 `makepkg -si` 실행([방법](docs/building.md#arch-manjaro-endeavouros), 영어) |
+| Flatpak이 있는 Linux | `flatpak install --user https://apt.popamp.app/popamp.flatpakref` (popamp-plus, x86_64; [자세히](docs/building.md#flatpak)) |
 | 그 밖의 Linux | `Popamp-<버전>-x86_64.AppImage`: `chmod +x` 후 실행 |
 | Windows 10, 11 | `Popamp-<버전>-windows-x86_64-setup.exe`, 또는 포터블 `…-portable.zip`: 아무 곳에나 풀고 `popamp.exe` 실행 |
 | macOS 12 이상(실험적) | `Popamp-<버전>-macos-universal.dmg`, Apple Silicon과 Intel용: 열어서 Popamp를 '응용 프로그램'으로 끌어다 놓으세요. 처음 실행할 때는 [시스템 설정에서 한 번 클릭](docs/building.md#macos)(영어)해야 합니다 |

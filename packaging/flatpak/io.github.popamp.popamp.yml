@@ -1,6 +1,6 @@
 # Flatpak manifest for Popamp Plus: the player with its wasm plug-ins and
-# GPU visualizers. The copy on Flathub lives in flathub/io.github.popamp.popamp;
-# this one is for building and testing here.
+# GPU visualizers. popamp/apt's Flatpak workflow builds each release with it
+# into https://apt.popamp.app/flatpak/ (install: popamp.flatpakref there).
 # Build:  flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.popamp.popamp.yml
 # After a Cargo.lock change: flatpak-cargo-generator Cargo.lock -o packaging/flatpak/cargo-sources.json
 id: io.github.popamp.popamp

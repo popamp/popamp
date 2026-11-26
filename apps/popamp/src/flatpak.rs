@@ -1,4 +1,4 @@
-//! Running inside a Flatpak sandbox: Flathub updates it, and some desktop
+//! Running inside a Flatpak sandbox: Flatpak updates it, and some desktop
 //! services must be reached differently there.
 
 /// True inside a Flatpak, which always provides /.flatpak-info.

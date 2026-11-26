@@ -121,6 +121,10 @@ the top and the bottom, with maximized windows kept out of its strip,
 worked on KDE, GNOME and Cinnamon. On COSMIC the Flatpak has no toolbar
 mode: cosmic-comp does not offer wlr-layer-shell to sandboxed programs,
 so the menu leaves the item out.
+The repository at apt.popamp.app/flatpak/, built by popamp/apt's Flatpak
+workflow, was installed the same day with `flatpak install --user
+https://apt.popamp.app/popamp.flatpakref` in the Pop!_OS VM: the remote
+checks the commits and the summary against the key.
 
 ### Manual checks performed
 

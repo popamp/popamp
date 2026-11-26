@@ -3,7 +3,8 @@ name: Release
 # A tag v<version> builds the Linux packages, the Windows installers and
 # portable zips and the macOS disk images, publishes them as a GitHub
 # release and asks
-# popamp/apt to put the debs in https://apt.popamp.app; a manual run only
+# popamp/apt to put the debs in https://apt.popamp.app and build the
+# Flatpak into https://apt.popamp.app/flatpak/; a manual run only
 # builds them (download from the run's page). Two of each: popamp, the
 # player, and popamp-plus, built with every function.
 # Asking popamp/apt needs the secret APT_INDEX_TOKEN (see popamp/apt's
@@ -260,12 +261,14 @@ jobs:
             packaging/aur/pkgbuild.sh "$deb" "${GITHUB_REF_NAME#v}" dist/SHA256SUMS.txt > "aur/$deb-bin.PKGBUILD"
           done
           gh release upload "$GITHUB_REF_NAME" aur/*.PKGBUILD --clobber --repo "$GITHUB_REPOSITORY"
-      - name: Rebuild the apt index
+      # The Flatpak workflow builds the release into apt.popamp.app/flatpak/.
+      - name: Rebuild the apt index and the Flatpak repository
         env:
           GH_TOKEN: ${{ secrets.APT_INDEX_TOKEN }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::warning::APT_INDEX_TOKEN is not set; the daily Index run of popamp/apt will pick this release up"
+            echo "::warning::APT_INDEX_TOKEN is not set; the daily runs of popamp/apt will pick this release up"
             exit 0
           fi
           gh workflow run index.yml -R popamp/apt --ref main
+          gh workflow run flatpak.yml -R popamp/apt --ref main
