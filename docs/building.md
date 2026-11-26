@@ -226,6 +226,18 @@ no toolbar mode (cosmic-comp keeps wlr-layer-shell from sandboxed
 programs). [popamp/apt](https://github.com/popamp/apt) builds each
 release with `packaging/flatpak/io.github.popamp.popamp.yml`.
 
+Where a Flatpak came from can be checked. `flatpak info
+io.github.popamp.popamp` shows, as its subject, the commit of this
+repository it was built from, and GitHub attests that popamp/apt's
+workflow built it:
+
+```sh
+c=$(flatpak info --show-commit io.github.popamp.popamp)
+gh attestation verify ~/.local/share/flatpak/repo/objects/${c:0:2}/${c:2}.commit -R popamp/apt
+```
+
+(`/var/lib/flatpak/repo` for a system-wide installation.)
+
 #### Arch, Manjaro, EndeavourOS
 
 Each release carries a PKGBUILD for each build, `popamp-bin.PKGBUILD`
