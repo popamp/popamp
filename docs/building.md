@@ -236,7 +236,8 @@ c=$(flatpak info --show-commit io.github.popamp.popamp)
 gh attestation verify ~/.local/share/flatpak/repo/objects/${c:0:2}/${c:2}.commit -R popamp/apt
 ```
 
-(`/var/lib/flatpak/repo` for a system-wide installation.)
+(`/var/lib/flatpak/repo` for a system-wide installation; `gh attestation`
+needs GitHub CLI 2.49 or newer.)
 
 #### Arch, Manjaro, EndeavourOS
 
