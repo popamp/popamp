@@ -1,7 +1,7 @@
 <h1 align="center">Popamp</h1>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <b>한국어</b>
+  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <b>한국어</b> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 <p align="center">
