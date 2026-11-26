@@ -25,7 +25,7 @@ use x11rb::wrapper::ConnectionExt as _;
 
 /// Fixed-size window attributes for `role`, borderless but for dialogs.
 pub fn attributes(role: WindowRole) -> WindowAttributes {
-    let attrs = Window::default_attributes().with_decorations(false).with_resizable(false).with_name("popamp", "Popamp");
+    let attrs = Window::default_attributes().with_decorations(false).with_resizable(false).with_name(crate::flatpak::desktop_id(), "Popamp");
     match role {
         WindowRole::Main => attrs,
         WindowRole::Docked => attrs.with_x11_window_type(vec![WindowType::Utility]),

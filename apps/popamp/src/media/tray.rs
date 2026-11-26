@@ -121,7 +121,9 @@ impl Tray {
 fn show(send: Sender, icons: Arc<Vec<ksni::Icon>>) -> Option<Shown> {
     let kde = std::env::var("XDG_CURRENT_DESKTOP").is_ok_and(|d| d.split(':').any(|d| d.eq_ignore_ascii_case("KDE")));
     let item = Item { send, snap: Snapshot::default(), icons, up_is_positive: kde };
-    item.spawn().map(Shown).map_err(|e| log::info!("no tray icon: {e}")).ok()
+    // Flatpak lets an app own no StatusNotifierItem-PID-ID name; the
+    // watcher takes the item by its connection's own name instead.
+    item.disable_dbus_name(crate::flatpak::sandboxed()).spawn().map(Shown).map_err(|e| log::info!("no tray icon: {e}")).ok()
 }
 
 #[cfg(test)]

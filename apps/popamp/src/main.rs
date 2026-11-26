@@ -19,6 +19,7 @@ mod fileinfo;
 mod filetypes;
 #[cfg(target_os = "macos")]
 mod finder;
+mod flatpak;
 mod font;
 mod gallery;
 mod headless;
