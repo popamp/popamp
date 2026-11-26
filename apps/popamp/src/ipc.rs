@@ -34,6 +34,12 @@ mod transport {
         let dir = std::env::var_os("XDG_RUNTIME_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|| std::env::temp_dir().join(format!("popamp-{}", safe(&user()))));
+        // Each Flatpak instance has a runtime dir of its own; only this one
+        // is shared by all of them.
+        let dir = match std::env::var_os("FLATPAK_ID") {
+            Some(id) => dir.join("app").join(id),
+            None => dir,
+        };
         dir.join("popamp").join(format!("{class}.sock"))
     }
 

@@ -34,9 +34,11 @@ impl Notifier {
     fn notify(&mut self, track: &Track, cover: Option<&Path>) -> zbus::Result<()> {
         let markup = *self.markup.get_or_insert_with(|| capabilities(&self.conn).iter().any(|c| c == "body-markup"));
         let body = if markup { escape(&byline(track)) } else { byline(track) };
-        let icon = cover.map_or_else(|| "popamp".to_string(), |p| popamp_core::text::path_to_file_url(&p.to_string_lossy()));
+        let icon =
+            cover.map_or_else(|| crate::flatpak::desktop_id().to_string(), |p| popamp_core::text::path_to_file_url(&p.to_string_lossy()));
         // Transient: a track that played is no message to keep.
-        let hints: HashMap<&str, Value> = HashMap::from([("desktop-entry", Value::from("popamp")), ("transient", Value::from(true))]);
+        let hints: HashMap<&str, Value> =
+            HashMap::from([("desktop-entry", Value::from(crate::flatpak::desktop_id())), ("transient", Value::from(true))]);
         let args = (crate::edition::NAME, self.shown, icon.as_str(), track.title.as_str(), body.as_str(), Vec::<&str>::new(), hints, -1i32);
         self.shown = self.conn.call_method(Some(NAME), PATH, Some(NAME), "Notify", &args)?.body().deserialize()?;
         Ok(())

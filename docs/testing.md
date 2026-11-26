@@ -108,6 +108,20 @@ files, the libraries, the skin MIME type, a `/RENDER` of the windows,
 the skins (and with popamp-plus the plug-ins) from the same repository,
 and a clean removal. All eight passed for 0.7.0 on 2026-11-10.
 
+### Flatpak
+
+`packaging/flatpak/io.github.popamp.popamp.yml` builds Popamp Plus with
+`flatpak-builder`. On 2026-11-26 the build was installed from bundles
+in Kubuntu 26.04 (Plasma Wayland), Ubuntu 26.04 (GNOME Wayland), Linux
+Mint 22.3 (Cinnamon, X11) and Pop!_OS 24.04 (COSMIC). Playback, the tray
+icon, MPRIS, a second launch handing its file to the running player
+(also a file outside the Music folder, through the document portal), and
+docked windows following the main one worked everywhere. Toolbar mode at
+the top and the bottom, with maximized windows kept out of its strip,
+worked on KDE, GNOME and Cinnamon. On COSMIC the Flatpak has no toolbar
+mode: cosmic-comp does not offer wlr-layer-shell to sandboxed programs,
+so the menu leaves the item out.
+
 ### Manual checks performed
 
 All playback checks ran at volume 0 through the real ALSA/PipeWire output.
