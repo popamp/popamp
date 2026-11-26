@@ -222,7 +222,9 @@ impl State {
     /// Asks where the main window is, once it is among the windows.
     fn follow_main(&mut self, qh: &QueueHandle<State>) {
         let Some(info) = self.info.as_ref().filter(|_| self.followed.is_none()) else { return };
-        let Some(main) = self.toplevels.values().find(|t| t.app_id == crate::flatpak::desktop_id() && t.title == self.title) else { return };
+        let Some(main) = self.toplevels.values().find(|t| t.app_id == crate::flatpak::desktop_id() && t.title == self.title) else {
+            return;
+        };
         log::debug!(target: "moves", "following the main window, {}", main.handle.id());
         self.followed = Some((main.handle.id(), info.get_cosmic_toplevel(&main.handle, qh, ())));
     }
