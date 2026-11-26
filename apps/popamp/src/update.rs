@@ -229,7 +229,7 @@ mod tests {
         assert!(m.wants_update_check(Channel::Site, 1) && m.wants_update_check(Channel::Packages, 1));
         assert!(!m.wants_update_check(Channel::Flatpak, 1));
         m.offer_update(Release { version: "9.0.0".into(), url: SITE.into() }, "1.0.0");
-        assert!(m.update_menu_for(Channel::Flatpak).is_none(), "Flathub tells of new versions itself");
+        assert!(m.update_menu_for(Channel::Flatpak).is_none(), "Flatpak tells of new versions itself");
     }
 
     #[test]
