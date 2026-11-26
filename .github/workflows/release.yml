@@ -127,7 +127,10 @@ jobs:
             dist/*.exe
 
   macos:
-    runs-on: macos-15
+    # Apple Silicon runners are often not to be had (the job waits 15
+    # minutes and is cancelled); the Intel ones are. The app is universal
+    # either way.
+    runs-on: macos-15-intel
     timeout-minutes: 60
     # The signing keys are on this runner for a while: no write access.
     permissions:
