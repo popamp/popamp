@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Sound no longer stutters while the disk is busy** (a large copy to
+  the same drive, say). A played file is now read ahead by a thread of
+  its own, so a slow read stalls that thread instead of the sound. How
+  far ahead is set in Preferences > Playback > Read-ahead buffer (MB):
+  2 MB by default, up to 1024 MB.
+
 ## [1.3.0] - 2026-11-25
 
 ### Added

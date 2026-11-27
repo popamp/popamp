@@ -887,6 +887,8 @@ forgotMissing = ["Se olvidaron las reproducciones y valoraciones de {n} archivo 
   crossfadeMs = "Fundido cruzado (ms)"
   # Output buffer (ms)
   outputBufferMs = "Búfer de salida (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Búfer de lectura anticipada (MB)"
   # HTTP proxy
   httpProxy = "Proxy HTTP"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Se olvidaron las reproducciones y valoraciones de {n} archivo 
   countPlayRange = "Contar reproducción: de 50 a 100, de 5 en 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Analizar cada: de 1 a {max} minutos"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Búfer de lectura anticipada: de 1 a {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "Formato del título: no puede estar vacío"
   # MIDI SoundFont: no such file (leave it empty for the system's)

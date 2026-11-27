@@ -887,6 +887,8 @@ forgotMissing = ["Écoutes et notes de {n} fichier manquant oubliées.", "Écout
   crossfadeMs = "Fondu enchaîné (ms)"
   # Output buffer (ms)
   outputBufferMs = "Tampon de sortie (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Tampon de lecture anticipée (Mo)"
   # HTTP proxy
   httpProxy = "Proxy HTTP"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Écoutes et notes de {n} fichier manquant oubliées.", "Écout
   countPlayRange = "Compter une écoute : de 50 à 100, par pas de 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Analyser toutes les : 1 à {max} minutes"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Tampon de lecture anticipée : de 1 à {max} Mo"
   # Title format: must not be empty
   titleFormatEmpty = "Format du titre : ne doit pas être vide"
   # MIDI SoundFont: no such file (leave it empty for the system's)

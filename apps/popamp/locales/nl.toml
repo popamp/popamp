@@ -887,6 +887,8 @@ forgotMissing = ["Afspeelgegevens en waarderingen van {n} ontbrekend bestand ver
   crossfadeMs = "Crossfade (ms)"
   # Output buffer (ms)
   outputBufferMs = "Uitvoerbuffer (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Vooruitleesbuffer (MB)"
   # HTTP proxy
   httpProxy = "HTTP-proxy"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Afspeelgegevens en waarderingen van {n} ontbrekend bestand ver
   countPlayRange = "Tellen als gespeeld: 50 tot 100, in stappen van 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Scannen elke: 1 tot {max} minuten"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Vooruitleesbuffer: 1 tot {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "Titelopmaak: mag niet leeg zijn"
   # MIDI SoundFont: no such file (leave it empty for the system's)

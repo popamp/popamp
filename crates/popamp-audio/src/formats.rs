@@ -83,7 +83,7 @@ pub fn open(path: &Path, cx: &Context) -> Result<(Box<dyn AudioSource>, TrackMet
         Kind::Midi => MidiSource::open(path, &cx.soundfont).map(|(s, m)| (Box::new(s) as Box<dyn AudioSource>, m)),
         Kind::Tracker => TrackerSource::open(path).map(|(s, m)| (Box::new(s) as Box<dyn AudioSource>, m)),
         Kind::Plugin(p) => p.open(path),
-        Kind::Common => Decoder::open_file(path).map(|(d, m)| (Box::new(d) as Box<dyn AudioSource>, m)),
+        Kind::Common => Decoder::open_to_play(path, cx.read_ahead_mb).map(|(d, m)| (Box::new(d) as Box<dyn AudioSource>, m)),
     }
 }
 

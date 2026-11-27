@@ -1,7 +1,9 @@
 //! Symphonia-based decoding to interleaved stereo `f32`, plus tag reading.
 
+use crate::readahead::ReadAhead;
 use crate::stream::TitleSlot;
 use popamp_core::meta::{parse_gain, TrackMeta};
+use std::num::NonZeroU32;
 use std::path::Path;
 use std::sync::LazyLock;
 use symphonia::core::audio::SampleBuffer;
@@ -144,8 +146,19 @@ impl Decoder {
     /// Opens a local file. Returns the decoder and the tags found while probing.
     pub fn open_file(path: &Path) -> Result<(Decoder, TrackMeta), String> {
         let file = std::fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        Self::open_local(path, Box::new(file))
+    }
+
+    /// Opens a local file to play, read up to `read_ahead_mb` ahead by a
+    /// thread of its own.
+    pub fn open_to_play(path: &Path, read_ahead_mb: NonZeroU32) -> Result<(Decoder, TrackMeta), String> {
+        let file = ReadAhead::open(path, read_ahead_mb).map_err(|e| format!("{}: {e}", path.display()))?;
+        Self::open_local(path, Box::new(file))
+    }
+
+    fn open_local(path: &Path, source: Box<dyn MediaSource>) -> Result<(Decoder, TrackMeta), String> {
         let ext = path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase);
-        let (dec, mut meta) = Self::open_source(Box::new(file), ext.as_deref(), true)?;
+        let (dec, mut meta) = Self::open_source(source, ext.as_deref(), true)?;
         if let Some(rev) = id3v1(path) {
             apply_tags(&mut meta, &rev);
         }
