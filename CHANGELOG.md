@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows
   its own, so a slow read stalls that thread instead of the sound. How
   far ahead is set in Preferences > Playback > Read-ahead buffer (MB):
   2 MB by default, up to 1024 MB.
+- **No more blip when seeking while paused.** The first seek during a
+  pause let the device play a moment of the audio it still held.
 
 ## [1.3.0] - 2026-11-25
 
