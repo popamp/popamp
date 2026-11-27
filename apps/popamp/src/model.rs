@@ -10,7 +10,7 @@ use popamp_audio::formats::Decoders;
 use popamp_audio::source::{Context, Sources};
 use popamp_audio::{Engine, EngineCmd, EngineEvent, EqSettings, PlayState, ReplayGainSettings, StreamInfo};
 use popamp_core::atf::Format;
-use popamp_core::config::{BarEdge, Config, Paths, Settings};
+use popamp_core::config::{BarEdge, Config, Paths, Settings, DEFAULT_READ_AHEAD_MB};
 use popamp_core::eqf::{self, Preset};
 use popamp_core::history::{self, History, Played};
 use popamp_core::meta::TrackMeta;
@@ -22,6 +22,7 @@ use popamp_core::text::format_duration_ms;
 use popamp_core::Command;
 use popamp_skin::layout::WindowKey;
 use popamp_skin::Skin;
+use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -366,6 +367,7 @@ impl Model {
             soundfont: self.settings().soundfont.clone(),
             decoders: self.decoders.clone(),
             scanned: self.scanned.clone(),
+            read_ahead_mb: NonZeroU32::new(self.settings().read_ahead_mb).unwrap_or(DEFAULT_READ_AHEAD_MB),
         }
     }
 

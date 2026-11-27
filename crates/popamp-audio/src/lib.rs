@@ -10,6 +10,7 @@ mod midi;
 mod opus;
 pub mod output;
 pub mod pipe;
+pub mod readahead;
 pub mod replaygain;
 pub mod source;
 pub mod stream;

@@ -887,6 +887,8 @@ forgotMissing = ["Zapomniano odtworzenia i oceny {n} brakującego pliku.", "Zapo
   crossfadeMs = "Przenikanie (ms)"
   # Output buffer (ms)
   outputBufferMs = "Bufor wyjścia (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Bufor odczytu z wyprzedzeniem (MB)"
   # HTTP proxy
   httpProxy = "Proxy HTTP"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Zapomniano odtworzenia i oceny {n} brakującego pliku.", "Zapo
   countPlayRange = "Licz odtworzenie: od 50 do 100, co 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Skanuj co: od 1 do {max} minut"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Bufor odczytu z wyprzedzeniem: od 1 do {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "Format tytułu: nie może być pusty"
   # MIDI SoundFont: no such file (leave it empty for the system's)

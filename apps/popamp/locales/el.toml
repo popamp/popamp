@@ -887,6 +887,8 @@ forgotMissing = ["Ξεχάστηκαν οι αναπαραγωγές και οι
   crossfadeMs = "Διασταυρούμενο σβήσιμο (ms)"
   # Output buffer (ms)
   outputBufferMs = "Ενδιάμεση μνήμη εξόδου (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Προσωρινή μνήμη προανάγνωσης (MB)"
   # HTTP proxy
   httpProxy = "Διακομιστής μεσολάβησης HTTP"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Ξεχάστηκαν οι αναπαραγωγές και οι
   countPlayRange = "Μέτρηση αναπαραγωγής: 50 έως 100, ανά 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Σάρωση κάθε: 1 έως {max} λεπτά"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Προσωρινή μνήμη προανάγνωσης: 1 έως {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "Μορφή τίτλου: δεν μπορεί να είναι κενή"
   # MIDI SoundFont: no such file (leave it empty for the system's)

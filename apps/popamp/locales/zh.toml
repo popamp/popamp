@@ -887,6 +887,8 @@ forgotMissing = ["已清除 {n} 个丢失文件的播放记录和评分。"]
   crossfadeMs = "交叉淡化 (ms)"
   # Output buffer (ms)
   outputBufferMs = "输出缓冲 (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "预读缓冲区 (MB)"
   # HTTP proxy
   httpProxy = "HTTP 代理"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["已清除 {n} 个丢失文件的播放记录和评分。"]
   countPlayRange = "计为播放：50 到 100，步长 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "扫描间隔：1 到 {max} 分钟"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "预读缓冲区：1 到 {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "标题格式：不能为空"
   # MIDI SoundFont: no such file (leave it empty for the system's)

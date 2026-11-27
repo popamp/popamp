@@ -15,12 +15,13 @@ use popamp_core::playlist::is_url;
 use popamp_core::plformats::{self, is_playlist, Item};
 use popamp_core::replaygain::Scanned;
 use popamp_core::text;
+use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
 /// What a call needs from the player's settings.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Context {
     /// HTTP proxy (`[user:pass@]host:port`), empty for none.
     pub proxy: String,
@@ -30,6 +31,20 @@ pub struct Context {
     pub decoders: Decoders,
     /// The ReplayGain values Popamp measured; they win over the tags.
     pub scanned: Arc<Scanned>,
+    /// How far ahead a played file is read.
+    pub read_ahead_mb: NonZeroU32,
+}
+
+impl Default for Context {
+    fn default() -> Context {
+        Context {
+            proxy: String::new(),
+            soundfont: String::new(),
+            decoders: Decoders::default(),
+            scanned: Arc::default(),
+            read_ahead_mb: popamp_core::config::DEFAULT_READ_AHEAD_MB,
+        }
+    }
 }
 
 /// How the engine plays a track.

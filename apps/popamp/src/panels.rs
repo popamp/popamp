@@ -13,7 +13,7 @@ use crate::museum::{self, Fetched, Job};
 use crate::shortcuts;
 use crate::widgets::{Event, Form, PageEntry, Rect, Widget, BUTTON, PAGE_H, ROW_H};
 use popamp_audio::output::Device;
-use popamp_core::config::{Settings, MAX_RESCAN_MINUTES};
+use popamp_core::config::{Settings, MAX_READ_AHEAD_MB, MAX_RESCAN_MINUTES};
 use popamp_core::Command;
 use popamp_skin::Bitmap;
 use std::collections::HashMap;
@@ -479,6 +479,7 @@ pub enum Field {
     FadeMs,
     CrossfadeMs,
     BufferMs,
+    ReadAheadMb,
     Proxy,
     SoundFont,
     ListenPercent,
@@ -493,6 +494,7 @@ impl Field {
             Field::FadeMs => tr!("prefs.field.fadeOutMs"),
             Field::CrossfadeMs => tr!("prefs.field.crossfadeMs"),
             Field::BufferMs => tr!("prefs.field.outputBufferMs"),
+            Field::ReadAheadMb => tr!("prefs.field.readAheadMb"),
             Field::Proxy => tr!("prefs.field.httpProxy"),
             Field::SoundFont => tr!("prefs.field.midiSoundFont"),
             Field::ListenPercent => tr!("prefs.field.countPlayAfterHearing"),
@@ -507,6 +509,7 @@ impl Field {
             Field::FadeMs => s.fade_ms.to_string(),
             Field::CrossfadeMs => s.crossfade_ms.to_string(),
             Field::BufferMs => s.buffer_ms.to_string(),
+            Field::ReadAheadMb => s.read_ahead_mb.to_string(),
             Field::Proxy => s.proxy.clone(),
             Field::SoundFont => s.soundfont.clone(),
             Field::ListenPercent => s.listen_percent.to_string(),
@@ -522,6 +525,10 @@ impl Field {
             Field::FadeMs => number(tr!("prefs.field.fadeOut")),
             Field::CrossfadeMs => number(tr!("prefs.field.crossfade")),
             Field::BufferMs => number(tr!("prefs.field.outputBuffer")),
+            Field::ReadAheadMb => match text.trim().parse::<u32>() {
+                Ok(n) if (1..=MAX_READ_AHEAD_MB).contains(&n) => Ok(()),
+                _ => Err(tr!("prefs.field.readAheadRange", max = MAX_READ_AHEAD_MB)),
+            },
             Field::ListenPercent => match text.trim().parse::<u32>() {
                 Ok(n) if (50..=100).contains(&n) && n % 5 == 0 => Ok(()),
                 _ => Err(tr!("prefs.field.countPlayRange").into()),
@@ -546,6 +553,7 @@ impl Field {
             Field::FadeMs => model.settings_mut().fade_ms = n(),
             Field::CrossfadeMs => model.settings_mut().crossfade_ms = n(),
             Field::BufferMs => model.settings_mut().buffer_ms = n(),
+            Field::ReadAheadMb => model.settings_mut().read_ahead_mb = n(),
             Field::ListenPercent => model.settings_mut().listen_percent = n(),
             Field::RescanMinutes => model.settings_mut().ml_rescan_minutes = n(),
             Field::Proxy => model.settings_mut().proxy = text.trim().to_string(),
@@ -637,7 +645,7 @@ impl Section {
     fn fields(self) -> &'static [Field] {
         match self {
             Section::Playlist => &[Field::FontSize, Field::TitleFormat],
-            Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::SoundFont],
+            Section::Playback => &[Field::FadeMs, Field::CrossfadeMs, Field::BufferMs, Field::ReadAheadMb, Field::SoundFont],
             Section::Internet => &[Field::Proxy],
             Section::Library => &[Field::RescanMinutes, Field::ListenPercent],
             Section::Windows | Section::Desktop | Section::Shortcuts => &[],

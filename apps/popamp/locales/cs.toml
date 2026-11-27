@@ -887,6 +887,8 @@ forgotMissing = ["Zapomenuta přehrání a hodnocení {n} chybějícího souboru
   crossfadeMs = "Prolínání (ms)"
   # Output buffer (ms)
   outputBufferMs = "Výstupní vyrovnávací paměť (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Vyrovnávací paměť čtení dopředu (MB)"
   # HTTP proxy
   httpProxy = "HTTP proxy"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Zapomenuta přehrání a hodnocení {n} chybějícího souboru
   countPlayRange = "Počítat přehrání: 50 až 100, po 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Prohledávat každých: 1 až {max} minut"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Vyrovnávací paměť čtení dopředu: 1 až {max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "Formát názvu: nesmí být prázdný"
   # MIDI SoundFont: no such file (leave it empty for the system's)
