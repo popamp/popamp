@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- **A shaded equalizer pulls the playlist under it up** while the media
+  library is docked beside them (as Arrange windows leaves it): the
+  library, which stays put, held the playlist in place. A window now
+  follows the one it hangs under before one beside it.
+- **A playlist down to the bottom of the screen stays down to it** when
+  the main window or the equalizer above it is shaded or unshaded: it
+  grows or shrinks with the move, as Arrange windows left it. A playlist
+  short of the bottom only moves, and one the user makes shorter stays so.
 - **Sound no longer stutters while the disk is busy** (a large copy to
   the same drive, say). A played file is now read ahead by a thread of
   its own, so a slow read stalls that thread instead of the sound. How

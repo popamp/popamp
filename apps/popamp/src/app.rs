@@ -803,7 +803,7 @@ impl App {
         let stored = crate::bind::stored_size(&self.model, key);
         let fitted = (
             fit_grown(def.normal.width, stored.0, old.0 + old.2, |n| pos.0 + scale.px(n), area.x + area.w),
-            fit_bottom(def.normal.height, stored.1, old.1 + old.3, |n| pos.1 + scale.px(n), area.y + area.h),
+            bottom_height(def.normal.height, stored.1, old, pos.1, area.y + area.h, scale),
         );
         if fitted == stored {
             return false;
@@ -2918,20 +2918,34 @@ fn follow_docked(old: &[Option<Rect>], sizes: &[(i32, i32)], anchor: usize, resc
     for root in std::iter::once(anchor).chain(0..old.len()) {
         let Some(r) = old[root].filter(|_| pos[root].is_none()) else { continue };
         pos[root] = Some((r.0, r.1));
-        let mut todo = vec![root];
-        while let Some(a) = todo.pop() {
-            let (Some(ra), Some(pa)) = (old[a], pos[a]) else { continue };
-            let now = (pa.0, pa.1, sizes[a].0, sizes[a].1);
-            for b in 0..old.len() {
-                let Some(rb) = old[b].filter(|_| pos[b].is_none()) else { continue };
-                pos[b] = reattach(ra, rb, now, sizes[b], &rescale);
-                if pos[b].is_some() {
-                    todo.push(b);
-                }
-            }
+        // A window that hangs under or sits on a placed one follows it
+        // before one beside it does: a side neighbour that stays put must
+        // not hold a window whose upper neighbour got shorter.
+        while let Some((b, p)) =
+            next_attached(old, sizes, &pos, true, &rescale).or_else(|| next_attached(old, sizes, &pos, false, &rescale))
+        {
+            pos[b] = Some(p);
         }
     }
     pos.into_iter().map(|p| p.unwrap_or((0, 0))).collect()
+}
+
+/// The first window not placed yet that touched a placed one above or
+/// below it (`stacked`) or beside it, and where it goes now.
+fn next_attached(
+    old: &[Option<Rect>],
+    sizes: &[(i32, i32)],
+    pos: &[Option<(i32, i32)>],
+    stacked: bool,
+    rescale: &impl Fn(i32) -> i32,
+) -> Option<(usize, (i32, i32))> {
+    (0..old.len()).filter_map(|a| Some((a, old[a]?, pos[a]?))).find_map(|(a, ra, pa)| {
+        let now = (pa.0, pa.1, sizes[a].0, sizes[a].1);
+        (0..old.len()).filter(|&b| pos[b].is_none()).find_map(|b| {
+            let (p, vertical) = reattach(ra, old[b]?, now, sizes[b], rescale)?;
+            (vertical == stacked).then_some((b, p))
+        })
+    })
 }
 
 /// Where the windows go: sizes in screen pixels and top-left corners, in
@@ -2963,6 +2977,18 @@ fn fit_bottom(dim: Dim, want: i32, was: i32, end: impl Fn(i32) -> i32, limit: i3
     crate::arrange::longest_within(min, want, end, limit.max(was))
 }
 
+/// The height in skin pixels of a window that was at `old` on the screen,
+/// is `stored` high and now starts at `top`: one that reached the screen's
+/// bottom `limit` and was moved, as when a window above it is shaded,
+/// still reaches it; any other is only kept from ending further past it.
+fn bottom_height(dim: Dim, stored: i32, old: Rect, top: i32, limit: i32, scale: Scale) -> i32 {
+    let was = old.1 + old.3;
+    if top != old.1 && (0..=1).contains(&(limit - was)) {
+        return crate::arrange::fill(dim, stored, top, limit, scale);
+    }
+    fit_bottom(dim, stored, was, |n| top + scale.px(n), limit)
+}
+
 /// The height a drag gives a window that wants `want` skin pixels: the
 /// nearest step, until the pointer is past the last step that ends inside
 /// `limit`; then the height that ends right at `limit`.
@@ -2986,8 +3012,9 @@ fn reach_bottom(dim: Dim, want: i32, end: impl Fn(i32) -> i32, limit: i32) -> i3
 }
 
 /// Where `b`, which touched `a` before, goes now that `a` is at `now` and
-/// `b` has `size`; `None` if they did not touch.
-fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32) -> i32) -> Option<(i32, i32)> {
+/// `b` has `size`, and whether `b` was above or below `a`; `None` if they
+/// did not touch.
+fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32) -> i32) -> Option<((i32, i32), bool)> {
     let columns_overlap = b.0 < a.0 + a.2 && b.0 + b.2 > a.0;
     let rows_overlap = b.1 < a.1 + a.3 && b.1 + b.3 > a.1;
     let touch = |gap: i32| gap.abs() <= 1;
@@ -2999,7 +3026,7 @@ fn reattach(a: Rect, b: Rect, now: Rect, size: (i32, i32), rescale: &impl Fn(i32
         (rows_overlap && touch(b.0 - (a.0 + a.2)), (now.0 + now.2, y)),     // right
         (rows_overlap && touch(a.0 - (b.0 + b.2)), (now.0 - size.0, y)),    // left
     ];
-    sides.into_iter().find(|s| s.0).map(|s| s.1)
+    sides.into_iter().position(|s| s.0).map(|i| (sides[i].1, i < 2))
 }
 
 #[cfg(test)]
@@ -3126,6 +3153,19 @@ mod tests {
     }
 
     #[test]
+    fn a_window_follows_the_one_above_it_before_one_beside_it() {
+        // Main, EQ and playlist stacked at the right edge at x1.5, the
+        // library against their left sides; the equalizer is shaded.
+        let old = [Some((1507, 0, 413, 174)), Some((1507, 174, 413, 174)), Some((1507, 348, 413, 680)), Some((1, 0, 1506, 1028))];
+        let sizes = [(413, 174), (413, 24), (413, 680), (1506, 1028)];
+        assert_eq!(follow_docked(&old, &sizes, 0, |d| d), [(1507, 0), (1507, 174), (1507, 198), (1, 0)]);
+        // Then main is shaded too: the whole column moves up.
+        let old = [Some((1507, 0, 413, 174)), Some((1507, 174, 413, 24)), Some((1507, 198, 413, 680)), Some((1, 0, 1506, 1028))];
+        let sizes = [(413, 24), (413, 24), (413, 680), (1506, 1028)];
+        assert_eq!(follow_docked(&old, &sizes, 0, |d| d), [(1507, 0), (1507, 24), (1507, 48), (1, 0)]);
+    }
+
+    #[test]
     fn the_resized_window_stays_and_pushes_its_neighbour() {
         // Playlist left of main grows 25 wider: main moves right, not the playlist left.
         let old = [Some((500, 0, 275, 116)), None, Some((225, 0, 275, 232))];
@@ -3194,6 +3234,20 @@ mod tests {
         assert_eq!(fit_grown(dim, 232, 900 + 232, end, 1000), 232, "parked over the edge by the user");
         assert_eq!(fit_grown(dim, 261, 900 + 232, end, 1000), 232, "growing further is refused");
         assert_eq!(fit_grown(Dim::Fixed(275), 275, 0, end, 1000), 275);
+    }
+
+    #[test]
+    fn a_playlist_down_to_the_screen_edge_stays_there_as_the_windows_above_shade() {
+        let s = Scale::new(150, popamp_core::config::Scaling::Sharp);
+        let dim = Dim::Free { min: 116, step: 29 };
+        let ends_at_edge = |top: i32, h: i32| top + s.px(h) <= 1028 && top + s.px(h + 1) > 1028;
+        // Under main and the equalizer at x1.5, down to a panel at 1028.
+        let grown = bottom_height(dim, 453, (1507, 348, 413, 680), 198, 1028, s);
+        assert!(ends_at_edge(198, grown), "the equalizer shaded: {grown} must reach the edge");
+        let back = bottom_height(dim, grown, (1507, 198, 413, s.px(grown)), 348, 1028, s);
+        assert!(ends_at_edge(348, back), "the equalizer back: {back} must end at the edge");
+        assert_eq!(bottom_height(dim, 290, (1507, 348, 413, 680), 348, 1028, s), 290, "the user made it shorter");
+        assert_eq!(bottom_height(dim, 232, (1507, 348, 413, 348), 198, 1028, s), 232, "short of the edge: it only moves");
     }
 
     #[test]
