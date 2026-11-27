@@ -209,6 +209,36 @@ The skins and plug-ins with a release are in both repositories too, as
 `popamp-skin-<name>` and `popamp-plugin-<id>` (e.g. `popamp-skin-steel`,
 `popamp-plugin-youtube`); a plug-in needs popamp-plus.
 
+#### Flatpak
+
+Popamp Plus, for x86_64, is in a Flatpak repository of its own at
+apt.popamp.app, signed with the same key as the apt repository, and
+updates with the other Flatpak apps. The runtime comes from Flathub.
+
+```sh
+flatpak install --user https://apt.popamp.app/popamp.flatpakref
+flatpak run io.github.popamp.popamp
+```
+
+Popamp is not on Flathub. The Flatpak reads the Music folder; other files
+come through the desktop's file dialog or drag and drop. On COSMIC it has
+no toolbar mode (cosmic-comp keeps wlr-layer-shell from sandboxed
+programs). [popamp/apt](https://github.com/popamp/apt) builds each
+release with `packaging/flatpak/io.github.popamp.popamp.yml`.
+
+Where a Flatpak came from can be checked. `flatpak info
+io.github.popamp.popamp` shows, as its subject, the commit of this
+repository it was built from, and GitHub attests that popamp/apt's
+workflow built it:
+
+```sh
+c=$(flatpak info --show-commit io.github.popamp.popamp)
+gh attestation verify ~/.local/share/flatpak/repo/objects/${c:0:2}/${c:2}.commit -R popamp/apt
+```
+
+(`/var/lib/flatpak/repo` for a system-wide installation; `gh attestation`
+needs GitHub CLI 2.49 or newer.)
+
 #### Arch, Manjaro, EndeavourOS
 
 Each release carries a PKGBUILD for each build, `popamp-bin.PKGBUILD`

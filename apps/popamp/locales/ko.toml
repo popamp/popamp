@@ -887,6 +887,8 @@ forgotMissing = ["없어진 파일 {n}개의 재생 기록과 평점을 지웠�
   crossfadeMs = "크로스페이드 (ms)"
   # Output buffer (ms)
   outputBufferMs = "출력 버퍼 (ms)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "미리 읽기 버퍼 (MB)"
   # HTTP proxy
   httpProxy = "HTTP 프록시"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["없어진 파일 {n}개의 재생 기록과 평점을 지웠�
   countPlayRange = "재생 횟수 기준: 50~100, 5 단위"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "스캔 간격: 1~{max}분"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "미리 읽기 버퍼: 1~{max} MB"
   # Title format: must not be empty
   titleFormatEmpty = "제목 형식: 비워 둘 수 없습니다"
   # MIDI SoundFont: no such file (leave it empty for the system's)

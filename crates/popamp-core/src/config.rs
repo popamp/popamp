@@ -123,9 +123,13 @@ impl IniValue for Option<BarEdge> {
     }
 }
 
-/// The window sizes offered, in percent.
 /// The longest wait between the library's scans: a day.
 pub const MAX_RESCAN_MINUTES: u32 = 24 * 60;
+
+/// How far ahead a played file is read, in megabytes.
+pub const DEFAULT_READ_AHEAD_MB: std::num::NonZeroU32 = std::num::NonZeroU32::new(2).unwrap();
+pub const MAX_READ_AHEAD_MB: u32 = 1024;
+/// The window sizes offered, in percent.
 pub const ZOOMS: [i32; 7] = [100, 125, 150, 175, 200, 250, 300];
 
 macro_rules! settings {
@@ -220,6 +224,9 @@ settings! {
     /// The output device, by the name the sound system gives it.
     output_device: String = "default".to_string(),
     buffer_ms: u32 = 150,
+    /// How far ahead a played file is read, so a busy disk does not
+    /// break the sound.
+    read_ahead_mb: u32 = DEFAULT_READ_AHEAD_MB.get(),
     fade_ms: u32 = 1000,
     /// How long one track fades into the next, 0 = gapless.
     crossfade_ms: u32 = 0,
@@ -353,6 +360,7 @@ impl Settings {
         self.vis_fps = self.vis_fps.clamp(1, 70);
         self.sa = self.sa.clamp(0, 2);
         self.buffer_ms = self.buffer_ms.clamp(40, 2000);
+        self.read_ahead_mb = self.read_ahead_mb.clamp(1, MAX_READ_AHEAD_MB);
         self.crossfade_ms = self.crossfade_ms.min(10_000);
         self.listen_percent = self.listen_percent.clamp(50, 100) / 5 * 5;
         self.ml_rescan_minutes = self.ml_rescan_minutes.clamp(1, MAX_RESCAN_MINUTES);

@@ -887,6 +887,8 @@ forgotMissing = ["Забуто прослуховування й оцінки {n
   crossfadeMs = "Перехід (мс)"
   # Output buffer (ms)
   outputBufferMs = "Буфер виводу (мс)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Буфер читання (МБ)"
   # HTTP proxy
   httpProxy = "HTTP-проксі"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Забуто прослуховування й оцінки {n
   countPlayRange = "Зараховувати прослуховування: від 50 до 100, крок 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Сканувати кожні: від 1 до {max} хвилин"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Буфер читання: від 1 до {max} МБ"
   # Title format: must not be empty
   titleFormatEmpty = "Формат назви: не може бути порожнім"
   # MIDI SoundFont: no such file (leave it empty for the system's)

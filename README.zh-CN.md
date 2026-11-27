@@ -76,6 +76,7 @@ Ubuntu、openSUSE 和 Fedora 也可以从软件源安装并自动更新。每种
 | Debian、Ubuntu | 添加 [apt 软件源](docs/building.md#debian-and-ubuntu)（英文），然后 `sudo apt install popamp`；或下载 `popamp-<版本>-linux-amd64.deb`（ARM64：`-arm64.deb`），再 `sudo apt install ./popamp-…deb` |
 | openSUSE、Fedora | 添加[软件源](docs/building.md#opensuse-and-fedora)（英文），然后 `sudo zypper install popamp` 或 `sudo dnf install popamp` |
 | Arch、Manjaro、EndeavourOS | 从发布页下载 `popamp-bin.PKGBUILD`，在空文件夹中保存为 `PKGBUILD`，运行 `makepkg -si`（[说明](docs/building.md#arch-manjaro-endeavouros)，英文） |
+| 装有 Flatpak 的 Linux | `flatpak install --user https://apt.popamp.app/popamp.flatpakref`（popamp-plus，x86_64；[详情](docs/building.md#flatpak)） |
 | 其他 Linux | `Popamp-<版本>-x86_64.AppImage`：`chmod +x` 后直接运行 |
 | Windows 10 或 11 | `Popamp-<版本>-windows-x86_64-setup.exe`，或便携版 `…-portable.zip`：解压到任意位置，运行 `popamp.exe` |
 | macOS 12 或更高（实验性） | `Popamp-<版本>-macos-universal.dmg`，支持 Apple Silicon 和 Intel：打开后把 Popamp 拖到“应用程序”；首次启动需要[在系统设置中点一下](docs/building.md#macos)（英文） |

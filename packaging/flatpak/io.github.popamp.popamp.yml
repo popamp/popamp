@@ -1,0 +1,82 @@
+# Flatpak manifest for Popamp Plus: the player with its wasm plug-ins and
+# GPU visualizers. popamp/apt's Flatpak workflow builds each release with it
+# into https://apt.popamp.app/flatpak/ (install: popamp.flatpakref there).
+# Build:  flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.popamp.popamp.yml
+# After a Cargo.lock change: flatpak-cargo-generator Cargo.lock -o packaging/flatpak/cargo-sources.json
+id: io.github.popamp.popamp
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: popamp
+finish-args:
+  # Both, as outside the sandbox: Popamp places and docks its windows
+  # through X11 (Xwayland on GNOME and KDE), and on Wayland reserves the
+  # toolbar's strip with layer-shell and runs natively on COSMIC.
+  - --socket=wayland
+  - --socket=x11
+  - --share=ipc
+  - --device=dri
+  - --socket=pulseaudio
+  # Internet radio, the YouTube plug-in, skin and plug-in downloads.
+  - --share=network
+  # The library reads the Music folder; other folders come through the portal.
+  - --filesystem=xdg-music:ro
+  - --own-name=org.mpris.MediaPlayer2.popamp
+  - --own-name=org.mpris.MediaPlayer2.popamp.*
+  # The tray icon (StatusNotifierItem); the player owns no name for it here.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  # Track-change notifications and keeping the screen awake for visualizers.
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.ScreenSaver
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+modules:
+  # Tracker modules (MOD, XM, S3M, IT): the player loads libopenmpt.so.0,
+  # which the runtime lacks. Its other formats come from the runtime.
+  - name: libopenmpt
+    config-opts:
+      - --disable-static
+      - --disable-openmpt123
+      - --disable-examples
+      - --disable-tests
+      - --disable-doxygen-doc
+      - --without-portaudio
+      - --without-portaudiocpp
+      - --without-sndfile
+      - --without-flac
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - /share/doc
+      - '*.la'
+    sources:
+      - type: archive
+        url: https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.10+release.autotools.tar.gz
+        sha256: 976d259288c40cd285771f77d09eff3d02514511d5677ecfcfb53be5013317e2
+
+  - name: popamp
+    buildsystem: simple
+    build-options:
+      env:
+        CARGO_HOME: /run/build/popamp/cargo
+        CARGO_NET_OFFLINE: 'true'
+    build-commands:
+      - cargo --offline build --release --locked -p popamp --features plus
+      - packaging/install-files.sh target/release/popamp /app
+      # Flatpak exports only files named after the app ID.
+      - mv /app/share/mime/packages/popamp-skin.xml /app/share/mime/packages/io.github.popamp.popamp.xml
+      # The windows are named after the app ID here (Wayland app_id, WM_CLASS).
+      - desktop-file-edit --set-key=StartupWMClass --set-value=io.github.popamp.popamp /app/share/applications/popamp.desktop
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - target
+          - build-dir
+          - .flatpak-builder
+      - cargo-sources.json
+rename-desktop-file: popamp.desktop
+rename-icon: popamp
+rename-appdata-file: popamp.metainfo.xml

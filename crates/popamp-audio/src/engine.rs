@@ -915,9 +915,9 @@ impl Worker {
                 self.seek_base_ms = ms;
                 return;
             }
-            if let Some(p) = &mut self.pcm {
-                p.pause(false);
-            }
+            // Discarding ends the device's pause silently on every
+            // backend; unpausing first would let it play a moment of
+            // what it still held.
             self.seek_to(ms);
             self.resume_seek = Some(ms);
             return;

@@ -887,6 +887,8 @@ forgotMissing = ["Забыты история и оценки {n} пропавш
   crossfadeMs = "Плавный переход (мс)"
   # Output buffer (ms)
   outputBufferMs = "Буфер вывода (мс)"
+  # Read-ahead buffer (MB)
+  readAheadMb = "Буфер чтения (МБ)"
   # HTTP proxy
   httpProxy = "HTTP-прокси"
   # MIDI SoundFont
@@ -909,6 +911,8 @@ forgotMissing = ["Забыты история и оценки {n} пропавш
   countPlayRange = "Порог прослушивания: от 50 до 100, с шагом 5"
   # Scan every: 1 to {max} minutes
   scanEveryRange = "Интервал сканирования: от 1 до {max} минут"
+  # Read-ahead buffer: 1 to {max} MB
+  readAheadRange = "Буфер чтения: от 1 до {max} МБ"
   # Title format: must not be empty
   titleFormatEmpty = "Формат заголовка: не может быть пустым"
   # MIDI SoundFont: no such file (leave it empty for the system's)

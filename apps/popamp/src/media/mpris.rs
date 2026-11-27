@@ -69,7 +69,7 @@ impl Root {
     }
     #[zbus(property)]
     fn desktop_entry(&self) -> String {
-        "popamp".into()
+        crate::flatpak::desktop_id().into()
     }
     #[zbus(property)]
     fn supported_uri_schemes(&self) -> Vec<String> {

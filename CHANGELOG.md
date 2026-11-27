@@ -16,6 +16,13 @@ All notable changes to this project are documented here. The format follows
   the main window or the equalizer above it is shaded or unshaded: it
   grows or shrinks with the move, as Arrange windows left it. A playlist
   short of the bottom only moves, and one the user makes shorter stays so.
+- **Sound no longer stutters while the disk is busy** (a large copy to
+  the same drive, say). A played file is now read ahead by a thread of
+  its own, so a slow read stalls that thread instead of the sound. How
+  far ahead is set in Preferences > Playback > Read-ahead buffer (MB):
+  2 MB by default, up to 1024 MB.
+- **No more blip when seeking while paused.** The first seek during a
+  pause let the device play a moment of the audio it still held.
 
 ## [1.3.0] - 2026-11-25
 
